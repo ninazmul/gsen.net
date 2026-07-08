@@ -96,6 +96,7 @@ export default function ReportsClient({
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
   const [selectedIncomeCategory, setSelectedIncomeCategory] = useState("all");
   const [selectedExpenseCategory, setSelectedExpenseCategory] = useState("all");
+  const [activeTab, setActiveTab] = useState("income");
   const [incomeReport, setIncomeReport] = useState<{
     incomes: Income[];
     total: number;
@@ -218,6 +219,50 @@ export default function ReportsClient({
     setMonthlyReport(report);
   }, [year]);
 
+  // Load initial reports
+  useEffect(() => {
+    loadIncomeReport();
+    loadExpenseReport();
+    loadProfitReport();
+    loadCategoryReport();
+    loadMonthlyReport();
+  }, [
+    loadIncomeReport,
+    loadExpenseReport,
+    loadProfitReport,
+    loadCategoryReport,
+    loadMonthlyReport,
+  ]);
+
+  // Load reports when relevant filters change
+  useEffect(() => {
+    if (activeTab === "income") {
+      loadIncomeReport();
+    } else if (activeTab === "expenses") {
+      loadExpenseReport();
+    } else if (activeTab === "profit") {
+      loadProfitReport();
+    } else if (activeTab === "category") {
+      loadCategoryReport();
+    }
+  }, [
+    activeTab,
+    period,
+    startDate,
+    endDate,
+    selectedIncomeCategory,
+    selectedExpenseCategory,
+    loadIncomeReport,
+    loadExpenseReport,
+    loadProfitReport,
+    loadCategoryReport,
+  ]);
+
+  // Load monthly report when year changes
+  useEffect(() => {
+    loadMonthlyReport();
+  }, [year, loadMonthlyReport]);
+
   const handleExportIncome = async (format: "xlsx" | "csv") => {
     const data = incomeReport.incomes.map((inc) => ({
       Title: inc.title,
@@ -326,23 +371,17 @@ export default function ReportsClient({
         </div>
       </div>
 
-      <Tabs defaultValue="income">
+      <Tabs
+        defaultValue="income"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList>
-          <TabsTrigger value="income" onClick={() => loadIncomeReport()}>
-            Income Report
-          </TabsTrigger>
-          <TabsTrigger value="expenses" onClick={() => loadExpenseReport()}>
-            Expense Report
-          </TabsTrigger>
-          <TabsTrigger value="profit" onClick={() => loadProfitReport()}>
-            Profit Report
-          </TabsTrigger>
-          <TabsTrigger value="category" onClick={() => loadCategoryReport()}>
-            Category Report
-          </TabsTrigger>
-          <TabsTrigger value="monthly" onClick={() => loadMonthlyReport()}>
-            Monthly Performance
-          </TabsTrigger>
+          <TabsTrigger value="income">Income Report</TabsTrigger>
+          <TabsTrigger value="expenses">Expense Report</TabsTrigger>
+          <TabsTrigger value="profit">Profit Report</TabsTrigger>
+          <TabsTrigger value="category">Category Report</TabsTrigger>
+          <TabsTrigger value="monthly">Monthly Performance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="income">

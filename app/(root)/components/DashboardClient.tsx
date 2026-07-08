@@ -159,7 +159,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </Card>
 
         <Card className="p-5 shadow-sm hover:shadow-md transition">
-          <p className="text-sm text-gray-500">Owner Balances</p>
+          <p className="text-sm text-gray-500">Owner Count</p>
           <h2 className="text-3xl font-bold text-yellow-600">
             {data.summary.ownerBalances.length}
           </h2>
