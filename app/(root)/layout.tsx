@@ -11,7 +11,6 @@ import {
   getOrCreateCurrentAdmin,
   type Admin,
 } from "@/lib/actions/admin.actions";
-import { hasPageAccess } from "@/lib/permission-helpers";
 
 export const dynamic = "force-dynamic";
 

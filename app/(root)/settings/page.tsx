@@ -10,7 +10,7 @@ export default async function SettingsPage() {
     redirect("/access-denied");
   }
 
-  const hasAccess = await checkPagePermissionServer("/settings");
+  const hasAccess = await checkPagePermissionServer("settings");
   if (!hasAccess) redirect("/access-denied");
 
   const settings = await getSettings();

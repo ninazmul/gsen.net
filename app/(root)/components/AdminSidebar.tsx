@@ -25,7 +25,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { hasPageAccess, hasPermission } from "@/lib/permission-helpers";
+import { hasPageAccess } from "@/lib/permission-helpers";
 import { type Admin } from "@/lib/actions/admin.actions";
 
 const sidebarSections = [
@@ -112,7 +112,7 @@ const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
   const filteredSections = sidebarSections.map((section) => ({
     ...section,
     items: section.items.filter((item) =>
-      hasPageAccess(currentAdmin, item.url as any)
+      hasPageAccess(currentAdmin, item.url)
     ),
   })).filter((section) => section.items.length > 0);
 

@@ -4,7 +4,7 @@ import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
 import { redirect } from "next/navigation";
 
 export default async function ActivityLogsPage() {
-  const hasAccess = await checkPagePermissionServer("/activity-logs");
+  const hasAccess = await checkPagePermissionServer("activityLogs");
   if (!hasAccess) redirect("/access-denied");
 
   const { logs } = await getActivityLogs({ limit: 100 });

@@ -4,7 +4,7 @@ import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
 import { redirect } from "next/navigation";
 
 export default async function AdminsPage() {
-  const hasAccess = await checkPagePermissionServer("/admins");
+  const hasAccess = await checkPagePermissionServer("admins");
   if (!hasAccess) redirect("/access-denied");
 
   const admins = await getAdmins();

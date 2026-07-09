@@ -9,7 +9,7 @@ const DashboardPage = async () => {
 
   if (!user) redirect("/sign-in");
 
-  const hasAccess = await checkPagePermissionServer("/");
+  const hasAccess = await checkPagePermissionServer("dashboard");
   if (!hasAccess) redirect("/access-denied");
 
   try {

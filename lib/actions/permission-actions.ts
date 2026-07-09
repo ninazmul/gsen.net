@@ -4,10 +4,10 @@ import { getCurrentAdmin, type AdminPermissions } from "./admin.actions";
 import { hasPageAccess, hasPermission } from "@/lib/permission-helpers";
 
 export async function checkPagePermissionServer(
-  path: string
+  path: keyof AdminPermissions["pages"]
 ): Promise<boolean> {
   const admin = await getCurrentAdmin();
-  return hasPageAccess(admin, path as any);
+  return hasPageAccess(admin, path);
 }
 
 /**

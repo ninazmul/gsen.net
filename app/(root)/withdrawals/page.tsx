@@ -4,7 +4,7 @@ import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
 import { redirect } from "next/navigation";
 
 export default async function WithdrawalsPage() {
-  const hasAccess = await checkPagePermissionServer("/withdrawals");
+  const hasAccess = await checkPagePermissionServer("withdrawals");
   if (!hasAccess) redirect("/access-denied");
 
   const { withdrawals } = await getWithdrawals({ limit: 100 });
