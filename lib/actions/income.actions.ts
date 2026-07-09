@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkWritePermissionServer } from "./permission-actions";
 
 interface IncomeDoc {
   _id: string;
@@ -30,6 +31,7 @@ export async function createIncome(data: {
   referenceNumber?: string;
   description?: string;
 }) {
+  await checkWritePermissionServer("income");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -101,6 +103,7 @@ export async function getIncomes(params?: {
 }
 
 export async function updateIncome(id: string, data: Partial<IncomeDoc>) {
+  await checkWritePermissionServer("income");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -125,6 +128,7 @@ export async function updateIncome(id: string, data: Partial<IncomeDoc>) {
 }
 
 export async function softDeleteIncome(id: string) {
+  await checkWritePermissionServer("income");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -145,6 +149,7 @@ export async function softDeleteIncome(id: string) {
 }
 
 export async function restoreIncome(id: string) {
+  await checkWritePermissionServer("income");
   await connectToDatabase();
   const user = await currentUser();
 

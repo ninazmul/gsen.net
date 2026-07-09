@@ -5,6 +5,31 @@ import Admin from "@/lib/database/models/admin.model";
 import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "./activity-log.actions";
+import { requireSuperAdmin } from "./permission-actions";
+
+// Type definitions
+export interface AdminPermissions {
+  pages: {
+    dashboard: boolean;
+    income: { read: boolean; write: boolean };
+    expenses: { read: boolean; write: boolean };
+    categories: { read: boolean; write: boolean };
+    withdrawals: { read: boolean; write: boolean };
+    reports: boolean;
+    activityLogs: boolean;
+    admins: boolean;
+    settings: boolean;
+  };
+}
+
+export interface Admin {
+  _id: string;
+  email: string;
+  role: "admin" | "superadmin";
+  permissions: AdminPermissions;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export async function checkIsAdmin(): Promise<boolean> {
   await connectToDatabase();
@@ -18,17 +43,38 @@ export async function checkIsAdmin(): Promise<boolean> {
   return !!admin;
 }
 
+export async function getCurrentAdmin() {
+  await connectToDatabase();
+  const user = await currentUser();
+  if (!user) return null;
+
+  const email = user.emailAddresses[0]?.emailAddress;
+  if (!email) return null;
+
+  const admin = await Admin.findOne({ email });
+  return JSON.parse(JSON.stringify(admin));
+}
+
 export async function getAdmins() {
   await connectToDatabase();
   const admins = await Admin.find();
   return JSON.parse(JSON.stringify(admins));
 }
 
-export async function createAdmin(email: string) {
+export async function createAdmin(
+  email: string,
+  role?: "admin" | "superadmin",
+  permissions?: Partial<AdminPermissions>,
+) {
+  await requireSuperAdmin();
   await connectToDatabase();
   const user = await currentUser();
 
-  const admin = await Admin.create({ email });
+  const admin = await Admin.create({
+    email,
+    role: role || "admin",
+    permissions,
+  });
 
   await logActivity({
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
@@ -43,17 +89,56 @@ export async function createAdmin(email: string) {
   return JSON.parse(JSON.stringify(admin));
 }
 
+export async function updateAdmin(
+  id: string,
+  data: {
+    role?: "admin" | "superadmin";
+    permissions?: Partial<AdminPermissions>;
+  },
+) {
+  await requireSuperAdmin();
+  await connectToDatabase();
+  const user = await currentUser();
+
+  const oldAdmin = await Admin.findById(id);
+  if (!oldAdmin) throw new Error("Admin not found");
+
+  const admin = await Admin.findByIdAndUpdate(
+    id,
+    data,
+    { new: true },
+  );
+
+  await logActivity({
+    adminEmail: user?.emailAddresses[0]?.emailAddress || "",
+    module: "Admin",
+    action: "Update",
+    description: `Updated admin: ${oldAdmin.email}`,
+    recordId: admin?._id,
+    oldData: JSON.parse(JSON.stringify(oldAdmin)),
+    newData: JSON.parse(JSON.stringify(admin)),
+  });
+
+  revalidatePath("/admins");
+  return JSON.parse(JSON.stringify(admin));
+}
+
 export async function deleteAdmin(id: string) {
+  await requireSuperAdmin();
   await connectToDatabase();
   const user = await currentUser();
 
   const adminToDelete = await Admin.findById(id);
   if (!adminToDelete) throw new Error("Admin not found");
 
-  // Check if this is the last admin
-  const adminsCount = await Admin.countDocuments();
-  if (adminsCount <= 1) {
-    throw new Error("Cannot delete the last admin");
+  // Check if this is the last superadmin
+  if (adminToDelete.role === "superadmin") {
+    const superAdminsCount = await Admin.countDocuments({
+      role: "superadmin",
+    });
+    if (superAdminsCount <= 1) {
+      throw new Error("Cannot delete the last superadmin");
+    }
   }
 
   await Admin.findByIdAndDelete(id);
@@ -85,7 +170,10 @@ export async function getOrCreateCurrentAdmin() {
     // Only create admin if there are no existing admins (first user)
     const existingAdminsCount = await Admin.countDocuments();
     if (existingAdminsCount === 0) {
-      admin = await Admin.create({ email });
+      admin = await Admin.create({
+        email,
+        role: "superadmin",
+      });
     } else {
       // Otherwise, return null to prevent access
       return null;

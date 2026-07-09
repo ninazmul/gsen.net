@@ -9,7 +9,9 @@ import { seedDefaultCategories } from "@/lib/actions/category.actions";
 import {
   checkIsAdmin,
   getOrCreateCurrentAdmin,
+  type Admin,
 } from "@/lib/actions/admin.actions";
+import { hasPageAccess } from "@/lib/permission-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +39,7 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AdminSidebar />
+      <AdminSidebar currentAdmin={admin as Admin} />
       <Toaster />
       <main className="flex-1 h-screen mx-auto overflow-y-auto">
         <div className="flex justify-between items-center p-4 w-full border-b text-white bg-[#3e0078]">

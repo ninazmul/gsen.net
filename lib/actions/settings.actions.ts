@@ -5,6 +5,7 @@ import Settings from "@/lib/database/models/settings.model";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkWritePermissionServer } from "./permission-actions";
 
 interface Owner {
   name: string;
@@ -36,6 +37,7 @@ export async function getSettings() {
 }
 
 export async function updateSettings(data: Partial<SettingsDoc>) {
+  await checkWritePermissionServer("settings");
   await connectToDatabase();
   const user = await currentUser();
 

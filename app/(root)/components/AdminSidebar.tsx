@@ -25,6 +25,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { hasPageAccess, hasPermission } from "@/lib/permission-helpers";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 const sidebarSections = [
   {
@@ -34,6 +36,7 @@ const sidebarSections = [
         title: "Dashboard",
         url: "/",
         icon: LayoutDashboard,
+        permission: "dashboard",
       },
     ],
   },
@@ -44,21 +47,25 @@ const sidebarSections = [
         title: "Income",
         url: "/income",
         icon: TrendingUp,
+        permission: "income",
       },
       {
         title: "Expenses",
         url: "/expenses",
         icon: Wallet,
+        permission: "expenses",
       },
       {
         title: "Categories",
         url: "/categories",
         icon: Tag,
+        permission: "categories",
       },
       {
         title: "Withdrawals",
         url: "/withdrawals",
         icon: ArrowDownToLine,
+        permission: "withdrawals",
       },
     ],
   },
@@ -69,11 +76,13 @@ const sidebarSections = [
         title: "Reports",
         url: "/reports",
         icon: TrendingUp,
+        permission: "reports",
       },
       {
         title: "Activity Log",
         url: "/activity-logs",
         icon: History,
+        permission: "activityLogs",
       },
     ],
   },
@@ -84,18 +93,28 @@ const sidebarSections = [
         title: "Manage Admins",
         url: "/admins",
         icon: UserPlus,
+        permission: "admins",
       },
       {
         title: "Settings",
         url: "/settings",
         icon: Settings,
+        permission: "settings",
       },
     ],
   },
 ];
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
   const currentPath = usePathname();
+
+  // Filter sections and items based on permissions
+  const filteredSections = sidebarSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) =>
+      hasPageAccess(currentAdmin, item.url as any)
+    ),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <Sidebar
@@ -114,7 +133,7 @@ const AdminSidebar = () => {
         </div>
 
         {/* Sections */}
-        {sidebarSections.map((section) => (
+        {filteredSections.map((section) => (
           <SidebarGroup key={section.label}>
             <SidebarGroupLabel className="text-xs uppercase tracking-wide text-gray-500 px-4">
               {section.label}

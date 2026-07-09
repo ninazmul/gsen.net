@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkWritePermissionServer } from "./permission-actions";
 
 interface CategoryDoc {
   _id: string;
@@ -22,6 +23,7 @@ export async function createCategory(data: {
   type: "Income" | "Expense";
   color?: string;
 }) {
+  await checkWritePermissionServer("categories");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -63,6 +65,7 @@ export async function getCategoryById(id: string) {
 }
 
 export async function updateCategory(id: string, data: Partial<CategoryDoc>) {
+  await checkWritePermissionServer("categories");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -86,6 +89,7 @@ export async function updateCategory(id: string, data: Partial<CategoryDoc>) {
 }
 
 export async function deleteCategory(id: string) {
+  await checkWritePermissionServer("categories");
   await connectToDatabase();
   const user = await currentUser();
 

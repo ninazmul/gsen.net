@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkWritePermissionServer } from "./permission-actions";
 
 interface Owner {
   name: string;
@@ -64,6 +65,7 @@ export async function createWithdrawal(data: {
   date: Date;
   description?: string;
 }) {
+  await checkWritePermissionServer("withdrawals");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -144,6 +146,7 @@ export async function updateWithdrawal(
   id: string,
   data: Partial<WithdrawalDoc>,
 ) {
+  await checkWritePermissionServer("withdrawals");
   await connectToDatabase();
   const user = await currentUser();
 
@@ -214,6 +217,7 @@ export async function updateWithdrawal(
 }
 
 export async function deleteWithdrawal(id: string) {
+  await checkWritePermissionServer("withdrawals");
   await connectToDatabase();
   const user = await currentUser();
 
