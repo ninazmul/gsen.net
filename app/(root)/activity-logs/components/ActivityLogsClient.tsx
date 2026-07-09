@@ -21,9 +21,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { getActivityLogs } from "@/lib/actions/activity-log.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ActivityLog {
   _id: string;
@@ -32,7 +38,174 @@ interface ActivityLog {
   module: string;
   action: string;
   description: string;
+  recordId?: string;
+  oldData?: any;
+  newData?: any;
+  ipAddress?: string;
+  browser?: string;
+  userAgent?: string;
   createdAt: Date;
+}
+
+const IGNORED_KEYS = ["_id", "__v", "createdAt", "updatedAt", "clerkUserId", "deletedAt"];
+
+function formatKey(key: string): string {
+  const result = key.replace(/([A-Z])/g, " $1");
+  return result.charAt(0).toUpperCase() + result.slice(1).replace(/_/g, " ");
+}
+
+function formatValue(key: string, value: any): React.ReactNode {
+  if (value === null || value === undefined) return "-";
+
+  if (key === "date" || key === "createdAt" || key === "updatedAt" || key === "deletedAt") {
+    try {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) {
+        return `${formatDate(d)} ${d.toLocaleTimeString()}`;
+      }
+    } catch (_) {}
+    return String(value);
+  }
+
+  if (key === "amount") {
+    if (typeof value === "number") {
+      return `৳${value.toFixed(2)}`;
+    }
+  }
+
+  if (typeof value === "boolean") {
+    return (
+      <Badge variant={value ? "default" : "secondary"}>
+        {value ? "True" : "False"}
+      </Badge>
+    );
+  }
+
+  if (typeof value === "object") {
+    if (key === "permissions") {
+      return (
+        <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-gray-50 rounded border font-mono">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      );
+    }
+    if (Array.isArray(value)) {
+      return (
+        <ul className="list-disc pl-4 space-y-1 text-xs">
+          {value.map((item, idx) => (
+            <li key={idx}>
+              {typeof item === "object" ? JSON.stringify(item) : String(item)}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    return (
+      <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-gray-50 rounded border font-mono">
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    );
+  }
+
+  return String(value);
+}
+
+function ActivityDetailsView({ log }: { log: ActivityLog }) {
+  const isUpdate = log.action === "Update";
+  const oldObj = log.oldData || {};
+  const newObj = log.newData || {};
+
+  const allKeys = Array.from(
+    new Set([
+      ...Object.keys(oldObj),
+      ...Object.keys(newObj),
+    ])
+  ).filter((key) => !IGNORED_KEYS.includes(key));
+
+  if (isUpdate) {
+    const changedKeys = allKeys.filter(
+      (key) => JSON.stringify(oldObj[key]) !== JSON.stringify(newObj[key])
+    );
+
+    if (changedKeys.length === 0) {
+      return (
+        <div className="text-sm text-gray-500 py-4 text-center">
+          No fields were modified or differences were inside excluded metadata.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <h3 className="font-semibold text-lg border-b pb-2">Changes Summary</h3>
+        <div className="border rounded-md overflow-hidden bg-white">
+          <Table>
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="w-1/3">Field</TableHead>
+                <TableHead className="w-1/3 text-red-600">Old Value</TableHead>
+                <TableHead className="w-1/3 text-green-600">New Value</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {changedKeys.map((key) => (
+                <TableRow key={key}>
+                  <TableCell className="font-medium text-gray-700">{formatKey(key)}</TableCell>
+                  <TableCell className="bg-red-50/20 text-gray-500 line-through decoration-red-200">
+                    {formatValue(key, oldObj[key])}
+                  </TableCell>
+                  <TableCell className="bg-green-50/20 text-gray-900 font-semibold">
+                    {formatValue(key, newObj[key])}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
+  const dataObject = log.action === "Delete" ? oldObj : newObj;
+  const displayKeys = Object.keys(dataObject).filter(
+    (key) => !IGNORED_KEYS.includes(key)
+  );
+
+  if (displayKeys.length === 0) {
+    return (
+      <div className="text-sm text-gray-500 py-4 text-center">
+        No record details available.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-lg border-b pb-2">
+        Record Details ({log.action === "Delete" ? "Deleted Data" : "New Data"})
+      </h3>
+      <div className="border rounded-md overflow-hidden bg-white">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="w-1/3">Field</TableHead>
+              <TableHead className="w-2/3">Value</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayKeys.map((key) => (
+              <TableRow key={key}>
+                <TableCell className="font-medium text-gray-700">{formatKey(key)}</TableCell>
+                <TableCell className="text-gray-900">
+                  {formatValue(key, dataObject[key])}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 }
 
 export default function ActivityLogsClient({
@@ -41,6 +214,8 @@ export default function ActivityLogsClient({
   initialLogs: ActivityLog[];
 }) {
   const [logs, setLogs] = useState(initialLogs);
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [moduleFilter, setModuleFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
@@ -191,6 +366,7 @@ export default function ActivityLogsClient({
               <TableHead>Module</TableHead>
               <TableHead>Action</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -220,11 +396,105 @@ export default function ActivityLogsClient({
                   </Badge>
                 </TableCell>
                 <TableCell>{log.description}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      setSelectedLog(log);
+                      setIsDetailsOpen(true);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" /> View
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Card>
+
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-3xl bg-white max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              Activity Log Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedLog && (
+            <div className="space-y-6 mt-4">
+              {/* Metadata Details */}
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-md border text-sm">
+                <div>
+                  <span className="text-gray-500 block">Date & Time</span>
+                  <span className="font-medium">
+                    {formatDate(selectedLog.date)}{" "}
+                    {new Date(selectedLog.date).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Admin</span>
+                  <span className="font-medium">{selectedLog.adminEmail}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Module</span>
+                  <div>
+                    <Badge variant="outline" className="font-semibold mt-1">
+                      {selectedLog.module}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Action</span>
+                  <div>
+                    <Badge
+                      variant={
+                        selectedLog.action === "Create"
+                          ? "default"
+                          : selectedLog.action === "Update"
+                            ? "secondary"
+                            : selectedLog.action === "Delete"
+                              ? "destructive"
+                              : "outline"
+                      }
+                      className="mt-1"
+                    >
+                      {selectedLog.action}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-gray-500 block">Description</span>
+                  <span className="font-medium text-gray-805">
+                    {selectedLog.description}
+                  </span>
+                </div>
+                {(selectedLog.ipAddress || selectedLog.browser) && (
+                  <div className="col-span-2 grid grid-cols-2 gap-4 border-t pt-2 mt-2 text-xs text-gray-500">
+                    {selectedLog.ipAddress && (
+                      <div>
+                        <span>IP Address: </span>
+                        <span className="font-mono">{selectedLog.ipAddress}</span>
+                      </div>
+                    )}
+                    {selectedLog.browser && (
+                      <div>
+                        <span>Browser/OS: </span>
+                        <span>{selectedLog.browser}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic Details View */}
+              <ActivityDetailsView log={selectedLog} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
