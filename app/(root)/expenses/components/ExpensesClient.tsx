@@ -34,6 +34,8 @@ import ExpenseForm from "./ExpenseForm";
 import { getExpenses, softDeleteExpense } from "@/lib/actions/expense.actions";
 import { getCategories } from "@/lib/actions/category.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
+import { useWritePermission } from "@/lib/hooks/useWritePermission";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 // Define types
 interface Category {
@@ -58,9 +60,12 @@ interface Expense {
 
 export default function ExpensesClient({
   initialExpenses,
+  currentAdmin,
 }: {
   initialExpenses: Expense[];
+  currentAdmin: Admin | null;
 }) {
+  const hasWriteAccess = useWritePermission(currentAdmin, "expenses");
   const [expenses, setExpenses] = useState(initialExpenses);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -161,25 +166,27 @@ export default function ExpensesClient({
           <Button variant="secondary" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Expense
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white">
-              <DialogHeader>
-                <DialogTitle>Add New Expense</DialogTitle>
-              </DialogHeader>
-              <ExpenseForm
-                onSuccess={() => {
-                  setIsAddOpen(false);
-                  loadExpenses();
-                  toast.success("Expense added successfully");
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {hasWriteAccess && (
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> Add Expense
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-white">
+                <DialogHeader>
+                  <DialogTitle>Add New Expense</DialogTitle>
+                </DialogHeader>
+                <ExpenseForm
+                  onSuccess={() => {
+                    setIsAddOpen(false);
+                    loadExpenses();
+                    toast.success("Expense added successfully");
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -274,44 +281,48 @@ export default function ExpensesClient({
                   {expense.description}
                 </TableCell>
                 <TableCell className="flex gap-2">
-                  <Dialog
-                    open={isEditOpen && editingExpense?._id === expense._id}
-                    onOpenChange={(open) => {
-                      setIsEditOpen(open);
-                      if (!open) setEditingExpense(null);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setEditingExpense(expense)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Edit Expense</DialogTitle>
-                      </DialogHeader>
-                      <ExpenseForm
-                        expense={editingExpense ?? undefined}
-                        onSuccess={() => {
-                          setIsEditOpen(false);
-                          setEditingExpense(null);
-                          loadExpenses();
-                          toast.success("Expense updated successfully");
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleSoftDelete(expense._id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {hasWriteAccess && (
+                    <Dialog
+                      open={isEditOpen && editingExpense?._id === expense._id}
+                      onOpenChange={(open) => {
+                        setIsEditOpen(open);
+                        if (!open) setEditingExpense(null);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingExpense(expense)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl bg-white">
+                        <DialogHeader>
+                          <DialogTitle>Edit Expense</DialogTitle>
+                        </DialogHeader>
+                        <ExpenseForm
+                          expense={editingExpense ?? undefined}
+                          onSuccess={() => {
+                            setIsEditOpen(false);
+                            setEditingExpense(null);
+                            loadExpenses();
+                            toast.success("Expense updated successfully");
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {hasWriteAccess && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleSoftDelete(expense._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

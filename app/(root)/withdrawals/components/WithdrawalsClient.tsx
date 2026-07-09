@@ -36,6 +36,8 @@ import {
 } from "@/lib/actions/withdrawal.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
 import { getSettings } from "@/lib/actions/settings.actions";
+import { useWritePermission } from "@/lib/hooks/useWritePermission";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 interface Withdrawal {
   _id: string;
@@ -54,9 +56,12 @@ interface Owner {
 
 export default function WithdrawalsClient({
   initialWithdrawals,
+  currentAdmin,
 }: {
   initialWithdrawals: Withdrawal[];
+  currentAdmin: Admin | null;
 }) {
+  const hasWriteAccess = useWritePermission(currentAdmin, "withdrawals");
   const [withdrawals, setWithdrawals] = useState(initialWithdrawals);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [search, setSearch] = useState("");
@@ -154,25 +159,27 @@ export default function WithdrawalsClient({
           <Button variant="secondary" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Withdrawal
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white">
-              <DialogHeader>
-                <DialogTitle>Add New Withdrawal</DialogTitle>
-              </DialogHeader>
-              <WithdrawalForm
-                onSuccess={() => {
-                  setIsAddOpen(false);
-                  loadWithdrawals();
-                  toast.success("Withdrawal added successfully");
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {hasWriteAccess && (
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> Add Withdrawal
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-white">
+                <DialogHeader>
+                  <DialogTitle>Add New Withdrawal</DialogTitle>
+                </DialogHeader>
+                <WithdrawalForm
+                  onSuccess={() => {
+                    setIsAddOpen(false);
+                    loadWithdrawals();
+                    toast.success("Withdrawal added successfully");
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -255,46 +262,50 @@ export default function WithdrawalsClient({
                   {withdrawal.description}
                 </TableCell>
                 <TableCell className="flex gap-2">
-                  <Dialog
-                    open={
-                      isEditOpen && editingWithdrawal?._id === withdrawal._id
-                    }
-                    onOpenChange={(open) => {
-                      setIsEditOpen(open);
-                      if (!open) setEditingWithdrawal(null);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setEditingWithdrawal(withdrawal)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Edit Withdrawal</DialogTitle>
-                      </DialogHeader>
-                      <WithdrawalForm
-                        withdrawal={editingWithdrawal ?? undefined}
-                        onSuccess={() => {
-                          setIsEditOpen(false);
-                          setEditingWithdrawal(null);
-                          loadWithdrawals();
-                          toast.success("Withdrawal updated successfully");
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(withdrawal._id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {hasWriteAccess && (
+                    <Dialog
+                      open={
+                        isEditOpen && editingWithdrawal?._id === withdrawal._id
+                      }
+                      onOpenChange={(open) => {
+                        setIsEditOpen(open);
+                        if (!open) setEditingWithdrawal(null);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingWithdrawal(withdrawal)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl bg-white">
+                        <DialogHeader>
+                          <DialogTitle>Edit Withdrawal</DialogTitle>
+                        </DialogHeader>
+                        <WithdrawalForm
+                          withdrawal={editingWithdrawal ?? undefined}
+                          onSuccess={() => {
+                            setIsEditOpen(false);
+                            setEditingWithdrawal(null);
+                            loadWithdrawals();
+                            toast.success("Withdrawal updated successfully");
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {hasWriteAccess && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(withdrawal._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

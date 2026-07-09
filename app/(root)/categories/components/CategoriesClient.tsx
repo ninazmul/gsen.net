@@ -32,6 +32,8 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import CategoryForm from "./CategoryForm";
 import { getCategories, deleteCategory } from "@/lib/actions/category.actions";
+import { useWritePermission } from "@/lib/hooks/useWritePermission";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 interface Category {
   _id: string;
@@ -45,9 +47,12 @@ interface Category {
 
 export default function CategoriesClient({
   initialCategories,
+  currentAdmin,
 }: {
   initialCategories: Category[];
+  currentAdmin: Admin | null;
 }) {
+  const hasWriteAccess = useWritePermission(currentAdmin, "categories");
   const [categories, setCategories] = useState(initialCategories);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -91,25 +96,27 @@ export default function CategoriesClient({
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Categories</h1>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-white">
-            <DialogHeader>
-              <DialogTitle>Add New Category</DialogTitle>
-            </DialogHeader>
-            <CategoryForm
-              onSuccess={() => {
-                setIsAddOpen(false);
-                loadCategories();
-                toast.success("Category added successfully");
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        {hasWriteAccess && (
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Category
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-white">
+              <DialogHeader>
+                <DialogTitle>Add New Category</DialogTitle>
+              </DialogHeader>
+              <CategoryForm
+                onSuccess={() => {
+                  setIsAddOpen(false);
+                  loadCategories();
+                  toast.success("Category added successfully");
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-4">
@@ -156,44 +163,48 @@ export default function CategoriesClient({
                 </TableCell>
                 <TableCell>{formatDate(category.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
-                  <Dialog
-                    open={isEditOpen && editingCategory?._id === category._id}
-                    onOpenChange={(open) => {
-                      setIsEditOpen(open);
-                      if (!open) setEditingCategory(null);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setEditingCategory(category)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Edit Category</DialogTitle>
-                      </DialogHeader>
-                      <CategoryForm
-                        category={editingCategory ?? undefined}
-                        onSuccess={() => {
-                          setIsEditOpen(false);
-                          setEditingCategory(null);
-                          loadCategories();
-                          toast.success("Category updated successfully");
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(category._id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {hasWriteAccess && (
+                    <Dialog
+                      open={isEditOpen && editingCategory?._id === category._id}
+                      onOpenChange={(open) => {
+                        setIsEditOpen(open);
+                        if (!open) setEditingCategory(null);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingCategory(category)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl bg-white">
+                        <DialogHeader>
+                          <DialogTitle>Edit Category</DialogTitle>
+                        </DialogHeader>
+                        <CategoryForm
+                          category={editingCategory ?? undefined}
+                          onSuccess={() => {
+                            setIsEditOpen(false);
+                            setEditingCategory(null);
+                            loadCategories();
+                            toast.success("Category updated successfully");
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {hasWriteAccess && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(category._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

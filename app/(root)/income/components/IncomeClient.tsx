@@ -34,6 +34,8 @@ import IncomeForm from "./IncomeForm";
 import { getIncomes, softDeleteIncome } from "@/lib/actions/income.actions";
 import { getCategories } from "@/lib/actions/category.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
+import { useWritePermission } from "@/lib/hooks/useWritePermission";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 interface Category {
   _id: string;
@@ -57,9 +59,12 @@ interface Income {
 
 export default function IncomeClient({
   initialIncomes,
+  currentAdmin,
 }: {
   initialIncomes: Income[];
+  currentAdmin: Admin | null;
 }) {
+  const hasWriteAccess = useWritePermission(currentAdmin, "income");
   const [incomes, setIncomes] = useState(initialIncomes);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -161,25 +166,27 @@ export default function IncomeClient({
           <Button variant="secondary" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Income
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white">
-              <DialogHeader>
-                <DialogTitle>Add New Income</DialogTitle>
-              </DialogHeader>
-              <IncomeForm
-                onSuccess={() => {
-                  setIsAddOpen(false);
-                  loadIncomes();
-                  toast.success("Income added successfully");
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {hasWriteAccess && (
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> Add Income
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-white">
+                <DialogHeader>
+                  <DialogTitle>Add New Income</DialogTitle>
+                </DialogHeader>
+                <IncomeForm
+                  onSuccess={() => {
+                    setIsAddOpen(false);
+                    loadIncomes();
+                    toast.success("Income added successfully");
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -274,44 +281,48 @@ export default function IncomeClient({
                   {income.description}
                 </TableCell>
                 <TableCell className="flex gap-2">
-                  <Dialog
-                    open={isEditOpen && editingIncome?._id === income._id}
-                    onOpenChange={(open) => {
-                      setIsEditOpen(open);
-                      if (!open) setEditingIncome(null);
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setEditingIncome(income)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Edit Income</DialogTitle>
-                      </DialogHeader>
-                      <IncomeForm
-                        income={editingIncome ?? undefined}
-                        onSuccess={() => {
-                          setIsEditOpen(false);
-                          setEditingIncome(null);
-                          loadIncomes();
-                          toast.success("Income updated successfully");
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleSoftDelete(income._id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {hasWriteAccess && (
+                    <Dialog
+                      open={isEditOpen && editingIncome?._id === income._id}
+                      onOpenChange={(open) => {
+                        setIsEditOpen(open);
+                        if (!open) setEditingIncome(null);
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingIncome(income)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl bg-white">
+                        <DialogHeader>
+                          <DialogTitle>Edit Income</DialogTitle>
+                        </DialogHeader>
+                        <IncomeForm
+                          income={editingIncome ?? undefined}
+                          onSuccess={() => {
+                            setIsEditOpen(false);
+                            setEditingIncome(null);
+                            loadIncomes();
+                            toast.success("Income updated successfully");
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {hasWriteAccess && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleSoftDelete(income._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
