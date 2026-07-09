@@ -37,6 +37,9 @@ interface Income {
   category: Category;
   amount: number;
   date: Date;
+  paymentMethod: string;
+  referenceNumber?: string;
+  description?: string;
 }
 
 interface Expense {
@@ -45,6 +48,9 @@ interface Expense {
   category: Category;
   amount: number;
   date: Date;
+  paymentMethod: string;
+  referenceNumber?: string;
+  description?: string;
 }
 
 interface ActivityLog {
@@ -74,7 +80,7 @@ interface MonthlyData {
   profitPercent: number;
 }
 
-interface ExpenseBreakdownItem {
+interface BreakdownItem {
   _id: string;
   total: number;
   category: Category;
@@ -89,7 +95,8 @@ type DashboardClientProps = {
       ownerBalances: OwnerBalance[];
     };
     monthlyPerformance: MonthlyData[];
-    expenseBreakdown: ExpenseBreakdownItem[];
+    expenseBreakdown: BreakdownItem[];
+    incomeBreakdown: BreakdownItem[];
     charts: {
       monthlyIncome: { month: string; amount: number }[];
       monthlyExpenses: { month: string; amount: number }[];
@@ -112,18 +119,6 @@ export default function DashboardClient({ data }: DashboardClientProps) {
     "#8b5cf6",
     "#06b6d4",
   ];
-
-  // Combine recent incomes and expenses
-  const recentTransactions = [
-    ...data.recentTransactions.incomes.map((i) => ({
-      ...i,
-      type: "income" as const,
-    })),
-    ...data.recentTransactions.expenses.map((e) => ({
-      ...e,
-      type: "expense" as const,
-    })),
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="py-6 flex flex-col gap-8 px-4">
@@ -303,65 +298,237 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </Card>
       </div>
 
+      {/* Category Breakdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Transactions */}
+        {/* Income Category Breakdown */}
         <Card className="p-5 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
-          <div className="space-y-4">
-            {recentTransactions.slice(0, 5).map((tx) => (
-              <div
-                key={tx._id}
-                className="flex justify-between items-center border-b pb-2"
-              >
-                <div>
-                  <p className="font-medium">{tx.title}</p>
-                  <p className="text-sm text-gray-500">
-                    {typeof tx.category === "object"
-                      ? tx.category.name
-                      : tx.category}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={`font-bold ${
-                      tx.type === "income" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {tx.type === "income" ? "+" : "-"}৳{tx.amount.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-gray-500">{formatDate(tx.date)}</p>
-                </div>
-              </div>
-            ))}
+          <h2 className="text-xl font-semibold mb-4">Income Category Breakdown</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.incomeBreakdown.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center text-gray-500 py-4">
+                      No income records found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.incomeBreakdown.map((item) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="font-medium">
+                        <span
+                          className="inline-block w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: item.category.color || "#10b981" }}
+                        />
+                        {item.category.name}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-green-600">
+                        ৳{item.total.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </Card>
 
-        {/* Recent Activity */}
+        {/* Expense Category Breakdown */}
         <Card className="p-5 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            {data.recentLogs.slice(0, 5).map((log) => (
-              <div
-                key={log._id}
-                className="flex justify-between items-center border-b pb-2"
-              >
-                <div>
-                  <p className="font-medium">{log.description}</p>
-                  <p className="text-sm text-gray-500">
-                    {log.adminEmail} • {log.module} • {log.action}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <Badge>{log.module}</Badge>
-                  <p className="text-sm text-gray-500">
-                    {formatDate(log.date)}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <h2 className="text-xl font-semibold mb-4">Expense Category Breakdown</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.expenseBreakdown.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center text-gray-500 py-4">
+                      No expense records found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.expenseBreakdown.map((item) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="font-medium">
+                        <span
+                          className="inline-block w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: item.category.color || "#ef4444" }}
+                        />
+                        {item.category.name}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-red-600">
+                        ৳{item.total.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </Card>
       </div>
+
+      {/* Recent Income & Expenses Tables */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Recent Income Table */}
+        <Card className="p-5 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Recent Income</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Payment Method</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.recentTransactions.incomes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-gray-500 py-4">
+                      No recent incomes.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.recentTransactions.incomes.map((tx) => (
+                    <TableRow key={tx._id}>
+                      <TableCell className="text-xs text-gray-500">
+                        {formatDate(tx.date)}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <p>{tx.title}</p>
+                          {tx.description && (
+                            <p className="text-[10px] text-gray-400 truncate max-w-[150px]">
+                              {tx.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {tx.category.name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {tx.paymentMethod}
+                        {tx.referenceNumber && (
+                          <span className="block text-[10px] text-gray-400">
+                            Ref: {tx.referenceNumber}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-green-600">
+                        ৳{tx.amount.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+
+        {/* Recent Expense Table */}
+        <Card className="p-5 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Payment Method</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.recentTransactions.expenses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-gray-500 py-4">
+                      No recent expenses.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.recentTransactions.expenses.map((tx) => (
+                    <TableRow key={tx._id}>
+                      <TableCell className="text-xs text-gray-500">
+                        {formatDate(tx.date)}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <p>{tx.title}</p>
+                          {tx.description && (
+                            <p className="text-[10px] text-gray-400 truncate max-w-[150px]">
+                              {tx.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {tx.category.name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {tx.paymentMethod}
+                        {tx.referenceNumber && (
+                          <span className="block text-[10px] text-gray-400">
+                            Ref: {tx.referenceNumber}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-red-600">
+                        ৳{tx.amount.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card className="p-5 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {data.recentLogs.slice(0, 6).map((log) => (
+            <div
+              key={log._id}
+              className="flex justify-between items-center border p-3 rounded-md bg-gray-50/50 hover:bg-gray-50 transition"
+            >
+              <div>
+                <p className="font-medium text-sm text-gray-800">{log.description}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {log.adminEmail} • {log.action}
+                </p>
+              </div>
+              <div className="text-right space-y-1">
+                <Badge variant="outline">{log.module}</Badge>
+                <p className="text-[10px] text-gray-400">
+                  {formatDate(log.date)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

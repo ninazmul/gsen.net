@@ -130,6 +130,26 @@ export async function getDashboardData() {
     { $unwind: "$category" },
   ]);
 
+  // Income breakdown by category
+  const incomeBreakdown = await Income.aggregate([
+    { $match: { deletedAt: null } },
+    {
+      $group: {
+        _id: "$category",
+        total: { $sum: "$amount" },
+      },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "_id",
+        foreignField: "_id",
+        as: "category",
+      },
+    },
+    { $unwind: "$category" },
+  ]);
+
   // Recent transactions
   const recentIncomes = await Income.find({ deletedAt: null })
     .populate("category")
@@ -150,6 +170,7 @@ export async function getDashboardData() {
     },
     monthlyPerformance: monthlyData,
     expenseBreakdown: JSON.parse(JSON.stringify(expenseBreakdown)),
+    incomeBreakdown: JSON.parse(JSON.stringify(incomeBreakdown)),
     charts: {
       monthlyIncome: monthlyData.map((m) => ({
         month: m.monthName,
