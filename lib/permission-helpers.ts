@@ -13,40 +13,33 @@ export function hasPermission(
 
   switch (page) {
     case "dashboard":
-      return perms.pages.dashboard;
+      return perms.pages.dashboard ?? true;
     case "income":
-      if (access === "read")
-        return perms.pages.income?.read;
-      return perms.pages.income?.write;
+      if (access === "read") return perms.pages.income?.read ?? true;
+      return perms.pages.income?.write ?? true;
     case "expenses":
-      if (access === "read")
-        return perms.pages.expenses?.read;
-      return perms.pages.expenses?.write;
+      if (access === "read") return perms.pages.expenses?.read ?? true;
+      return perms.pages.expenses?.write ?? true;
     case "categories":
-      if (access === "read")
-        return perms.pages.categories?.read;
-      return perms.pages.categories?.write;
+      if (access === "read") return perms.pages.categories?.read ?? true;
+      return perms.pages.categories?.write ?? true;
     case "withdrawals":
-      if (access === "read")
-        return perms.pages.withdrawals?.read;
-      return perms.pages.withdrawals?.write;
+      if (access === "read") return perms.pages.withdrawals?.read ?? true;
+      return perms.pages.withdrawals?.write ?? true;
     case "reports":
-      return perms.pages.reports;
+      return perms.pages.reports ?? true;
     case "activityLogs":
-      return perms.pages.activityLogs;
+      return perms.pages.activityLogs ?? true;
     case "admins":
-      return perms.pages.admins;
+      return perms.pages.admins ?? false;
     case "settings":
-      return perms.pages.settings;
+      return perms.pages.settings ?? false;
     default:
       return false;
   }
 }
 
-export function hasPageAccess(
-  admin: Admin | null,
-  path: string,
-): boolean {
+export function hasPageAccess(admin: Admin | null, path: string): boolean {
   if (!admin) return false;
   if (admin.role === "superadmin") return true;
 
