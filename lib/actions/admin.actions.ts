@@ -111,14 +111,20 @@ export async function updateAdmin(
   if (data.role) updateData.role = data.role;
   if (data.permissions) {
     // Start with old permissions as base
-    const mergedPages = { ...oldAdmin.permissions?.pages };
+    // Convert to plain object to avoid mongoose subdocument spread issues
+    const oldPerms = oldAdmin.permissions
+      ? typeof oldAdmin.permissions.toObject === "function"
+        ? oldAdmin.permissions.toObject()
+        : JSON.parse(JSON.stringify(oldAdmin.permissions))
+      : {};
+    const mergedPages = { ...oldPerms?.pages };
 
     // Deep merge nested permission objects first
     const nestedPages = ["income", "expenses", "categories", "withdrawals"];
     nestedPages.forEach((page) => {
       if (data.permissions!.pages?.[page as keyof AdminPermissions["pages"]]) {
         mergedPages[page as keyof AdminPermissions["pages"]] = {
-          ...(oldAdmin.permissions?.pages?.[
+          ...(oldPerms?.pages?.[
             page as keyof AdminPermissions["pages"]
           ] as object),
           ...(data.permissions!.pages![
@@ -147,7 +153,7 @@ export async function updateAdmin(
     });
 
     updateData.permissions = {
-      ...oldAdmin.permissions,
+      ...oldPerms,
       pages: mergedPages,
     } as AdminPermissions;
   }
