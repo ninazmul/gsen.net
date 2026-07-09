@@ -1,13 +1,13 @@
 "use server";
 
 import { getCurrentAdmin, type AdminPermissions } from "./admin.actions";
-import { hasPageAccess, hasPermission } from "@/lib/permission-helpers";
+import { hasPermission } from "@/lib/permission-helpers";
 
 export async function checkPagePermissionServer(
-  path: keyof AdminPermissions["pages"]
+  page: keyof AdminPermissions["pages"],
 ): Promise<boolean> {
   const admin = await getCurrentAdmin();
-  return hasPageAccess(admin, path);
+  return hasPermission(admin, page, "read");
 }
 
 /**
@@ -15,12 +15,14 @@ export async function checkPagePermissionServer(
  * Throws an error if the admin does not have write access.
  */
 export async function checkWritePermissionServer(
-  page: keyof AdminPermissions["pages"]
+  page: keyof AdminPermissions["pages"],
 ): Promise<void> {
   const admin = await getCurrentAdmin();
   if (!admin) throw new Error("Unauthorized: Not logged in");
   if (!hasPermission(admin, page, "write")) {
-    throw new Error("Unauthorized: You do not have write access to this module");
+    throw new Error(
+      "Unauthorized: You do not have write access to this module",
+    );
   }
 }
 

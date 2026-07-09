@@ -22,6 +22,7 @@ import {
 import { createIncome, updateIncome } from "@/lib/actions/income.actions";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/lib/actions/category.actions";
+import { toast } from "react-hot-toast";
 
 interface Category {
   _id: string;
@@ -73,7 +74,10 @@ export default function IncomeForm({ income, onSuccess }: IncomeFormProps) {
     defaultValues: income
       ? {
           title: income.title,
-          category: typeof income.category === "object" ? income.category._id : income.category,
+          category:
+            typeof income.category === "object"
+              ? income.category._id
+              : income.category,
           amount: income.amount,
           date: new Date(income.date).toISOString().split("T")[0],
           paymentMethod: income.paymentMethod,
@@ -117,6 +121,9 @@ export default function IncomeForm({ income, onSuccess }: IncomeFormProps) {
       onSuccess();
     } catch (error) {
       console.error("Error saving income:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save income";
+      toast.error(errorMessage);
     }
   };
 

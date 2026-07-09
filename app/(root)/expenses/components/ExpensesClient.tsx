@@ -112,8 +112,10 @@ export default function ExpensesClient({
         await softDeleteExpense(id);
         toast.success("Expense deleted successfully");
         loadExpenses();
-      } catch {
-        toast.error("Failed to delete expense");
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to delete expense";
+        toast.error(errorMessage);
       }
     }
   };

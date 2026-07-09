@@ -112,8 +112,10 @@ export default function IncomeClient({
         await softDeleteIncome(id);
         toast.success("Income deleted successfully");
         loadIncomes();
-      } catch {
-        toast.error("Failed to delete income");
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to delete income";
+        toast.error(errorMessage);
       }
     }
   };

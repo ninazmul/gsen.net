@@ -111,8 +111,12 @@ export default function WithdrawalsClient({
         await deleteWithdrawal(id);
         toast.success("Withdrawal deleted successfully");
         loadWithdrawals();
-      } catch {
-        toast.error("Failed to delete withdrawal");
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to delete withdrawal";
+        toast.error(errorMessage);
       }
     }
   };

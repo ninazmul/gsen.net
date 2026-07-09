@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
+import { toast } from "react-hot-toast";
 
 interface Category {
   _id: string;
@@ -72,6 +73,9 @@ export default function CategoryForm({
       onSuccess();
     } catch (error) {
       console.error("Error saving category:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save category";
+      toast.error(errorMessage);
     }
   };
 

@@ -103,11 +103,56 @@ export async function updateAdmin(
   const oldAdmin = await Admin.findById(id);
   if (!oldAdmin) throw new Error("Admin not found");
 
-  const admin = await Admin.findByIdAndUpdate(
-    id,
-    data,
-    { new: true },
-  );
+  // Deep merge permissions instead of replacing
+  const updateData: {
+    role?: "admin" | "superadmin";
+    permissions?: AdminPermissions;
+  } = {};
+  if (data.role) updateData.role = data.role;
+  if (data.permissions) {
+    // Start with old permissions as base
+    const mergedPages = { ...oldAdmin.permissions?.pages };
+
+    // Deep merge nested permission objects first
+    const nestedPages = ["income", "expenses", "categories", "withdrawals"];
+    nestedPages.forEach((page) => {
+      if (data.permissions!.pages?.[page as keyof AdminPermissions["pages"]]) {
+        mergedPages[page as keyof AdminPermissions["pages"]] = {
+          ...(oldAdmin.permissions?.pages?.[
+            page as keyof AdminPermissions["pages"]
+          ] as object),
+          ...(data.permissions!.pages![
+            page as keyof AdminPermissions["pages"]
+          ] as object),
+        };
+      }
+    });
+
+    // Then merge top-level boolean permissions
+    const booleanPages = [
+      "dashboard",
+      "reports",
+      "activityLogs",
+      "admins",
+      "settings",
+    ];
+    booleanPages.forEach((page) => {
+      if (
+        data.permissions!.pages?.[page as keyof AdminPermissions["pages"]] !==
+        undefined
+      ) {
+        mergedPages[page as keyof AdminPermissions["pages"]] =
+          data.permissions!.pages![page as keyof AdminPermissions["pages"]];
+      }
+    });
+
+    updateData.permissions = {
+      ...oldAdmin.permissions,
+      pages: mergedPages,
+    } as AdminPermissions;
+  }
+
+  const admin = await Admin.findByIdAndUpdate(id, updateData, { new: true });
 
   await logActivity({
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",

@@ -79,8 +79,10 @@ export default function CategoriesClient({
         await deleteCategory(id);
         toast.success("Category deleted successfully");
         loadCategories();
-      } catch {
-        toast.error("Failed to delete category");
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to delete category";
+        toast.error(errorMessage);
       }
     }
   };

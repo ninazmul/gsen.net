@@ -2,15 +2,16 @@ import { currentUser } from "@clerk/nextjs/server";
 import { getDashboardData } from "@/lib/actions/dashboard.actions";
 import DashboardClient from "./components/DashboardClient";
 import { redirect } from "next/navigation";
-import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
+import { getCurrentAdmin } from "@/lib/actions/admin.actions";
+import { hasPageAccess } from "@/lib/permission-helpers";
 
 const DashboardPage = async () => {
   const user = await currentUser();
 
   if (!user) redirect("/sign-in");
 
-  const hasAccess = await checkPagePermissionServer("dashboard");
-  if (!hasAccess) redirect("/access-denied");
+  const admin = await getCurrentAdmin();
+  if (!admin || !hasPageAccess(admin, "/")) redirect("/access-denied");
 
   try {
     const dashboardData = await getDashboardData();

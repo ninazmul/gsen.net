@@ -22,6 +22,7 @@ import {
 import { createExpense, updateExpense } from "@/lib/actions/expense.actions";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/lib/actions/category.actions";
+import { toast } from "react-hot-toast";
 
 // Define types
 interface Category {
@@ -74,7 +75,10 @@ export default function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
     defaultValues: expense
       ? {
           title: expense.title,
-          category: typeof expense.category === "object" ? expense.category._id : expense.category,
+          category:
+            typeof expense.category === "object"
+              ? expense.category._id
+              : expense.category,
           amount: expense.amount,
           date: new Date(expense.date).toISOString().split("T")[0],
           paymentMethod: expense.paymentMethod,
@@ -118,6 +122,9 @@ export default function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       onSuccess();
     } catch (error) {
       console.error("Error saving expense:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save expense";
+      toast.error(errorMessage);
     }
   };
 
