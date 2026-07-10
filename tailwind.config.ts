@@ -2,6 +2,7 @@
 import animate from "tailwindcss-animate";
 
 export default {
+  darkMode: "class",
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -18,6 +19,10 @@ export default {
     },
     extend: {
       colors: {
+        brand: {
+          DEFAULT: "var(--brand-color)",
+          hover: "var(--brand-hover)",
+        },
         primary: {
           50: "#E6F0FF",
           500: "#2563EB",

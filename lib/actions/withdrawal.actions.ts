@@ -130,7 +130,8 @@ export async function getWithdrawals(params?: {
   const withdrawals = await Withdrawal.find<WithdrawalDoc>(query)
     .sort({ date: -1, createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   const total = await Withdrawal.countDocuments(query);
 

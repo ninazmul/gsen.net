@@ -10,6 +10,9 @@ const WithdrawalSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for performance optimization on large data sets
+WithdrawalSchema.index({ owner: 1, date: -1, createdAt: -1 });
+
 const Withdrawal = models.Withdrawal || model("Withdrawal", WithdrawalSchema);
 
 export default Withdrawal;

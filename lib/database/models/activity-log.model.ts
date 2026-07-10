@@ -17,6 +17,10 @@ const ActivityLogSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for performance optimization on large data sets
+ActivityLogSchema.index({ date: -1, createdAt: -1 });
+ActivityLogSchema.index({ module: 1, action: 1 });
+
 const ActivityLog = models.ActivityLog || model("ActivityLog", ActivityLogSchema);
 
 export default ActivityLog;

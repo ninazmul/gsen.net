@@ -62,35 +62,56 @@ export async function getDashboardData() {
 
   // Monthly performance
   const currentYear = new Date().getFullYear();
+  const startOfYear = new Date(currentYear, 0, 1);
+  const endOfYear = new Date(currentYear, 12, 0, 23, 59, 59, 999);
+
+  const [incomeMonthly, expenseMonthly] = await Promise.all([
+    Income.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$date" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+    Expense.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$date" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+  ]);
+
+  const incomeMap = new Map<number, number>();
+  incomeMonthly.forEach((item) => {
+    if (item._id) incomeMap.set(item._id, item.total);
+  });
+
+  const expenseMap = new Map<number, number>();
+  expenseMonthly.forEach((item) => {
+    if (item._id) expenseMap.set(item._id, item.total);
+  });
+
   const monthlyData = [];
   let previousMonthProfit = 0;
 
   for (let month = 0; month < 12; month++) {
-    const startDate = new Date(currentYear, month, 1);
-    const endDate = new Date(currentYear, month + 1, 0);
-
-    const monthIncome = await Income.aggregate([
-      {
-        $match: {
-          deletedAt: null,
-          date: { $gte: startDate, $lte: endDate },
-        },
-      },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-
-    const monthExpense = await Expense.aggregate([
-      {
-        $match: {
-          deletedAt: null,
-          date: { $gte: startDate, $lte: endDate },
-        },
-      },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-
-    const mIncome = monthIncome[0]?.total || 0;
-    const mExpense = monthExpense[0]?.total || 0;
+    const mIncome = incomeMap.get(month + 1) || 0;
+    const mExpense = expenseMap.get(month + 1) || 0;
     const mProfit = mIncome - mExpense;
     const profitPercent = mIncome > 0 ? (mProfit / mIncome) * 100 : 0;
     const changeFromPrev = mProfit - previousMonthProfit;
@@ -154,12 +175,14 @@ export async function getDashboardData() {
   const recentIncomes = await Income.find({ deletedAt: null })
     .populate("category")
     .sort({ date: -1, createdAt: -1 })
-    .limit(5);
+    .limit(5)
+    .lean();
 
   const recentExpenses = await Expense.find({ deletedAt: null })
     .populate("category")
     .sort({ date: -1, createdAt: -1 })
-    .limit(5);
+    .limit(5)
+    .lean();
 
   return {
     summary: {

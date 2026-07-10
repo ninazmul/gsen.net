@@ -173,7 +173,7 @@ export default function IncomeClient({
                   <Plus className="mr-2 h-4 w-4" /> Add Income
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-white">
+              <DialogContent className="max-w-2xl bg-white dark:bg-black">
                 <DialogHeader>
                   <DialogTitle>Add New Income</DialogTitle>
                 </DialogHeader>
@@ -298,7 +298,7 @@ export default function IncomeClient({
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl bg-white">
+                      <DialogContent className="max-w-2xl bg-white dark:bg-black">
                         <DialogHeader>
                           <DialogTitle>Edit Income</DialogTitle>
                         </DialogHeader>

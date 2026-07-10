@@ -35,20 +35,66 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand color variables for light mode */
+    --brand-color: #3e0078;
+    --brand-hover: #2d0059;
+    --chart-tooltip-bg: #ffffff;
+    --chart-tooltip-border: #e2e8f0;
+    --chart-tick-color: #64748b;
+  }
+
+  .dark {
+    --background: 224 30% 7%;
+    --foreground: 210 40% 94%;
+
+    --card: 224 28% 10%;
+    --card-foreground: 210 40% 94%;
+
+    --popover: 224 28% 10%;
+    --popover-foreground: 210 40% 94%;
+
+    --primary: 263 70% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 224 22% 16%;
+    --secondary-foreground: 210 40% 94%;
+
+    --muted: 224 22% 16%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 224 22% 16%;
+    --accent-foreground: 210 40% 94%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 224 18% 18%;
+    --input: 224 18% 18%;
+    --ring: 263 70% 60%;
+
+    --sidebar-background: 224 30% 7%;
+    --sidebar-foreground: 210 30% 75%;
+    --sidebar-primary: 263 70% 65%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 224 22% 14%;
+    --sidebar-accent-foreground: 210 30% 85%;
+    --sidebar-border: 224 18% 16%;
+    --sidebar-ring: 263 70% 60%;
+
+    /* Brand color variables for dark mode */
+    --brand-color: #a78bfa;
+    --brand-hover: #8b5cf6;
+    --chart-tooltip-bg: #1e1b2e;
+    --chart-tooltip-border: #2e2b3e;
+    --chart-tick-color: #94a3b8;
   }
 }
 
@@ -61,8 +107,8 @@
 
 body {
   font-family: "Poppins", sans-serif;
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .filter-grey {

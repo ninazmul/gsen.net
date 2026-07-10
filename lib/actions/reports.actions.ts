@@ -25,7 +25,8 @@ export async function getIncomeReport(params?: {
 
   const incomes = await Income.find(match)
     .populate("category")
-    .sort({ date: -1 });
+    .sort({ date: -1 })
+    .lean();
 
   const total = incomes.reduce((sum, inc) => sum + inc.amount, 0);
 
@@ -53,7 +54,8 @@ export async function getExpenseReport(params?: {
 
   const expenses = await Expense.find(match)
     .populate("category")
-    .sort({ date: -1 });
+    .sort({ date: -1 })
+    .lean();
 
   const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
@@ -78,8 +80,8 @@ export async function getProfitReport(params?: {
     expenseMatch.date = { $gte: startDate, $lte: endDate };
   }
 
-  const incomes = await Income.find(incomeMatch).populate("category");
-  const expenses = await Expense.find(expenseMatch).populate("category");
+  const incomes = await Income.find(incomeMatch).populate("category").lean();
+  const expenses = await Expense.find(expenseMatch).populate("category").lean();
 
   const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -102,27 +104,66 @@ export async function getCategoryReport(params?: {
   await connectToDatabase();
   const { startDate, endDate, type } = params || {};
 
-  const categories = await Category.find(type ? { type } : {});
+  const categories = await Category.find(type ? { type } : {}).lean() as unknown as Array<{
+    _id: { toString(): string };
+    name: string;
+    type: "Income" | "Expense";
+    color: string;
+    active: boolean;
+  }>;
 
-  const report = await Promise.all(
-    categories.map(async (cat) => {
-      const Model = cat.type === "Income" ? Income : Expense;
-      const match: Record<string, unknown> = { deletedAt: null, category: cat._id };
+  const match: Record<string, unknown> = { deletedAt: null };
+  if (startDate && endDate) {
+    match.date = { $gte: startDate, $lte: endDate };
+  }
 
-      if (startDate && endDate) {
-        match.date = { $gte: startDate, $lte: endDate };
-      }
+  const [incomeAgg, expenseAgg] = await Promise.all([
+    (!type || type === "Income")
+      ? Income.aggregate([
+          { $match: match },
+          {
+            $group: {
+              _id: "$category",
+              total: { $sum: "$amount" },
+              count: { $sum: 1 },
+            },
+          },
+        ])
+      : Promise.resolve([]),
+    (!type || type === "Expense")
+      ? Expense.aggregate([
+          { $match: match },
+          {
+            $group: {
+              _id: "$category",
+              total: { $sum: "$amount" },
+              count: { $sum: 1 },
+            },
+          },
+        ])
+      : Promise.resolve([]),
+  ]);
 
-      const items = await Model.find(match);
-      const total = items.reduce((sum, item) => sum + item.amount, 0);
+  const incomeMap = new Map<string, { total: number; count: number }>();
+  incomeAgg.forEach((item) => {
+    if (item._id) incomeMap.set(item._id.toString(), item);
+  });
 
-      return {
-        category: JSON.parse(JSON.stringify(cat)),
-        total,
-        count: items.length,
-      };
-    }),
-  );
+  const expenseMap = new Map<string, { total: number; count: number }>();
+  expenseAgg.forEach((item) => {
+    if (item._id) expenseMap.set(item._id.toString(), item);
+  });
+
+  const report = categories.map((cat) => {
+    const catIdStr = cat._id.toString();
+    const aggData = cat.type === "Income" ? incomeMap.get(catIdStr) : expenseMap.get(catIdStr);
+
+    return {
+      category: JSON.parse(JSON.stringify(cat)),
+      total: aggData?.total || 0,
+      count: aggData?.count || 0,
+    };
+  });
 
   return report;
 }
@@ -130,24 +171,55 @@ export async function getCategoryReport(params?: {
 export async function getMonthlyPerformanceReport(year?: number) {
   await connectToDatabase();
   const y = year || new Date().getFullYear();
+  const startOfYear = new Date(y, 0, 1);
+  const endOfYear = new Date(y, 12, 0, 23, 59, 59, 999);
+
+  const [incomeMonthly, expenseMonthly] = await Promise.all([
+    Income.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$date" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+    Expense.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$date" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+  ]);
+
+  const incomeMap = new Map<number, number>();
+  incomeMonthly.forEach((item) => {
+    if (item._id) incomeMap.set(item._id, item.total);
+  });
+
+  const expenseMap = new Map<number, number>();
+  expenseMonthly.forEach((item) => {
+    if (item._id) expenseMap.set(item._id, item.total);
+  });
 
   const monthlyData = [];
 
   for (let month = 0; month < 12; month++) {
-    const startDate = new Date(y, month, 1);
-    const endDate = new Date(y, month + 1, 0);
-
-    const incomes = await Income.find({
-      deletedAt: null,
-      date: { $gte: startDate, $lte: endDate },
-    });
-    const expenses = await Expense.find({
-      deletedAt: null,
-      date: { $gte: startDate, $lte: endDate },
-    });
-
-    const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
-    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalIncome = incomeMap.get(month + 1) || 0;
+    const totalExpenses = expenseMap.get(month + 1) || 0;
     const profit = totalIncome - totalExpenses;
     const profitPercent = totalIncome > 0 ? (profit / totalIncome) * 100 : 0;
 

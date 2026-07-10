@@ -11,6 +11,7 @@ import {
   getOrCreateCurrentAdmin,
   type Admin,
 } from "@/lib/actions/admin.actions";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -40,15 +41,19 @@ export default async function AdminLayout({
     <SidebarProvider defaultOpen={defaultOpen}>
       <AdminSidebar currentAdmin={admin as Admin} />
       <Toaster />
-      <main className="flex-1 h-screen mx-auto overflow-y-auto">
-        <div className="flex justify-between items-center p-4 w-full border-b text-white bg-[#3e0078]">
+      <main className="flex-1 h-screen mx-auto overflow-y-auto bg-background">
+        <div className="flex justify-between items-center p-4 w-full border-b border-border text-white bg-[#3e0078] dark:bg-[#1a0040] dark:border-purple-900/40">
           <SidebarTrigger />
-          <SignedIn>
-            <UserButton afterSwitchSessionUrl="/" />
-          </SignedIn>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <SignedIn>
+              <UserButton afterSwitchSessionUrl="/" />
+            </SignedIn>
+          </div>
         </div>
         <div className="p-2">{children}</div>
       </main>
     </SidebarProvider>
   );
 }
+

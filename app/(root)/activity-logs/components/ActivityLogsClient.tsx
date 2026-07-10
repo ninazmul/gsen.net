@@ -39,8 +39,8 @@ interface ActivityLog {
   action: string;
   description: string;
   recordId?: string;
-  oldData?: any;
-  newData?: any;
+  oldData?: unknown;
+  newData?: unknown;
   ipAddress?: string;
   browser?: string;
   userAgent?: string;
@@ -54,16 +54,18 @@ function formatKey(key: string): string {
   return result.charAt(0).toUpperCase() + result.slice(1).replace(/_/g, " ");
 }
 
-function formatValue(key: string, value: any): React.ReactNode {
+function formatValue(key: string, value: unknown): React.ReactNode {
   if (value === null || value === undefined) return "-";
 
   if (key === "date" || key === "createdAt" || key === "updatedAt" || key === "deletedAt") {
     try {
-      const d = new Date(value);
+      const d = new Date(value as string | number | Date);
       if (!isNaN(d.getTime())) {
         return `${formatDate(d)} ${d.toLocaleTimeString()}`;
       }
-    } catch (_) {}
+    } catch {
+      // Ignored
+    }
     return String(value);
   }
 
@@ -84,7 +86,7 @@ function formatValue(key: string, value: any): React.ReactNode {
   if (typeof value === "object") {
     if (key === "permissions") {
       return (
-        <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-gray-50 rounded border font-mono">
+        <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-muted rounded border border-border font-mono">
           {JSON.stringify(value, null, 2)}
         </pre>
       );
@@ -101,7 +103,7 @@ function formatValue(key: string, value: any): React.ReactNode {
       );
     }
     return (
-      <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-gray-50 rounded border font-mono">
+      <pre className="text-xs max-h-40 overflow-y-auto p-2 bg-muted rounded border border-border font-mono">
         {JSON.stringify(value, null, 2)}
       </pre>
     );
@@ -112,8 +114,8 @@ function formatValue(key: string, value: any): React.ReactNode {
 
 function ActivityDetailsView({ log }: { log: ActivityLog }) {
   const isUpdate = log.action === "Update";
-  const oldObj = log.oldData || {};
-  const newObj = log.newData || {};
+  const oldObj = (log.oldData as Record<string, unknown>) || {};
+  const newObj = (log.newData as Record<string, unknown>) || {};
 
   const allKeys = Array.from(
     new Set([
@@ -138,9 +140,9 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
     return (
       <div className="space-y-4">
         <h3 className="font-semibold text-lg border-b pb-2">Changes Summary</h3>
-        <div className="border rounded-md overflow-hidden bg-white">
+        <div className="border border-border rounded-md overflow-hidden bg-card">
           <Table>
-            <TableHeader className="bg-gray-50">
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead className="w-1/3">Field</TableHead>
                 <TableHead className="w-1/3 text-red-600">Old Value</TableHead>
@@ -150,11 +152,11 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
             <TableBody>
               {changedKeys.map((key) => (
                 <TableRow key={key}>
-                  <TableCell className="font-medium text-gray-700">{formatKey(key)}</TableCell>
-                  <TableCell className="bg-red-50/20 text-gray-500 line-through decoration-red-200">
+                  <TableCell className="font-medium text-foreground/70">{formatKey(key)}</TableCell>
+                  <TableCell className="bg-rose-50/10 dark:bg-rose-900/10 text-muted-foreground line-through decoration-red-400">
                     {formatValue(key, oldObj[key])}
                   </TableCell>
-                  <TableCell className="bg-green-50/20 text-gray-900 font-semibold">
+                  <TableCell className="bg-green-50/10 dark:bg-green-900/10 text-foreground font-semibold">
                     {formatValue(key, newObj[key])}
                   </TableCell>
                 </TableRow>
@@ -184,9 +186,9 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
       <h3 className="font-semibold text-lg border-b pb-2">
         Record Details ({log.action === "Delete" ? "Deleted Data" : "New Data"})
       </h3>
-      <div className="border rounded-md overflow-hidden bg-white">
+      <div className="border border-border rounded-md overflow-hidden bg-card">
         <Table>
-          <TableHeader className="bg-gray-50">
+          <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="w-1/3">Field</TableHead>
               <TableHead className="w-2/3">Value</TableHead>
@@ -195,8 +197,8 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
           <TableBody>
             {displayKeys.map((key) => (
               <TableRow key={key}>
-                <TableCell className="font-medium text-gray-700">{formatKey(key)}</TableCell>
-                <TableCell className="text-gray-900">
+                <TableCell className="font-medium text-foreground/70">{formatKey(key)}</TableCell>
+                <TableCell className="text-foreground">
                   {formatValue(key, dataObject[key])}
                 </TableCell>
               </TableRow>
@@ -416,7 +418,7 @@ export default function ActivityLogsClient({
       </Card>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl bg-white max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl bg-white dark:bg-black max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Activity Log Details
@@ -426,20 +428,20 @@ export default function ActivityLogsClient({
           {selectedLog && (
             <div className="space-y-6 mt-4">
               {/* Metadata Details */}
-              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-md border text-sm">
+              <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-md border border-border text-sm">
                 <div>
-                  <span className="text-gray-500 block">Date & Time</span>
+                  <span className="text-muted-foreground block">Date & Time</span>
                   <span className="font-medium">
                     {formatDate(selectedLog.date)}{" "}
                     {new Date(selectedLog.date).toLocaleTimeString()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 block">Admin</span>
+                  <span className="text-muted-foreground block">Admin</span>
                   <span className="font-medium">{selectedLog.adminEmail}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500 block">Module</span>
+                  <span className="text-muted-foreground block">Module</span>
                   <div>
                     <Badge variant="outline" className="font-semibold mt-1">
                       {selectedLog.module}
@@ -447,7 +449,7 @@ export default function ActivityLogsClient({
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-500 block">Action</span>
+                  <span className="text-muted-foreground block">Action</span>
                   <div>
                     <Badge
                       variant={

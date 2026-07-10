@@ -14,6 +14,10 @@ const IncomeSchema = new Schema(
   { timestamps: true },
 );
 
+// Indexes for performance optimization on large data sets
+IncomeSchema.index({ deletedAt: 1, date: -1, createdAt: -1 });
+IncomeSchema.index({ category: 1, deletedAt: 1 });
+
 const Income = models.Income || model("Income", IncomeSchema);
 
 export default Income;

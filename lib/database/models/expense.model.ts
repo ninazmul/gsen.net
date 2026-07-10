@@ -14,6 +14,10 @@ const ExpenseSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for performance optimization on large data sets
+ExpenseSchema.index({ deletedAt: 1, date: -1, createdAt: -1 });
+ExpenseSchema.index({ category: 1, deletedAt: 1 });
+
 const Expense = models.Expense || model("Expense", ExpenseSchema);
 
 export default Expense;

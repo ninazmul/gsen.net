@@ -109,19 +109,21 @@ const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
   const currentPath = usePathname();
 
   // Filter sections and items based on permissions
-  const filteredSections = sidebarSections.map((section) => ({
-    ...section,
-    items: section.items.filter((item) =>
-      hasPageAccess(currentAdmin, item.url)
-    ),
-  })).filter((section) => section.items.length > 0);
+  const filteredSections = sidebarSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        hasPageAccess(currentAdmin, item.url)
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <Sidebar
-      className="text-[#3e0078] font-semibold font-serif"
+      className="text-[#3e0078] dark:text-purple-300 font-semibold font-serif bg-background border-border"
       collapsible="icon"
     >
-      <SidebarContent>
+      <SidebarContent className="bg-background border-r border-border">
         {/* Logo */}
         <div className="px-4 py-3">
           <Image
@@ -135,7 +137,7 @@ const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
         {/* Sections */}
         {filteredSections.map((section) => (
           <SidebarGroup key={section.label}>
-            <SidebarGroupLabel className="text-xs uppercase tracking-wide text-gray-500 px-4">
+            <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground px-4">
               {section.label}
             </SidebarGroupLabel>
 
@@ -155,8 +157,8 @@ const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
                           href={item.url}
                           className={`flex items-center gap-3 px-4 py-2 rounded-md transition-all ${
                             isActive
-                              ? "bg-[#3e0078] text-white shadow-sm"
-                              : "hover:bg-[#f3e8ff]"
+                              ? "bg-[#3e0078] dark:bg-purple-700/80 text-white shadow-sm"
+                              : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-foreground"
                           }`}
                         >
                           <item.icon className="w-5 h-5" />

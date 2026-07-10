@@ -86,7 +86,8 @@ export async function getActivityLogs(params?: {
   const logs = await ActivityLog.find<ActivityLogDoc>(query)
     .sort({ date: -1, createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   const total = await ActivityLog.countDocuments(query);
 
@@ -103,7 +104,8 @@ export async function getRecentActivityLogs(limit: number = 10) {
 
   const logs = await ActivityLog.find<ActivityLogDoc>()
     .sort({ date: -1, createdAt: -1 })
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   return JSON.parse(JSON.stringify(logs));
 }

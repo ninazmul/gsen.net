@@ -90,7 +90,8 @@ export async function getIncomes(params?: {
     .populate("category")
     .sort({ date: -1, createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   const total = await Income.countDocuments(query);
 
