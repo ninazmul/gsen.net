@@ -38,6 +38,11 @@ import {
   getDateRange,
   exportToPDF,
 } from "@/lib/export-utils";
+import IncomeReportTemplate from "./IncomeReportTemplate";
+import ExpenseReportTemplate from "./ExpenseReportTemplate";
+import ProfitReportTemplate from "./ProfitReportTemplate";
+import CategoryReportTemplate from "./CategoryReportTemplate";
+import MonthlyReportTemplate from "./MonthlyReportTemplate";
 
 // Define types
 interface Category {
@@ -134,11 +139,11 @@ export default function ReportsClient({
     useState<MonthlyReport>(initialMonthlyReport);
 
   // Refs for PDF export
-  const incomeReportRef = useRef<HTMLDivElement>(null);
-  const expenseReportRef = useRef<HTMLDivElement>(null);
-  const profitReportRef = useRef<HTMLDivElement>(null);
-  const categoryReportRef = useRef<HTMLDivElement>(null);
-  const monthlyReportRef = useRef<HTMLDivElement>(null);
+  const incomeReportTemplateRef = useRef<HTMLDivElement>(null);
+  const expenseReportTemplateRef = useRef<HTMLDivElement>(null);
+  const profitReportTemplateRef = useRef<HTMLDivElement>(null);
+  const categoryReportTemplateRef = useRef<HTMLDivElement>(null);
+  const monthlyReportTemplateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadCategories() {
@@ -277,7 +282,7 @@ export default function ReportsClient({
 
   const handleExportIncome = async (format: "xlsx" | "csv" | "pdf") => {
     if (format === "pdf") {
-      await exportToPDF(incomeReportRef.current, "income-report.pdf");
+      await exportToPDF(incomeReportTemplateRef.current, "income-report.pdf");
     } else {
       const data = incomeReport.incomes.map((inc) => ({
         Title: inc.title,
@@ -300,7 +305,7 @@ export default function ReportsClient({
 
   const handleExportExpense = async (format: "xlsx" | "csv" | "pdf") => {
     if (format === "pdf") {
-      await exportToPDF(expenseReportRef.current, "expense-report.pdf");
+      await exportToPDF(expenseReportTemplateRef.current, "expense-report.pdf");
     } else {
       const data = expenseReport.expenses.map((exp) => ({
         Title: exp.title,
@@ -323,7 +328,10 @@ export default function ReportsClient({
 
   const handleExportCategory = async (format: "xlsx" | "csv" | "pdf") => {
     if (format === "pdf") {
-      await exportToPDF(categoryReportRef.current, "category-report.pdf");
+      await exportToPDF(
+        categoryReportTemplateRef.current,
+        "category-report.pdf",
+      );
     } else {
       const data = categoryReport.map((item) => ({
         Category: item.category.name,
@@ -342,7 +350,7 @@ export default function ReportsClient({
 
   const handleExportMonthly = async (format: "xlsx" | "csv" | "pdf") => {
     if (format === "pdf") {
-      await exportToPDF(monthlyReportRef.current, "monthly-report.pdf");
+      await exportToPDF(monthlyReportTemplateRef.current, "monthly-report.pdf");
     } else {
       const data = monthlyReport.monthlyData.map((item) => ({
         Month: item.monthName,
@@ -361,7 +369,7 @@ export default function ReportsClient({
   };
 
   const handleExportProfit = async () => {
-    await exportToPDF(profitReportRef.current, "profit-report.pdf");
+    await exportToPDF(profitReportTemplateRef.current, "profit-report.pdf");
     await logReportExport("profit", "pdf");
   };
 
@@ -418,7 +426,7 @@ export default function ReportsClient({
         </TabsList>
 
         <TabsContent value="income">
-          <Card ref={incomeReportRef}>
+          <Card>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">Income Report</h3>
@@ -503,7 +511,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="expenses">
-          <Card ref={expenseReportRef}>
+          <Card>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">Expense Report</h3>
@@ -588,7 +596,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="profit">
-          <Card ref={profitReportRef}>
+          <Card>
             <div className="p-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold">Profit Report</h3>
               <div className="flex gap-2">
@@ -628,7 +636,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="category">
-          <Card ref={categoryReportRef}>
+          <Card>
             <div className="p-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold">Category Report</h3>
               <div className="flex gap-2">
@@ -689,7 +697,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="monthly">
-          <Card ref={monthlyReportRef}>
+          <Card>
             <div className="p-4 flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">
@@ -794,6 +802,46 @@ export default function ReportsClient({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Hidden Report Templates for PDF Export */}
+      <div className="absolute left-[-9999px] top-0">
+        <IncomeReportTemplate
+          incomes={incomeReport.incomes}
+          total={incomeReport.total}
+          ref={incomeReportTemplateRef}
+        />
+      </div>
+      <div className="absolute left-[-9999px] top-0">
+        <ExpenseReportTemplate
+          expenses={expenseReport.expenses}
+          total={expenseReport.total}
+          ref={expenseReportTemplateRef}
+        />
+      </div>
+      <div className="absolute left-[-9999px] top-0">
+        <ProfitReportTemplate
+          incomes={profitReport.incomes}
+          expenses={profitReport.expenses}
+          totalIncome={profitReport.totalIncome}
+          totalExpenses={profitReport.totalExpenses}
+          netProfit={profitReport.netProfit}
+          ref={profitReportTemplateRef}
+        />
+      </div>
+      <div className="absolute left-[-9999px] top-0">
+        <CategoryReportTemplate
+          categories={categoryReport}
+          ref={categoryReportTemplateRef}
+        />
+      </div>
+      <div className="absolute left-[-9999px] top-0">
+        <MonthlyReportTemplate
+          monthlyData={monthlyReport.monthlyData}
+          yearlyTotal={monthlyReport.yearlyTotal}
+          year={year}
+          ref={monthlyReportTemplateRef}
+        />
+      </div>
     </div>
   );
 }
