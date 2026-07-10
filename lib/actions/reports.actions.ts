@@ -252,7 +252,7 @@ export async function getMonthlyPerformanceReport(year?: number) {
 
 export async function logReportExport(
   reportType: string,
-  format: "xlsx" | "csv",
+  format: "xlsx" | "csv" | "pdf",
 ) {
   const user = await currentUser();
 

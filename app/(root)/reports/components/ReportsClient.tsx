@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { formatDate } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,12 @@ import {
   logReportExport,
 } from "@/lib/actions/reports.actions";
 import { getCategories } from "@/lib/actions/category.actions";
-import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
+import {
+  exportToExcel,
+  exportToCSV,
+  getDateRange,
+  exportToPDF,
+} from "@/lib/export-utils";
 
 // Define types
 interface Category {
@@ -127,6 +132,13 @@ export default function ReportsClient({
   >([]);
   const [monthlyReport, setMonthlyReport] =
     useState<MonthlyReport>(initialMonthlyReport);
+
+  // Refs for PDF export
+  const incomeReportRef = useRef<HTMLDivElement>(null);
+  const expenseReportRef = useRef<HTMLDivElement>(null);
+  const profitReportRef = useRef<HTMLDivElement>(null);
+  const categoryReportRef = useRef<HTMLDivElement>(null);
+  const monthlyReportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadCategories() {
@@ -263,73 +275,94 @@ export default function ReportsClient({
     loadMonthlyReport();
   }, [year, loadMonthlyReport]);
 
-  const handleExportIncome = async (format: "xlsx" | "csv") => {
-    const data = incomeReport.incomes.map((inc) => ({
-      Title: inc.title,
-      Category:
-        typeof inc.category === "object" ? inc.category.name : inc.category,
-      Amount: inc.amount,
-      Date: formatDate(inc.date),
-      PaymentMethod: inc.paymentMethod,
-      ReferenceNumber: inc.referenceNumber || "",
-      Description: inc.description || "",
-    }));
-    if (format === "xlsx") {
-      exportToExcel(data, "income-report.xlsx", "Income Report");
+  const handleExportIncome = async (format: "xlsx" | "csv" | "pdf") => {
+    if (format === "pdf") {
+      await exportToPDF(incomeReportRef.current, "income-report.pdf");
     } else {
-      exportToCSV(data, "income-report.csv");
+      const data = incomeReport.incomes.map((inc) => ({
+        Title: inc.title,
+        Category:
+          typeof inc.category === "object" ? inc.category.name : inc.category,
+        Amount: inc.amount,
+        Date: formatDate(inc.date),
+        PaymentMethod: inc.paymentMethod,
+        ReferenceNumber: inc.referenceNumber || "",
+        Description: inc.description || "",
+      }));
+      if (format === "xlsx") {
+        exportToExcel(data, "income-report.xlsx", "Income Report");
+      } else {
+        exportToCSV(data, "income-report.csv");
+      }
     }
     await logReportExport("income", format);
   };
 
-  const handleExportExpense = async (format: "xlsx" | "csv") => {
-    const data = expenseReport.expenses.map((exp) => ({
-      Title: exp.title,
-      Category:
-        typeof exp.category === "object" ? exp.category.name : exp.category,
-      Amount: exp.amount,
-      Date: formatDate(exp.date),
-      PaymentMethod: exp.paymentMethod,
-      ReferenceNumber: exp.referenceNumber || "",
-      Description: exp.description || "",
-    }));
-    if (format === "xlsx") {
-      exportToExcel(data, "expense-report.xlsx", "Expense Report");
+  const handleExportExpense = async (format: "xlsx" | "csv" | "pdf") => {
+    if (format === "pdf") {
+      await exportToPDF(expenseReportRef.current, "expense-report.pdf");
     } else {
-      exportToCSV(data, "expense-report.csv");
+      const data = expenseReport.expenses.map((exp) => ({
+        Title: exp.title,
+        Category:
+          typeof exp.category === "object" ? exp.category.name : exp.category,
+        Amount: exp.amount,
+        Date: formatDate(exp.date),
+        PaymentMethod: exp.paymentMethod,
+        ReferenceNumber: exp.referenceNumber || "",
+        Description: exp.description || "",
+      }));
+      if (format === "xlsx") {
+        exportToExcel(data, "expense-report.xlsx", "Expense Report");
+      } else {
+        exportToCSV(data, "expense-report.csv");
+      }
     }
     await logReportExport("expense", format);
   };
 
-  const handleExportCategory = async (format: "xlsx" | "csv") => {
-    const data = categoryReport.map((item) => ({
-      Category: item.category.name,
-      Type: item.category.type,
-      Total: item.total,
-      Count: item.count,
-    }));
-    if (format === "xlsx") {
-      exportToExcel(data, "category-report.xlsx", "Category Report");
+  const handleExportCategory = async (format: "xlsx" | "csv" | "pdf") => {
+    if (format === "pdf") {
+      await exportToPDF(categoryReportRef.current, "category-report.pdf");
     } else {
-      exportToCSV(data, "category-report.csv");
+      const data = categoryReport.map((item) => ({
+        Category: item.category.name,
+        Type: item.category.type,
+        Total: item.total,
+        Count: item.count,
+      }));
+      if (format === "xlsx") {
+        exportToExcel(data, "category-report.xlsx", "Category Report");
+      } else {
+        exportToCSV(data, "category-report.csv");
+      }
     }
     await logReportExport("category", format);
   };
 
-  const handleExportMonthly = async (format: "xlsx" | "csv") => {
-    const data = monthlyReport.monthlyData.map((item) => ({
-      Month: item.monthName,
-      Income: item.totalIncome,
-      Expenses: item.totalExpenses,
-      Profit: item.profit,
-      "Profit %": item.profitPercent.toFixed(2) + "%",
-    }));
-    if (format === "xlsx") {
-      exportToExcel(data, "monthly-report.xlsx", "Monthly Performance");
+  const handleExportMonthly = async (format: "xlsx" | "csv" | "pdf") => {
+    if (format === "pdf") {
+      await exportToPDF(monthlyReportRef.current, "monthly-report.pdf");
     } else {
-      exportToCSV(data, "monthly-report.csv");
+      const data = monthlyReport.monthlyData.map((item) => ({
+        Month: item.monthName,
+        Income: item.totalIncome,
+        Expenses: item.totalExpenses,
+        Profit: item.profit,
+        "Profit %": item.profitPercent.toFixed(2) + "%",
+      }));
+      if (format === "xlsx") {
+        exportToExcel(data, "monthly-report.xlsx", "Monthly Performance");
+      } else {
+        exportToCSV(data, "monthly-report.csv");
+      }
     }
     await logReportExport("monthly", format);
+  };
+
+  const handleExportProfit = async () => {
+    await exportToPDF(profitReportRef.current, "profit-report.pdf");
+    await logReportExport("profit", "pdf");
   };
 
   return (
@@ -385,7 +418,7 @@ export default function ReportsClient({
         </TabsList>
 
         <TabsContent value="income">
-          <Card>
+          <Card ref={incomeReportRef}>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">Income Report</h3>
@@ -420,6 +453,13 @@ export default function ReportsClient({
                 >
                   <Download className="mr-2 h-4 w-4" />
                   CSV
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExportIncome("pdf")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
                 </Button>
               </div>
             </div>
@@ -463,7 +503,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="expenses">
-          <Card>
+          <Card ref={expenseReportRef}>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">Expense Report</h3>
@@ -498,6 +538,13 @@ export default function ReportsClient({
                 >
                   <Download className="mr-2 h-4 w-4" />
                   CSV
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExportExpense("pdf")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
                 </Button>
               </div>
             </div>
@@ -541,9 +588,15 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="profit">
-          <Card>
-            <div className="p-4">
+          <Card ref={profitReportRef}>
+            <div className="p-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold">Profit Report</h3>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={handleExportProfit}>
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
               <Card className="p-4">
@@ -575,7 +628,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="category">
-          <Card>
+          <Card ref={categoryReportRef}>
             <div className="p-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold">Category Report</h3>
               <div className="flex gap-2">
@@ -592,6 +645,13 @@ export default function ReportsClient({
                 >
                   <Download className="mr-2 h-4 w-4" />
                   CSV
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExportCategory("pdf")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
                 </Button>
               </div>
             </div>
@@ -629,7 +689,7 @@ export default function ReportsClient({
         </TabsContent>
 
         <TabsContent value="monthly">
-          <Card>
+          <Card ref={monthlyReportRef}>
             <div className="p-4 flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <h3 className="text-xl font-semibold">
@@ -665,6 +725,13 @@ export default function ReportsClient({
                 >
                   <Download className="mr-2 h-4 w-4" />
                   CSV
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExportMonthly("pdf")}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
                 </Button>
               </div>
             </div>
