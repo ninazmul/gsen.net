@@ -108,8 +108,10 @@ export default function WithdrawalsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { withdrawals: newWithdrawals, totalPages: newTotalPages } =
-      await getWithdrawals(params);
+    const {
+      withdrawals: newWithdrawals,
+      totalPages: newTotalPages,
+    } = await getWithdrawals(params);
     setWithdrawals(newWithdrawals);
     setTotalPages(newTotalPages);
   }, [search, ownerFilter, period, startDate, endDate, currentPage]);

@@ -1,3 +1,4 @@
+
 import { getIncomes } from "@/lib/actions/income.actions";
 import IncomeClient from "./components/IncomeClient";
 import { checkPagePermissionServer } from "@/lib/actions/permission-actions";

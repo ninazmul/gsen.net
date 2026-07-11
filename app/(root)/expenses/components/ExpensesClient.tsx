@@ -110,8 +110,10 @@ export default function ExpensesClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { expenses: newExpenses, totalPages: newTotalPages } =
-      await getExpenses(params);
+    const {
+      expenses: newExpenses,
+      totalPages: newTotalPages,
+    } = await getExpenses(params);
     setExpenses(newExpenses);
     setTotalPages(newTotalPages);
   }, [search, categoryFilter, period, startDate, endDate, currentPage]);

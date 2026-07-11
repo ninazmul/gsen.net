@@ -1,3 +1,4 @@
+
 import { getExpenses } from "@/lib/actions/expense.actions";
 import ExpensesClient from "./components/ExpensesClient";
 import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
