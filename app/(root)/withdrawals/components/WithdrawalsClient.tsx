@@ -38,6 +38,7 @@ import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
 import { getSettings } from "@/lib/actions/settings.actions";
 import { useWritePermission } from "@/lib/hooks/useWritePermission";
 import { type Admin } from "@/lib/actions/admin.actions";
+import Pagination from "@/components/shared/Pagination";
 
 interface Withdrawal {
   _id: string;
@@ -56,13 +57,17 @@ interface Owner {
 
 export default function WithdrawalsClient({
   initialWithdrawals,
+  initialTotalPages,
   currentAdmin,
 }: {
   initialWithdrawals: Withdrawal[];
+  initialTotalPages: number;
   currentAdmin: Admin | null;
 }) {
   const hasWriteAccess = useWritePermission(currentAdmin, "withdrawals");
   const [withdrawals, setWithdrawals] = useState(initialWithdrawals);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(1);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [search, setSearch] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
@@ -90,7 +95,8 @@ export default function WithdrawalsClient({
       owner?: string;
       startDate?: Date;
       endDate?: Date;
-    } = { search, limit: 100 };
+      page?: number;
+    } = { search, limit: 10, page: currentPage };
     if (ownerFilter) {
       params.owner = ownerFilter;
     }
@@ -102,8 +108,15 @@ export default function WithdrawalsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { withdrawals: newWithdrawals } = await getWithdrawals(params);
+    const { withdrawals: newWithdrawals, totalPages: newTotalPages } =
+      await getWithdrawals(params);
     setWithdrawals(newWithdrawals);
+    setTotalPages(newTotalPages);
+  }, [search, ownerFilter, period, startDate, endDate, currentPage]);
+
+  // Reset to page 1 when any filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [search, ownerFilter, period, startDate, endDate]);
 
   useEffect(() => {
@@ -311,6 +324,15 @@ export default function WithdrawalsClient({
             ))}
           </TableBody>
         </Table>
+        {totalPages > 1 && (
+          <div className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </Card>
     </div>
   );

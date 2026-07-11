@@ -36,6 +36,7 @@ import { getCategories } from "@/lib/actions/category.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
 import { useWritePermission } from "@/lib/hooks/useWritePermission";
 import { type Admin } from "@/lib/actions/admin.actions";
+import Pagination from "@/components/shared/Pagination";
 
 // Define types
 interface Category {
@@ -60,13 +61,17 @@ interface Expense {
 
 export default function ExpensesClient({
   initialExpenses,
+  initialTotalPages,
   currentAdmin,
 }: {
   initialExpenses: Expense[];
+  initialTotalPages: number;
   currentAdmin: Admin | null;
 }) {
   const hasWriteAccess = useWritePermission(currentAdmin, "expenses");
   const [expenses, setExpenses] = useState(initialExpenses);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -91,7 +96,9 @@ export default function ExpensesClient({
       category?: string;
       startDate?: Date;
       endDate?: Date;
-    } = { search };
+      page?: number;
+      limit?: number;
+    } = { search, page: currentPage, limit: 10 };
     if (categoryFilter) {
       params.category = categoryFilter;
     }
@@ -103,8 +110,15 @@ export default function ExpensesClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { expenses: newExpenses } = await getExpenses(params);
+    const { expenses: newExpenses, totalPages: newTotalPages } =
+      await getExpenses(params);
     setExpenses(newExpenses);
+    setTotalPages(newTotalPages);
+  }, [search, categoryFilter, period, startDate, endDate, currentPage]);
+
+  // Reset to page 1 when any filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [search, categoryFilter, period, startDate, endDate]);
 
   useEffect(() => {
@@ -328,6 +342,15 @@ export default function ExpensesClient({
             ))}
           </TableBody>
         </Table>
+        {totalPages > 1 && (
+          <div className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </Card>
     </div>
   );

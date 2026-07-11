@@ -9,6 +9,12 @@ export default async function ExpensesPage() {
   if (!hasAccess) redirect("/access-denied");
 
   const admin = await getCurrentAdmin();
-  const { expenses } = await getExpenses();
-  return <ExpensesClient initialExpenses={expenses} currentAdmin={admin} />;
+  const { expenses, totalPages } = await getExpenses({ limit: 10 });
+  return (
+    <ExpensesClient
+      initialExpenses={expenses}
+      initialTotalPages={totalPages}
+      currentAdmin={admin}
+    />
+  );
 }

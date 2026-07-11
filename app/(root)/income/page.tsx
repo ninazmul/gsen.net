@@ -9,6 +9,12 @@ export default async function IncomePage() {
   if (!hasAccess) redirect("/access-denied");
 
   const admin = await getCurrentAdmin();
-  const { incomes } = await getIncomes({ limit: 100 });
-  return <IncomeClient initialIncomes={incomes} currentAdmin={admin} />;
+  const { incomes, totalPages } = await getIncomes({ limit: 10 });
+  return (
+    <IncomeClient
+      initialIncomes={incomes}
+      initialTotalPages={totalPages}
+      currentAdmin={admin}
+    />
+  );
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -30,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Pagination from "@/components/shared/Pagination";
 
 interface ActivityLog {
   _id: string;
@@ -212,10 +214,17 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
 
 export default function ActivityLogsClient({
   initialLogs,
+  initialTotal,
+  initialTotalPages,
 }: {
   initialLogs: ActivityLog[];
+  initialTotal: number;
+  initialTotalPages: number;
 }) {
   const [logs, setLogs] = useState(initialLogs);
+  const [total, setTotal] = useState(initialTotal);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -233,7 +242,8 @@ export default function ActivityLogsClient({
       startDate?: Date;
       endDate?: Date;
       limit?: number;
-    } = { search, limit: 100 };
+      page?: number;
+    } = { search, limit: 10, page: currentPage };
     if (moduleFilter && moduleFilter !== "all") params.module = moduleFilter;
     if (actionFilter && actionFilter !== "all") params.action = actionFilter;
     if (period === "custom" && startDate && endDate) {
@@ -244,8 +254,15 @@ export default function ActivityLogsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { logs: newLogs } = await getActivityLogs(params);
+    const { logs: newLogs, total: newTotal, totalPages: newTotalPages } = await getActivityLogs(params);
     setLogs(newLogs);
+    setTotal(newTotal);
+    setTotalPages(newTotalPages);
+  }, [search, moduleFilter, actionFilter, period, startDate, endDate, currentPage]);
+
+  // Reset to page 1 when any filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [search, moduleFilter, actionFilter, period, startDate, endDate]);
 
   useEffect(() => {
@@ -415,6 +432,15 @@ export default function ActivityLogsClient({
             ))}
           </TableBody>
         </Table>
+        {totalPages > 1 && (
+          <div className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </Card>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>

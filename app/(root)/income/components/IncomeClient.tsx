@@ -36,6 +36,7 @@ import { getCategories } from "@/lib/actions/category.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
 import { useWritePermission } from "@/lib/hooks/useWritePermission";
 import { type Admin } from "@/lib/actions/admin.actions";
+import Pagination from "@/components/shared/Pagination";
 
 interface Category {
   _id: string;
@@ -59,13 +60,17 @@ interface Income {
 
 export default function IncomeClient({
   initialIncomes,
+  initialTotalPages,
   currentAdmin,
 }: {
   initialIncomes: Income[];
+  initialTotalPages: number;
   currentAdmin: Admin | null;
 }) {
   const hasWriteAccess = useWritePermission(currentAdmin, "income");
   const [incomes, setIncomes] = useState(initialIncomes);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -91,7 +96,8 @@ export default function IncomeClient({
       category?: string;
       startDate?: Date;
       endDate?: Date;
-    } = { search, limit: 100 };
+      page?: number;
+    } = { search, limit: 10, page: currentPage };
     if (categoryFilter) {
       params.category = categoryFilter;
     }
@@ -103,8 +109,15 @@ export default function IncomeClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { incomes: newIncomes } = await getIncomes(params);
+    const { incomes: newIncomes, totalPages: newTotalPages } =
+      await getIncomes(params);
     setIncomes(newIncomes);
+    setTotalPages(newTotalPages);
+  }, [search, categoryFilter, period, startDate, endDate, currentPage]);
+
+  // Reset to page 1 when any filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [search, categoryFilter, period, startDate, endDate]);
 
   useEffect(() => {
@@ -328,6 +341,15 @@ export default function IncomeClient({
             ))}
           </TableBody>
         </Table>
+        {totalPages > 1 && (
+          <div className="p-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </Card>
     </div>
   );

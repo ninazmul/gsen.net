@@ -1,3 +1,4 @@
+
 import { getActivityLogs } from "@/lib/actions/activity-log.actions";
 import ActivityLogsClient from "./components/ActivityLogsClient";
 import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
@@ -7,6 +8,12 @@ export default async function ActivityLogsPage() {
   const hasAccess = await checkPagePermissionServer("activityLogs");
   if (!hasAccess) redirect("/access-denied");
 
-  const { logs } = await getActivityLogs({ limit: 100 });
-  return <ActivityLogsClient initialLogs={logs} />;
+  const { logs, total, totalPages } = await getActivityLogs({ limit: 10 });
+  return (
+    <ActivityLogsClient
+      initialLogs={logs}
+      initialTotal={total}
+      initialTotalPages={totalPages}
+    />
+  );
 }

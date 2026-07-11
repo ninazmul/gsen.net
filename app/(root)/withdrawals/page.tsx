@@ -1,3 +1,4 @@
+
 import { getWithdrawals } from "@/lib/actions/withdrawal.actions";
 import WithdrawalsClient from "./components/WithdrawalsClient";
 import { checkPagePermissionServer } from "@/lib/actions/permission-actions";
@@ -9,8 +10,12 @@ export default async function WithdrawalsPage() {
   if (!hasAccess) redirect("/access-denied");
 
   const admin = await getCurrentAdmin();
-  const { withdrawals } = await getWithdrawals({ limit: 100 });
+  const { withdrawals, totalPages } = await getWithdrawals({ limit: 10 });
   return (
-    <WithdrawalsClient initialWithdrawals={withdrawals} currentAdmin={admin} />
+    <WithdrawalsClient
+      initialWithdrawals={withdrawals}
+      initialTotalPages={totalPages}
+      currentAdmin={admin}
+    />
   );
 }
