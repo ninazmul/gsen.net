@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-gradient-to-b from-indigo-100/70 via-sky-50/50 to-gray-100 dark:from-gray-950 dark:via-[#111827] dark:to-gray-950 px-2 py-2 sm:px-4 sm:py-4 lg:px-8">
@@ -17,24 +15,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           <div className="relative flex flex-col items-center space-y-6">
-            <Image
-              src="/assets/images/logo.png"
-              alt="GESN NET Software"
-              width={500}
-              height={300}
-              className="h-auto w-auto"
-              priority
-            />
+            <h1 className="text-7xl font-bold text-purple-900 dark:text-white">
+              GESN.NET
+            </h1>
 
             <p className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
               Welcome Back
             </p>
-            <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-white">
-              GESN NET Software
-            </h1>
             <p className="max-w-md text-sm text-gray-600 dark:text-gray-300">
-              Securely sign in to manage customers, billing, and expenses from
-              one modern dashboard.
+              Business Account Management System
             </p>
           </div>
         </aside>
@@ -42,14 +31,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <main className="relative flex justify-center w-full flex-1 flex-col p-4 sm:p-6 md:p-10 overflow-y-auto">
           <div className="flex flex-col lg:hidden">
             <div className="mb-4 flex justify-center">
-              <Image
-                src="/assets/images/logo.png"
-                alt="GESN NET Software"
-                width={500}
-                height={300}
-                className="h-[60px] w-auto"
-                priority
-              />
+              <h1 className="text-5xl font-bold text-purple-900 dark:text-white">
+                GESN.NET
+              </h1>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-2 sm:px-3">
@@ -62,12 +46,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <p className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
                 Welcome Back
               </p>
-              <h1 className="mt-3 text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
-                GESN NET Software
-              </h1>
               <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-300">
-                Securely sign in to manage customers, billing, and expenses from
-                one modern dashboard.
+                Business Account Management System
               </p>
             </div>
           </div>
