@@ -58,6 +58,14 @@ interface ActivityLog {
   module: string;
   action: string;
   description: string;
+  recordId?: string;
+  oldData?: unknown;
+  newData?: unknown;
+  ipAddress?: string;
+  browser?: string;
+  userAgent?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface OwnerBalance {
@@ -127,7 +135,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   return (
     <div className="py-6 flex flex-col gap-8 px-4 bg-background min-h-screen">
       {/* Summary Metrics Cards */}
-      <h2 className="text-2xl font-bold uppercase">1. Business Summary</h2>
+      <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400">
+        1. Business Summary
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {/* Metric 1: Total Income */}
         <Card className="relative overflow-hidden bg-card p-6 shadow-sm border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
@@ -258,7 +268,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
       {/* Owner Overview Cards */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold uppercase">2. Owner Overview</h2>
+        <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400">
+          2. Owner Overview
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {data.summary.ownerBalances.map((owner, index) => (
             <div
@@ -339,7 +351,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Owner Balances — spans 2 cols */}
         <Card className="lg:col-span-2 p-5 shadow-sm border border-border bg-card">
-          <h2 className="text-2xl font-bold uppercase text-card-foreground mb-5">
+          <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 text-card-foreground mb-5">
             3. Owner Balance
           </h2>
           <div className="overflow-x-auto">
@@ -497,7 +509,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
         {/* Smart Insights */}
         <Card className="p-5 shadow-sm border border-border bg-card flex flex-col">
-          <h2 className="text-2xl font-bold uppercase text-card-foreground mb-5">
+          <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 text-card-foreground mb-5">
             4. Smart Insights
           </h2>
 
@@ -660,7 +672,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         {/* This Month vs Last 3 Months */}
         <Card className="p-5 shadow-sm border border-border bg-card">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-2xl font-bold uppercase text-card-foreground">
+            <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 text-card-foreground">
               5. This Month vs Last 3 Months
             </h2>
 
@@ -758,7 +770,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         <Card className="p-6 shadow-sm border border-border bg-card">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-card-foreground tracking-tight uppercase">
+            <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 text-card-foreground tracking-tight">
               6. Expense Category Details
             </h2>
           </div>
@@ -934,53 +946,94 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </Card>
       </div>
 
-      {/* Recent Activity Full-width Table */}
-      <Card className="p-5 shadow-sm border border-border bg-card">
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
-          <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-[#3e0078] dark:text-purple-400 rounded-lg">
-            <Activity className="w-4 h-4" />
-          </div>
-          <h2 className="text-lg font-bold text-card-foreground">
-            Recent Activity Log
+      {/* Activity Log */}
+      <Card className="overflow-hidden border border-border shadow-sm bg-card">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b">
+          <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 tracking-wide">
+            7. Activity Log
           </h2>
+
+          <a
+            href="/activity-logs"
+            className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted transition-colors"
+          >
+            View All
+          </a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.recentLogs.slice(0, 6).map((log) => (
-            <div
-              key={log._id}
-              className="flex justify-between items-center border border-border p-4 rounded-xl bg-muted/20 hover:bg-muted/40 hover:border-border hover:shadow-sm transition-all duration-200"
-            >
-              <div className="space-y-1">
-                <p className="font-semibold text-sm text-card-foreground tracking-tight">
-                  {log.description}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  By{" "}
-                  <span className="font-medium text-foreground/70">
-                    {log.adminEmail}
-                  </span>{" "}
-                  •{" "}
-                  <span className="font-medium text-foreground/70">
-                    {log.action}
-                  </span>
-                </p>
-              </div>
-              <div className="text-right space-y-1.5">
-                <Badge
-                  variant="outline"
-                  className="text-[10px] uppercase font-semibold bg-card border-border text-[#3e0078] dark:text-purple-400 dark:border-purple-800"
-                >
-                  {log.module}
-                </Badge>
-                <p className="text-[10px] text-muted-foreground block font-mono">
-                  {formatDate(log.date)}
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/20">
+                <TableHead className="whitespace-nowrap">Date & Time</TableHead>
+
+                <TableHead>User</TableHead>
+
+                <TableHead>Action</TableHead>
+
+                <TableHead>Module</TableHead>
+
+                <TableHead>Details</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {data.recentLogs.slice(0, 6).map((log) => {
+                const action = log.action.toLowerCase();
+
+                let actionColor = "text-blue-600 dark:text-blue-400";
+
+                if (action.includes("add"))
+                  actionColor = "text-green-600 dark:text-green-400";
+
+                if (action.includes("update") || action.includes("edit"))
+                  actionColor = "text-blue-600 dark:text-blue-400";
+
+                if (action.includes("delete"))
+                  actionColor = "text-red-600 dark:text-red-400";
+
+                if (action.includes("withdraw"))
+                  actionColor = "text-amber-600 dark:text-amber-400";
+
+                return (
+                  <TableRow key={log._id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium whitespace-nowrap">
+                      {formatDate(log.date)}
+                    </TableCell>
+
+                    <TableCell className="font-semibold">
+                      {log.adminEmail}
+                    </TableCell>
+
+                    <TableCell>
+                      <span className={`font-semibold ${actionColor}`}>
+                        {log.action}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="max-w-xs">
+                      <Badge variant="outline" className="uppercase">
+                        {log.module}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="max-w-md">
+                      <span className="text-muted-foreground">
+                        {log.description}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       </Card>
+
+      <div className="py-4 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} GSEN.NET. All rights reserved.
+      </div>
     </div>
   );
 }
