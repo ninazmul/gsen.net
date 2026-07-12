@@ -19,7 +19,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="relative flex flex-col items-center space-y-6">
             <Image
               src="/assets/images/logo.png"
-              alt="GSEN NET Software"
+              alt="GESN NET Software"
               width={500}
               height={300}
               className="h-auto w-auto"
@@ -30,7 +30,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               Welcome Back
             </p>
             <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-white">
-              GSEN NET Software
+              GESN NET Software
             </h1>
             <p className="max-w-md text-sm text-gray-600 dark:text-gray-300">
               Securely sign in to manage customers, billing, and expenses from
@@ -44,7 +44,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="mb-4 flex justify-center">
               <Image
                 src="/assets/images/logo.png"
-                alt="GSEN NET Software"
+                alt="GESN NET Software"
                 width={500}
                 height={300}
                 className="h-[60px] w-auto"
@@ -63,7 +63,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 Welcome Back
               </p>
               <h1 className="mt-3 text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
-                GSEN NET Software
+                GESN NET Software
               </h1>
               <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-300">
                 Securely sign in to manage customers, billing, and expenses from

@@ -44,7 +44,7 @@ export default async function AdminLayout({
           <SidebarTrigger />
           <div className="flex justify-between w-full px-2">
             <div>
-              <h1 className="text-xl font-bold">GSEN.NET</h1>
+              <h1 className="text-xl font-bold">GESN.NET</h1>
               <p className="text-xs">Business Account Management System</p>
             </div>
             <div className="flex items-center gap-2">
@@ -64,4 +64,3 @@ export default async function AdminLayout({
     </SidebarProvider>
   );
 }
-

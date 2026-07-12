@@ -1,6 +1,6 @@
-# GSEN NET
+# GESN NET
 
-GSEN NET is a Next.js application for managing an internet service provider business. It includes authenticated admin access, customer records, monthly billing, expenses, reports, settings, and invoice export.
+GESN NET is a Next.js application for managing an internet service provider business. It includes authenticated admin access, customer records, monthly billing, expenses, reports, settings, and invoice export.
 
 For full app documentation, see [docs/APP_DOCUMENTATION.md](docs/APP_DOCUMENTATION.md).
 
@@ -106,7 +106,7 @@ types/                 Shared TypeScript interfaces
 
 ## Database
 
-The app uses MongoDB through Mongoose. Set `MONGODB_URI` in `.env.local`. The database connection uses the `gsen-net` database name.
+The app uses MongoDB through Mongoose. Set `MONGODB_URI` in `.env.local`. The database connection uses the `GESN-net` database name.
 
 Core models:
 

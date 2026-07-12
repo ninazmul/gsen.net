@@ -19,12 +19,12 @@ const dmSerif = DM_Serif_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "GSEN NET – Internet Service Provider Management System",
-    template: "%s | GSEN NET",
+    default: "GESN NET – Internet Service Provider Management System",
+    template: "%s | GESN NET",
   },
 
   description:
-    "GSEN NET is a comprehensive management system for Internet Service Providers, handling customers, billing, expenses, and reports.",
+    "GESN NET is a comprehensive management system for Internet Service Providers, handling customers, billing, expenses, and reports.",
 
   alternates: {
     canonical: "/",
@@ -45,23 +45,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_BD",
-    siteName: "GSEN NET",
-    title: "GSEN NET – Internet Service Provider Management System",
+    siteName: "GESN NET",
+    title: "GESN NET – Internet Service Provider Management System",
     description:
-      "Manage your ISP business with GSEN NET - customers, billing, expenses, and reports in one place.",
+      "Manage your ISP business with GESN NET - customers, billing, expenses, and reports in one place.",
     images: [
       {
         url: "/assets/images/logo.png",
         width: 1200,
         height: 630,
-        alt: "GSEN NET",
+        alt: "GESN NET",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "GSEN NET – Internet Service Provider Management System",
+    title: "GESN NET – Internet Service Provider Management System",
     description:
       "Comprehensive ISP management system for customers, billing, expenses, and reports.",
     images: ["/assets/images/logo.png"],
@@ -95,4 +95,3 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
-

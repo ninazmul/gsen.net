@@ -1,22 +1,25 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient } = require("mongodb");
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/gsen';
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/GESN";
 
 async function fixAdminPermissions() {
   const client = new MongoClient(MONGODB_URI);
-  
+
   try {
     await client.connect();
     const db = client.db();
-    const admins = db.collection('admins');
-    
+    const admins = db.collection("admins");
+
     const result = await admins.find({}).toArray();
     console.log(`Found ${result.length} admins`);
-    
+
     for (const admin of result) {
       console.log(`\nChecking admin: ${admin.email}`);
-      console.log('Current permissions:', JSON.stringify(admin.permissions, null, 2));
-      
+      console.log(
+        "Current permissions:",
+        JSON.stringify(admin.permissions, null, 2),
+      );
+
       // Fix permissions structure
       const fixedPermissions = {
         pages: {
@@ -41,20 +44,23 @@ async function fixAdminPermissions() {
           activityLogs: admin.permissions?.pages?.activityLogs ?? true,
           admins: admin.permissions?.pages?.admins ?? false,
           settings: admin.permissions?.pages?.settings ?? false,
-        }
+        },
       };
-      
+
       await admins.updateOne(
         { _id: admin._id },
-        { $set: { permissions: fixedPermissions } }
+        { $set: { permissions: fixedPermissions } },
       );
-      
-      console.log('Fixed permissions:', JSON.stringify(fixedPermissions, null, 2));
+
+      console.log(
+        "Fixed permissions:",
+        JSON.stringify(fixedPermissions, null, 2),
+      );
     }
-    
-    console.log('\n✅ All admin permissions fixed successfully');
+
+    console.log("\n✅ All admin permissions fixed successfully");
   } catch (error) {
-    console.error('Error fixing permissions:', error);
+    console.error("Error fixing permissions:", error);
   } finally {
     await client.close();
   }

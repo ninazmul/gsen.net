@@ -26,7 +26,7 @@ export const connectToDatabase = async () => {
   cached.promise =
     cached.promise ||
     mongoose.connect(MONGODB_URI, {
-      dbName: "gsen-net",
+      dbName: "GESN-net",
       bufferCommands: false,
       serverSelectionTimeoutMS: 10000, // wait max 10s for primary
     } as ConnectOptions); // explicitly cast as ConnectOptions

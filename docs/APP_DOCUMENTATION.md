@@ -1,8 +1,8 @@
-# GSEN NET Application Documentation
+# GESN NET Application Documentation
 
 ## Overview
 
-GSEN NET is a web application for managing the core operations of an internet service provider. It helps an ISP team manage customers, generate monthly bills, record payments, track expenses, review financial reports, configure invoice details, and manage admin access.
+GESN NET is a web application for managing the core operations of an internet service provider. It helps an ISP team manage customers, generate monthly bills, record payments, track expenses, review financial reports, configure invoice details, and manage admin access.
 
 The application is built with Next.js App Router, React, TypeScript, Clerk authentication, MongoDB, and Mongoose. Most business operations are implemented as Next.js server actions under `lib/actions`.
 
@@ -288,7 +288,7 @@ It reads `MONGODB_URI` from environment variables and connects using Mongoose. T
 The app uses the MongoDB database name:
 
 ```text
-gsen-net
+GESN-net
 ```
 
 ### Authentication And Authorization

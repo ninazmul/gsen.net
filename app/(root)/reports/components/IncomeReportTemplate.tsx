@@ -41,7 +41,7 @@ const IncomeReportTemplate = forwardRef<
         <div>
           <Image
             src="/assets/images/logo.png"
-            alt="GSEN.NET Logo"
+            alt="GESN.NET Logo"
             width={200}
             height={80}
             unoptimized
@@ -51,7 +51,7 @@ const IncomeReportTemplate = forwardRef<
 
         <div className="text-right">
           <h1 className="text-3xl font-bold">INCOME REPORT</h1>
-          <p className="text-gray-600">GSEN.NET</p>
+          <p className="text-gray-600">GESN.NET</p>
           <p className="text-sm text-gray-500">
             Generated on: {formatDate(new Date())}
           </p>
@@ -109,7 +109,7 @@ const IncomeReportTemplate = forwardRef<
 
       {/* Footer */}
       <div className="text-center text-xs text-gray-600 border-t border-gray-400 pt-2 mt-auto">
-        <p>GSEN.NET - Financial Report</p>
+        <p>GESN.NET - Financial Report</p>
       </div>
     </div>
   );

@@ -26,20 +26,22 @@ type ExpenseReportTemplateProps = {
   total: number;
 };
 
-const ExpenseReportTemplate = forwardRef<HTMLDivElement, ExpenseReportTemplateProps>(
-  ({ expenses, total }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className="w-[210mm] min-h-[297mm] p-8 font-sans text-gray-900"
-        style={{ boxSizing: "border-box" }}
-      >
+const ExpenseReportTemplate = forwardRef<
+  HTMLDivElement,
+  ExpenseReportTemplateProps
+>(({ expenses, total }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className="w-[210mm] min-h-[297mm] p-8 font-sans text-gray-900"
+      style={{ boxSizing: "border-box" }}
+    >
       {/* Header */}
       <div className="flex justify-between items-start border-b border-gray-400 pb-4 mb-6">
         <div>
           <Image
             src="/assets/images/logo.png"
-            alt="GSEN.NET Logo"
+            alt="GESN.NET Logo"
             width={200}
             height={80}
             unoptimized
@@ -49,7 +51,7 @@ const ExpenseReportTemplate = forwardRef<HTMLDivElement, ExpenseReportTemplatePr
 
         <div className="text-right">
           <h1 className="text-3xl font-bold">EXPENSE REPORT</h1>
-          <p className="text-gray-600">GSEN.NET</p>
+          <p className="text-gray-600">GESN.NET</p>
           <p className="text-sm text-gray-500">
             Generated on: {formatDate(new Date())}
           </p>
@@ -107,12 +109,11 @@ const ExpenseReportTemplate = forwardRef<HTMLDivElement, ExpenseReportTemplatePr
 
       {/* Footer */}
       <div className="text-center text-xs text-gray-600 border-t border-gray-400 pt-2 mt-auto">
-        <p>GSEN.NET - Financial Report</p>
+        <p>GESN.NET - Financial Report</p>
       </div>
     </div>
-    );
-  }
-);
+  );
+});
 
 ExpenseReportTemplate.displayName = "ExpenseReportTemplate";
 
