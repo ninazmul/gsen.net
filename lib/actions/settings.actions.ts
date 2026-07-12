@@ -27,8 +27,8 @@ export async function getSettings() {
   if (!settings) {
     settings = await Settings.create({
       owners: [
-        { name: "Owner 1", email: "" },
-        { name: "Owner 2", email: "" },
+        { name: "Owner 1", email: "owner1@example.com" },
+        { name: "Owner 2", email: "owner2@example.com" },
       ],
     });
   }

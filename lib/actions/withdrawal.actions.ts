@@ -9,6 +9,7 @@ import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { checkWritePermissionServer } from "./permission-actions";
+import { getSettings } from "./settings.actions";
 
 interface WithdrawalDoc {
   _id: string;
@@ -46,6 +47,68 @@ export async function getOwnerBalance(ownerName: string): Promise<number> {
   return income - expenses - withdrawn;
 }
 
+export async function getWithdrawalBalances(): Promise<{
+  ownerBalances: { name: string; email: string; balance: number }[];
+  totalBalance: number;
+}> {
+  await connectToDatabase();
+  const settings = await getSettings();
+  const owners = settings?.owners || [];
+
+  const totalIncomeByOwner = await Income.aggregate([
+    { $match: { deletedAt: null } },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const totalExpensesByOwner = await Expense.aggregate([
+    { $match: { deletedAt: null } },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const withdrawals = await Withdrawal.aggregate([
+    {
+      $group: {
+        _id: "$owner",
+        totalWithdrawn: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  let totalBalance = 0;
+  const ownerBalances = (owners as { name: string; email: string }[]).map((owner) => {
+    const totalIncome =
+      totalIncomeByOwner.find((i) => i._id === owner.name)?.total || 0;
+    const totalExpenses =
+      totalExpensesByOwner.find((e) => e._id === owner.name)?.total || 0;
+    const withdrawn =
+      withdrawals.find((w) => w._id === owner.name)?.totalWithdrawn || 0;
+    const balance = totalIncome - totalExpenses - withdrawn;
+    totalBalance += balance;
+
+    return {
+      name: owner.name,
+      email: owner.email,
+      balance,
+    };
+  });
+
+  return {
+    ownerBalances,
+    totalBalance,
+  };
+}
+
+
 export async function createWithdrawal(data: {
   owner: string;
   amount: number;
@@ -56,11 +119,11 @@ export async function createWithdrawal(data: {
   await connectToDatabase();
   const user = await currentUser();
 
-  // Check available balance
-  const availableBalance = await getOwnerBalance(data.owner);
-  if (data.amount > availableBalance) {
+  // Check total available balance (no need to limit to owner's own balance)
+  const { totalBalance } = await getWithdrawalBalances();
+  if (data.amount > totalBalance) {
     throw new Error(
-      `Insufficient balance. Available: ৳${availableBalance.toFixed(2)}`,
+      `Insufficient balance. Total Available: ৳${totalBalance.toFixed(2)}`,
     );
   }
 
@@ -143,36 +206,18 @@ export async function updateWithdrawal(
     throw new Error("Withdrawal not found");
   }
 
-  // Check available balance if amount or owner is changed
+  // Check total available balance if amount or owner is changed (no need to limit to owner's own balance)
   if (data.amount !== undefined || data.owner !== undefined) {
-    const newOwner = data.owner || oldWithdrawal.owner;
     const newAmount =
       data.amount !== undefined ? data.amount : oldWithdrawal.amount;
 
-    // Calculate what the balance would be after this change
-    // Temporarily "undo" the old withdrawal for calculation
-    const totalIncome = await Income.aggregate([
-      { $match: { deletedAt: null, owner: newOwner } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const totalExpenses = await Expense.aggregate([
-      { $match: { deletedAt: null, owner: newOwner } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const income = totalIncome[0]?.total || 0;
-    const expenses = totalExpenses[0]?.total || 0;
+    const { totalBalance } = await getWithdrawalBalances();
+    // Since totalBalance includes the old withdrawal, the true total balance before this withdrawal was:
+    const baseTotalBalance = totalBalance + oldWithdrawal.amount;
 
-    // Get total withdrawals excluding this one
-    const totalWithdrawn = await Withdrawal.aggregate([
-      { $match: { owner: newOwner, _id: { $ne: oldWithdrawal._id } } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const withdrawn = totalWithdrawn[0]?.total || 0;
-
-    const availableBalance = income - expenses - withdrawn;
-    if (newAmount > availableBalance) {
+    if (newAmount > baseTotalBalance) {
       throw new Error(
-        `Insufficient balance. Available: ৳${availableBalance.toFixed(2)}`,
+        `Insufficient balance. Total Available: ৳${baseTotalBalance.toFixed(2)}`,
       );
     }
   }

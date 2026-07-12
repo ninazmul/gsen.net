@@ -185,6 +185,7 @@ export default function WithdrawalsClient({
                   <DialogTitle>Add New Withdrawal</DialogTitle>
                 </DialogHeader>
                 <WithdrawalForm
+                  currentAdmin={currentAdmin}
                   onSuccess={() => {
                     setIsAddOpen(false);
                     loadWithdrawals();
@@ -301,6 +302,7 @@ export default function WithdrawalsClient({
                         </DialogHeader>
                         <WithdrawalForm
                           withdrawal={editingWithdrawal ?? undefined}
+                          currentAdmin={currentAdmin}
                           onSuccess={() => {
                             setIsEditOpen(false);
                             setEditingWithdrawal(null);

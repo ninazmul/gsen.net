@@ -22,10 +22,10 @@ import {
 import {
   createWithdrawal,
   updateWithdrawal,
-  getOwnerBalance,
+  getWithdrawalBalances,
 } from "@/lib/actions/withdrawal.actions";
 import { useEffect, useState } from "react";
-import { getSettings } from "@/lib/actions/settings.actions";
+import { type Admin } from "@/lib/actions/admin.actions";
 import { toast } from "react-hot-toast";
 
 interface Withdrawal {
@@ -40,6 +40,7 @@ interface Withdrawal {
 
 interface WithdrawalFormProps {
   withdrawal?: Withdrawal;
+  currentAdmin?: Admin | null;
   onSuccess: () => void;
 }
 
@@ -50,23 +51,27 @@ interface WithdrawalFormData {
   description: string;
 }
 
-interface Owner {
+interface OwnerBalanceInfo {
   name: string;
+  email: string;
+  balance: number;
 }
 
 export default function WithdrawalForm({
   withdrawal,
+  currentAdmin,
   onSuccess,
 }: WithdrawalFormProps) {
-  const [owners, setOwners] = useState<Owner[]>([]);
-  const [availableBalance, setAvailableBalance] = useState<number>(0);
+  const [ownerBalances, setOwnerBalances] = useState<OwnerBalanceInfo[]>([]);
+  const [totalBalance, setTotalBalance] = useState<number>(0);
 
   useEffect(() => {
-    async function loadSettings() {
-      const settings = await getSettings();
-      setOwners(settings.owners || []);
+    async function loadBalances() {
+      const res = await getWithdrawalBalances();
+      setOwnerBalances(res.ownerBalances || []);
+      setTotalBalance(res.totalBalance || 0);
     }
-    loadSettings();
+    loadBalances();
   }, []);
 
   const form = useForm<WithdrawalFormData>({
@@ -85,20 +90,24 @@ export default function WithdrawalForm({
         },
   });
 
-  // Watch the owner field to update available balance
+  // Watch the owner field to update styles or track selected
   const selectedOwner = form.watch("owner");
 
+  // Pre-select owner based on logged in user's email matching owner email
   useEffect(() => {
-    async function loadBalance() {
-      if (selectedOwner) {
-        const balance = await getOwnerBalance(selectedOwner);
-        setAvailableBalance(balance);
-      } else {
-        setAvailableBalance(0);
+    if (!withdrawal && currentAdmin?.email && ownerBalances.length > 0) {
+      const match = ownerBalances.find(
+        (o) => o.email && o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase()
+      );
+      if (match) {
+        form.setValue("owner", match.name);
       }
     }
-    loadBalance();
-  }, [selectedOwner]);
+  }, [ownerBalances, currentAdmin, withdrawal, form]);
+
+  const maxWithdrawable = withdrawal
+    ? totalBalance + withdrawal.amount
+    : totalBalance;
 
   const onSubmit = async (data: WithdrawalFormData) => {
     try {
@@ -142,7 +151,7 @@ export default function WithdrawalForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {owners.map((owner) => (
+                  {ownerBalances.map((owner) => (
                     <SelectItem key={owner.name} value={owner.name}>
                       {owner.name}
                     </SelectItem>
@@ -154,13 +163,39 @@ export default function WithdrawalForm({
           )}
         />
 
-        {selectedOwner && (
-          <div className="p-3 bg-gray-50 rounded-md">
-            <p className="text-sm">
-              Available Balance: <span className={`font-bold ${availableBalance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                ৳{availableBalance.toFixed(2)}
-              </span>
+        {ownerBalances.length > 0 && (
+          <div className="p-4 bg-gray-50 dark:bg-zinc-900 rounded-lg space-y-2 border border-gray-100 dark:border-zinc-800">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Available Balances
             </p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {ownerBalances.map((ob) => {
+                const isSelected = ob.name === selectedOwner;
+                return (
+                  <div
+                    key={ob.name}
+                    className={`flex justify-between p-2 rounded-md border transition-all ${
+                      isSelected
+                        ? "bg-primary/5 border-primary dark:border-primary/50"
+                        : "bg-white dark:bg-zinc-950 border-gray-100 dark:border-zinc-900"
+                    }`}
+                  >
+                    <span className={`font-medium ${isSelected ? "text-primary font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+                      {ob.name}:
+                    </span>
+                    <span className={`font-semibold ${ob.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
+                      ৳{ob.balance.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between text-sm font-bold">
+              <span className="text-gray-800 dark:text-gray-200">Total Business Balance:</span>
+              <span className={totalBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}>
+                ৳{totalBalance.toFixed(2)}
+              </span>
+            </div>
           </div>
         )}
 
@@ -171,7 +206,7 @@ export default function WithdrawalForm({
             required: "Amount is required",
             validate: (value) => {
               if (value <= 0) return "Amount must be greater than 0";
-              if (value > availableBalance) return `Amount exceeds available balance (৳${availableBalance.toFixed(2)})`;
+              if (value > maxWithdrawable) return `Amount exceeds total available balance (৳${maxWithdrawable.toFixed(2)})`;
               return true;
             }
           }}

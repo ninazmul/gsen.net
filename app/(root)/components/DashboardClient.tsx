@@ -64,6 +64,10 @@ interface OwnerBalance {
   totalExpenses: number;
   withdrawn: number;
   balance: number;
+  todayIncome: number;
+  todayExpenses: number;
+  todayWithdrawn: number;
+  todayBalance: number;
 }
 
 interface MonthlyData {
@@ -283,11 +287,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <div className="bg-card px-5 py-5 grid grid-cols-4 gap-3 rounded-t-xl">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Total Income
+                    Today&apos;s Income
                   </p>
                   <p className="text-base font-bold text-green-600 dark:text-green-400">
                     ৳
-                    {owner.totalIncome.toLocaleString(undefined, {
+                    {owner.todayIncome.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -295,11 +299,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Total Expenses
+                    Today&apos;s Expenses
                   </p>
                   <p className="text-base font-bold text-rose-600 dark:text-rose-400">
                     ৳
-                    {owner.totalExpenses.toLocaleString(undefined, {
+                    {owner.todayExpenses.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -307,11 +311,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Withdrawn
+                    Today&apos;s Withdraw
                   </p>
                   <p className="text-base font-bold text-amber-600 dark:text-amber-400">
                     ৳
-                    {owner.withdrawn.toLocaleString(undefined, {
+                    {owner.todayWithdrawn.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -319,13 +323,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">
-                    Balance
+                    Today&apos;s Balance
                   </p>
                   <p
-                    className={`text-base font-bold ${owner.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
+                    className={`text-base font-bold ${owner.todayBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
                   >
                     ৳
-                    {owner.balance.toLocaleString(undefined, {
+                    {owner.todayBalance.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}

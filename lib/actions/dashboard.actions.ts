@@ -57,6 +57,57 @@ export async function getDashboardData() {
     },
   ]);
 
+  // Today range queries
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+  // Aggregate Today's Income and Expense by owner
+  const todayIncomeByOwner = await Income.aggregate([
+    {
+      $match: {
+        deletedAt: null,
+        date: { $gte: startOfToday, $lte: endOfToday },
+      },
+    },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const todayExpensesByOwner = await Expense.aggregate([
+    {
+      $match: {
+        deletedAt: null,
+        date: { $gte: startOfToday, $lte: endOfToday },
+      },
+    },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const todayWithdrawals = await Withdrawal.aggregate([
+    {
+      $match: {
+        date: { $gte: startOfToday, $lte: endOfToday },
+      },
+    },
+    {
+      $group: {
+        _id: "$owner",
+        totalWithdrawn: { $sum: "$amount" },
+      },
+    },
+  ]);
+
   // Calculate owner balances with transaction totals
   interface Owner {
     name: string;
@@ -75,12 +126,26 @@ export async function getDashboardData() {
       (withdrawals as WithdrawalAgg[]).find((w) => w._id === owner.name)
         ?.totalWithdrawn || 0;
     const balance = totalIncome - totalExpenses - withdrawn;
+
+    const todayIncome =
+      todayIncomeByOwner.find((i) => i._id === owner.name)?.total || 0;
+    const todayExpenses =
+      todayExpensesByOwner.find((e) => e._id === owner.name)?.total || 0;
+    const todayWithdrawn =
+      (todayWithdrawals as WithdrawalAgg[]).find((w) => w._id === owner.name)
+        ?.totalWithdrawn || 0;
+    const todayBalance = todayIncome - todayExpenses - todayWithdrawn;
+
     return {
       name: owner.name,
       totalIncome,
       totalExpenses,
       withdrawn,
       balance,
+      todayIncome,
+      todayExpenses,
+      todayWithdrawn,
+      todayBalance,
     };
   });
 
