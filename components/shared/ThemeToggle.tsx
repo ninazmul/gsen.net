@@ -15,7 +15,7 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-9 h-9" />; // Placeholder to avoid layout shift
+    return <div className="w-10 h-10" />; // Placeholder to avoid layout shift
   }
 
   // Check if current active theme is dark
@@ -30,13 +30,13 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="text-white hover:bg-white/10 hover:text-white dark:text-zinc-300 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100 h-9 w-9 rounded-full transition-all duration-200"
+      className="text-purple-900 hover:bg-white/10 hover:text-white dark:text-zinc-300 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100 h-10 w-10 rounded-full transition-all duration-200"
       title="Toggle Theme"
     >
-      {isDark ? (
-        <Sun className="h-[1.1rem] w-[1.1rem] text-amber-400 transition-all duration-300" />
+      {!isDark ? (
+        <Sun className="h-[1.1rem] w-[1.1rem] text-purple-900 transition-all duration-300" />
       ) : (
-        <Moon className="h-[1.1rem] w-[1.1rem] text-slate-100 transition-all duration-300" />
+        <Moon className="h-[1.1rem] w-[1.1rem] text-purple-100 transition-all duration-300" />
       )}
     </Button>
   );

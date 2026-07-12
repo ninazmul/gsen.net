@@ -124,16 +124,6 @@ const AdminSidebar = ({ currentAdmin }: { currentAdmin: Admin }) => {
       collapsible="icon"
     >
       <SidebarContent className="bg-background border-r border-border">
-        {/* Logo */}
-        <div className="px-4 py-3">
-          <Image
-            src="/assets/images/logo.png"
-            width={120}
-            height={80}
-            alt="GSEN NET"
-          />
-        </div>
-
         {/* Sections */}
         {filteredSections.map((section) => (
           <SidebarGroup key={section.label}>
