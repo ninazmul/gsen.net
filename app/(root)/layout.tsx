@@ -12,6 +12,8 @@ import {
   type Admin,
 } from "@/lib/actions/admin.actions";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { CalendarDays } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -50,11 +52,15 @@ export default async function AdminLayout({
               <p className="text-xs">Business Account Management System</p>
             </div>
             <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <SignedIn>
-              <UserButton afterSwitchSessionUrl="/" />
-            </SignedIn>
-          </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-xs md:text-sm font-medium">
+                <CalendarDays className="w-4 h-4 text-black dark:text-white animate-pulse" />
+                <span>{formatDate(new Date())}</span>
+              </div>
+              <ThemeToggle />
+              <SignedIn>
+                <UserButton afterSwitchSessionUrl="/" />
+              </SignedIn>
+            </div>
           </div>
         </div>
         <div className="p-2">{children}</div>

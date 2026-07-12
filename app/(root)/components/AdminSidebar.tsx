@@ -22,7 +22,6 @@ import {
   Settings,
 } from "lucide-react";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hasPageAccess } from "@/lib/permission-helpers";
