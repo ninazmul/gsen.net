@@ -1,6 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminSidebar from "./components/AdminSidebar";
-import { cookies } from "next/headers";
 import { SignedIn, UserButton } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import { currentUser } from "@clerk/nextjs/server";
@@ -36,11 +35,8 @@ export default async function AdminLayout({
   // Seed default categories
   await seedDefaultCategories();
 
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "false";
-
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider>
       <AdminSidebar currentAdmin={admin as Admin} />
       <Toaster />
       <main className="flex-1 h-screen mx-auto overflow-y-auto bg-background">
