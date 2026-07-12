@@ -36,25 +36,49 @@ export async function getDashboardData() {
   const expenses = totalExpenses[0]?.total || 0;
   const netProfit = income - expenses;
 
-  // Calculate owner balances with profit shares
+  // Aggregate Income and Expense by owner
+  const totalIncomeByOwner = await Income.aggregate([
+    { $match: { deletedAt: null } },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const totalExpensesByOwner = await Expense.aggregate([
+    { $match: { deletedAt: null } },
+    {
+      $group: {
+        _id: "$owner",
+        total: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  // Calculate owner balances with transaction totals
   interface Owner {
     name: string;
-    profitShare: number;
+    email: string;
   }
   interface WithdrawalAgg {
     _id: string;
     totalWithdrawn: number;
   }
   const ownerBalances = (settings.owners as Owner[]).map((owner) => {
+    const totalIncome =
+      totalIncomeByOwner.find((i) => i._id === owner.name)?.total || 0;
+    const totalExpenses =
+      totalExpensesByOwner.find((e) => e._id === owner.name)?.total || 0;
     const withdrawn =
       (withdrawals as WithdrawalAgg[]).find((w) => w._id === owner.name)
         ?.totalWithdrawn || 0;
-    const ownerShare = (netProfit * owner.profitShare) / 100;
-    const balance = ownerShare - withdrawn;
+    const balance = totalIncome - totalExpenses - withdrawn;
     return {
       name: owner.name,
-      share: owner.profitShare,
-      ownerShare,
+      totalIncome,
+      totalExpenses,
       withdrawn,
       balance,
     };

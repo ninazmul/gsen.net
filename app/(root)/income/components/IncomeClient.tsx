@@ -55,6 +55,7 @@ interface Income {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
   deletedAt?: Date;
 }
 
@@ -146,6 +147,7 @@ export default function IncomeClient({
       Amount: inc.amount,
       Date: formatDate(inc.date),
       PaymentMethod: inc.paymentMethod,
+      Owner: inc.owner || "-",
       ReferenceNumber: inc.referenceNumber || "",
       Description: inc.description || "",
     }));
@@ -161,6 +163,7 @@ export default function IncomeClient({
       Amount: inc.amount,
       Date: formatDate(inc.date),
       PaymentMethod: inc.paymentMethod,
+      Owner: inc.owner || "-",
       ReferenceNumber: inc.referenceNumber || "",
       Description: inc.description || "",
     }));
@@ -191,6 +194,7 @@ export default function IncomeClient({
                   <DialogTitle>Add New Income</DialogTitle>
                 </DialogHeader>
                 <IncomeForm
+                  currentAdmin={currentAdmin}
                   onSuccess={() => {
                     setIsAddOpen(false);
                     loadIncomes();
@@ -270,6 +274,7 @@ export default function IncomeClient({
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Payment Method</TableHead>
+              <TableHead>Owner</TableHead>
               <TableHead>Reference</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Actions</TableHead>
@@ -289,6 +294,7 @@ export default function IncomeClient({
                 <TableCell>৳{income.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(income.date)}</TableCell>
                 <TableCell>{income.paymentMethod}</TableCell>
+                <TableCell>{income.owner || "-"}</TableCell>
                 <TableCell>{income.referenceNumber || "-"}</TableCell>
                 <TableCell className="max-w-xs truncate">
                   {income.description}
@@ -316,6 +322,7 @@ export default function IncomeClient({
                           <DialogTitle>Edit Income</DialogTitle>
                         </DialogHeader>
                         <IncomeForm
+                          currentAdmin={currentAdmin}
                           income={editingIncome ?? undefined}
                           onSuccess={() => {
                             setIsEditOpen(false);

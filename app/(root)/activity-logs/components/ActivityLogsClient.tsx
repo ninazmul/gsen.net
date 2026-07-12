@@ -214,15 +214,12 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
 
 export default function ActivityLogsClient({
   initialLogs,
-  initialTotal,
   initialTotalPages,
 }: {
   initialLogs: ActivityLog[];
-  initialTotal: number;
   initialTotalPages: number;
 }) {
   const [logs, setLogs] = useState(initialLogs);
-  const [total, setTotal] = useState(initialTotal);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
@@ -254,9 +251,8 @@ export default function ActivityLogsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { logs: newLogs, total: newTotal, totalPages: newTotalPages } = await getActivityLogs(params);
+    const { logs: newLogs, totalPages: newTotalPages } = await getActivityLogs(params);
     setLogs(newLogs);
-    setTotal(newTotal);
     setTotalPages(newTotalPages);
   }, [search, moduleFilter, actionFilter, period, startDate, endDate, currentPage]);
 

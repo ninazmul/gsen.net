@@ -52,7 +52,6 @@ interface Withdrawal {
 
 interface Owner {
   name: string;
-  profitShare: number;
 }
 
 export default function WithdrawalsClient({

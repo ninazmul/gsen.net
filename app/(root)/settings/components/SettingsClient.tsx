@@ -11,7 +11,7 @@ import { updateSettings } from "@/lib/actions/settings.actions";
 
 interface Owner {
   name: string;
-  profitShare: number;
+  email: string;
 }
 
 export default function SettingsClient({
@@ -22,7 +22,7 @@ export default function SettingsClient({
   const [owners, setOwners] = useState<Owner[]>(initialSettings.owners || []);
 
   const handleAddOwner = () => {
-    setOwners([...owners, { name: "New Owner", profitShare: 50 }]);
+    setOwners([...owners, { name: "New Owner", email: "" }]);
   };
 
   const handleRemoveOwner = (index: number) => {
@@ -38,21 +38,22 @@ export default function SettingsClient({
     newOwners[index] = {
       ...newOwners[index],
       [field]: value,
-    };
+    } as Owner;
     setOwners(newOwners);
   };
 
   const handleSave = async () => {
     try {
-      const totalProfitShare = owners.reduce(
-        (sum, owner) => sum + owner.profitShare,
-        0,
-      );
-      if (totalProfitShare !== 100) {
-        toast.error(
-          `Total profit share must be 100%. Currently at ${totalProfitShare}%`,
-        );
-        return;
+      // Validate emails
+      for (const owner of owners) {
+        if (!owner.email || !owner.email.trim()) {
+          toast.error(`Email is required for owner: ${owner.name || "Unnamed"}`);
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(owner.email)) {
+          toast.error(`Invalid email format for owner: ${owner.name}`);
+          return;
+        }
       }
 
       await updateSettings({ owners });
@@ -61,11 +62,6 @@ export default function SettingsClient({
       toast.error("Failed to save settings");
     }
   };
-
-  const totalProfitShare = owners.reduce(
-    (sum, owner) => sum + owner.profitShare,
-    0,
-  );
 
   return (
     <div className="p-4 space-y-6">
@@ -76,13 +72,13 @@ export default function SettingsClient({
 
       <Card>
         <CardHeader>
-          <CardTitle>Owner Profit Shares</CardTitle>
+          <CardTitle>Owner Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
             {owners.map((owner, index) => (
               <div key={index} className="flex gap-4 items-end">
-                <div className="flex-1">
+                <div className="flex-[2]">
                   <Label>Owner Name</Label>
                   <Input
                     value={owner.name}
@@ -91,19 +87,14 @@ export default function SettingsClient({
                     }
                   />
                 </div>
-                <div className="w-48">
-                  <Label>Profit Share (%)</Label>
+                <div className="flex-[2]">
+                  <Label>Owner Email</Label>
                   <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={owner.profitShare}
+                    type="email"
+                    placeholder="owner@example.com"
+                    value={owner.email || ""}
                     onChange={(e) =>
-                      handleUpdateOwner(
-                        index,
-                        "profitShare",
-                        Number(e.target.value),
-                      )
+                      handleUpdateOwner(index, "email", e.target.value)
                     }
                   />
                 </div>
@@ -118,14 +109,10 @@ export default function SettingsClient({
               </div>
             ))}
           </div>
-          <Button variant="secondary" onClick={handleAddOwner}>
-            <Plus className="mr-2 h-4 w-4" /> Add Owner
-          </Button>
-          <div
-            className={`font-semibold ${totalProfitShare !== 100 ? "text-red-500" : "text-green-500"}`}
-          >
-            Total Profit Share: {totalProfitShare}%{" "}
-            {totalProfitShare !== 100 && "(must be 100%)"}
+          <div className="flex justify-between items-center mt-4">
+            <Button variant="secondary" onClick={handleAddOwner}>
+              <Plus className="mr-2 h-4 w-4" /> Add Owner
+            </Button>
           </div>
         </CardContent>
       </Card>

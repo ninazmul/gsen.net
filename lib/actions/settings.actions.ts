@@ -9,7 +9,7 @@ import { checkWritePermissionServer } from "./permission-actions";
 
 interface Owner {
   name: string;
-  profitShare: number;
+  email: string;
 }
 
 interface SettingsDoc {
@@ -27,8 +27,8 @@ export async function getSettings() {
   if (!settings) {
     settings = await Settings.create({
       owners: [
-        { name: "Owner 1", profitShare: 50 },
-        { name: "Owner 2", profitShare: 50 },
+        { name: "Owner 1", email: "" },
+        { name: "Owner 2", email: "" },
       ],
     });
   }

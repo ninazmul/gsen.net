@@ -75,8 +75,8 @@ interface ActivityLog {
 
 interface OwnerBalance {
   name: string;
-  share: number;
-  ownerShare: number;
+  totalIncome: number;
+  totalExpenses: number;
   withdrawn: number;
   balance: number;
 }
@@ -242,6 +242,53 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </Card>
       </div>
 
+      {/* Owner Overview Cards */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-card-foreground">Owner Summaries</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {data.summary.ownerBalances.map((owner, index) => (
+            <Card key={index} className="relative overflow-hidden bg-card p-6 shadow-sm border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50/50 dark:bg-purple-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">{owner.name}</h3>
+                </div>
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-[#3e0078] dark:text-purple-400 rounded-xl">
+                  <Wallet className="w-5 h-5" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Total Income</p>
+                  <p className="text-base font-bold text-green-600 dark:text-green-400">
+                    ৳{owner.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Total Expenses</p>
+                  <p className="text-base font-bold text-rose-600 dark:text-rose-400">
+                    ৳{owner.totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="space-y-1 mt-2">
+                  <p className="text-xs text-muted-foreground">Withdrawn</p>
+                  <p className="text-base font-bold text-amber-600 dark:text-amber-400">
+                    ৳{owner.withdrawn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="space-y-1 mt-2">
+                  <p className="text-xs text-muted-foreground">Current Balance</p>
+                  <p className={`text-lg font-extrabold ${owner.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
+                    ৳{owner.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly Income Chart */}
@@ -379,8 +426,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border">
                   <TableHead className="font-semibold text-muted-foreground">Owner</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Share</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Owner Share</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">Total Income</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">Total Expense</TableHead>
                   <TableHead className="font-semibold text-muted-foreground">Withdrawn</TableHead>
                   <TableHead className="font-semibold text-muted-foreground">Balance</TableHead>
                 </TableRow>
@@ -389,9 +436,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 {data.summary.ownerBalances.map((owner, index) => (
                   <TableRow key={index} className="hover:bg-muted/30 transition-colors border-border">
                     <TableCell className="font-medium text-card-foreground">{owner.name}</TableCell>
-                    <TableCell className="text-muted-foreground font-medium">{owner.share}%</TableCell>
                     <TableCell className="text-green-600 dark:text-green-400 font-semibold">
-                      ৳{owner.ownerShare.toFixed(2)}
+                      ৳{owner.totalIncome.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-rose-600 dark:text-rose-400 font-semibold">
+                      ৳{owner.totalExpenses.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-rose-600 dark:text-rose-400 font-semibold">
                       ৳{owner.withdrawn.toFixed(2)}

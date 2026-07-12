@@ -9,6 +9,7 @@ const IncomeSchema = new Schema(
     paymentMethod: { type: String, required: true },
     referenceNumber: { type: String },
     description: { type: String },
+    owner: { type: String, default: null },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },

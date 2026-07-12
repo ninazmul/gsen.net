@@ -8,11 +8,10 @@ export default async function ActivityLogsPage() {
   const hasAccess = await checkPagePermissionServer("activityLogs");
   if (!hasAccess) redirect("/access-denied");
 
-  const { logs, total, totalPages } = await getActivityLogs({ limit: 10 });
+  const { logs, totalPages } = await getActivityLogs({ limit: 10 });
   return (
     <ActivityLogsClient
       initialLogs={logs}
-      initialTotal={total}
       initialTotalPages={totalPages}
     />
   );

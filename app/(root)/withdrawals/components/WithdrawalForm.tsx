@@ -52,7 +52,6 @@ interface WithdrawalFormData {
 
 interface Owner {
   name: string;
-  profitShare: number;
 }
 
 export default function WithdrawalForm({

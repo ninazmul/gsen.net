@@ -1,13 +1,20 @@
 import { Schema, model, models } from "mongoose";
 
+const OwnerSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    default: "",
+  },
+});
+
 const SettingsSchema = new Schema(
   {
-    owners: [
-      {
-        name: { type: String, required: true },
-        profitShare: { type: Number, required: true, default: 50 },
-      },
-    ],
+    owners: [OwnerSchema],
   },
   { timestamps: true },
 );

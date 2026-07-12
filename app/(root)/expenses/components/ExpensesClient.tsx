@@ -56,6 +56,7 @@ interface Expense {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
   deletedAt?: Date;
 }
 
@@ -149,6 +150,7 @@ export default function ExpensesClient({
       Amount: exp.amount,
       Date: formatDate(exp.date),
       PaymentMethod: exp.paymentMethod,
+      Owner: exp.owner || "-",
       ReferenceNumber: exp.referenceNumber || "",
       Description: exp.description || "",
     }));
@@ -164,6 +166,7 @@ export default function ExpensesClient({
       Amount: exp.amount,
       Date: formatDate(exp.date),
       PaymentMethod: exp.paymentMethod,
+      Owner: exp.owner || "-",
       ReferenceNumber: exp.referenceNumber || "",
       Description: exp.description || "",
     }));
@@ -194,6 +197,7 @@ export default function ExpensesClient({
                   <DialogTitle>Add New Expense</DialogTitle>
                 </DialogHeader>
                 <ExpenseForm
+                  currentAdmin={currentAdmin}
                   onSuccess={() => {
                     setIsAddOpen(false);
                     loadExpenses();
@@ -273,6 +277,7 @@ export default function ExpensesClient({
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Payment Method</TableHead>
+              <TableHead>Owner</TableHead>
               <TableHead>Reference</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Actions</TableHead>
@@ -292,6 +297,7 @@ export default function ExpensesClient({
                 <TableCell>৳{expense.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(expense.date)}</TableCell>
                 <TableCell>{expense.paymentMethod}</TableCell>
+                <TableCell>{expense.owner || "-"}</TableCell>
                 <TableCell>{expense.referenceNumber || "-"}</TableCell>
                 <TableCell className="max-w-xs truncate">
                   {expense.description}
@@ -319,6 +325,7 @@ export default function ExpensesClient({
                           <DialogTitle>Edit Expense</DialogTitle>
                         </DialogHeader>
                         <ExpenseForm
+                          currentAdmin={currentAdmin}
                           expense={editingExpense ?? undefined}
                           onSuccess={() => {
                             setIsEditOpen(false);

@@ -7,6 +7,12 @@ import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { checkWritePermissionServer } from "./permission-actions";
+import { getSettings } from "./settings.actions";
+
+interface Owner {
+  name: string;
+  email: string;
+}
 
 // Define types
 interface ExpenseDoc {
@@ -18,6 +24,7 @@ interface ExpenseDoc {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -31,12 +38,27 @@ export async function createExpense(data: {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
 }) {
   await checkWritePermissionServer("expenses");
   await connectToDatabase();
   const user = await currentUser();
 
-  const expense = await Expense.create(data);
+  let finalOwner = data.owner;
+  if (!finalOwner) {
+    const userEmail = user?.emailAddresses[0]?.emailAddress;
+    if (userEmail) {
+      const settings = await getSettings();
+      const match = (settings.owners as Owner[]).find(
+        (o) => o.email && o.email.trim().toLowerCase() === userEmail.trim().toLowerCase()
+      );
+      if (match) {
+        finalOwner = match.name;
+      }
+    }
+  }
+
+  const expense = await Expense.create({ ...data, owner: finalOwner });
 
   await logActivity({
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",

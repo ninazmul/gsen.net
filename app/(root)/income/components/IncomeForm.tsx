@@ -22,6 +22,8 @@ import {
 import { createIncome, updateIncome } from "@/lib/actions/income.actions";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/lib/actions/category.actions";
+import { getSettings } from "@/lib/actions/settings.actions";
+import { type Admin } from "@/lib/actions/admin.actions";
 import { toast } from "react-hot-toast";
 
 interface Category {
@@ -30,6 +32,11 @@ interface Category {
   type: string;
   color: string;
   active: boolean;
+}
+
+interface Owner {
+  name: string;
+  email: string;
 }
 
 interface Income {
@@ -41,11 +48,13 @@ interface Income {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
   deletedAt?: Date;
 }
 
 interface IncomeFormProps {
   income?: Income;
+  currentAdmin?: Admin | null;
   onSuccess: () => void;
 }
 
@@ -57,66 +66,79 @@ interface IncomeFormData {
   paymentMethod: string;
   referenceNumber: string;
   description: string;
+  owner: string;
 }
 
-export default function IncomeForm({ income, onSuccess }: IncomeFormProps) {
+export default function IncomeForm({ income, currentAdmin, onSuccess }: IncomeFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [owners, setOwners] = useState<Owner[]>([]);
 
   useEffect(() => {
-    async function loadCategories() {
+    async function loadData() {
       const cats = await getCategories({ type: "Income", active: true });
       setCategories(cats);
+      const settings = await getSettings();
+      setOwners(settings?.owners || []);
     }
-    loadCategories();
+    loadData();
   }, []);
 
   const form = useForm<IncomeFormData>({
     defaultValues: income
       ? {
-          title: income.title,
-          category:
-            typeof income.category === "object"
-              ? income.category._id
-              : income.category,
-          amount: income.amount,
-          date: new Date(income.date).toISOString().split("T")[0],
-          paymentMethod: income.paymentMethod,
-          referenceNumber: income.referenceNumber ?? "",
-          description: income.description ?? "",
-        }
+           title: income.title,
+           category:
+             typeof income.category === "object"
+               ? income.category._id
+               : income.category,
+           amount: income.amount,
+           date: new Date(income.date).toISOString().split("T")[0],
+           paymentMethod: income.paymentMethod,
+           referenceNumber: income.referenceNumber ?? "",
+           description: income.description ?? "",
+           owner: income.owner ?? "none",
+         }
       : {
-          title: "",
-          category: "",
-          amount: 0,
-          date: new Date().toISOString().split("T")[0],
-          paymentMethod: "",
-          referenceNumber: "",
-          description: "",
-        },
+           title: "",
+           category: "",
+           amount: 0,
+           date: new Date().toISOString().split("T")[0],
+           paymentMethod: "",
+           referenceNumber: "",
+           description: "",
+           owner: "none",
+         },
   });
+
+  // Pre-select owner based on logged in user's email matching owner email
+  useEffect(() => {
+    if (!income && currentAdmin?.email && owners.length > 0) {
+      const match = owners.find(
+        (o) => o.email && o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase()
+      );
+      if (match) {
+        form.setValue("owner", match.name);
+      }
+    }
+  }, [owners, currentAdmin, income, form]);
 
   const onSubmit = async (data: IncomeFormData) => {
     try {
+      const payload = {
+        title: data.title,
+        category: data.category,
+        amount: data.amount,
+        date: new Date(data.date),
+        paymentMethod: data.paymentMethod,
+        referenceNumber: data.referenceNumber || undefined,
+        description: data.description || undefined,
+        owner: data.owner && data.owner !== "none" ? data.owner : undefined,
+      };
+
       if (income) {
-        await updateIncome(income._id, {
-          title: data.title,
-          category: data.category,
-          amount: data.amount,
-          date: new Date(data.date),
-          paymentMethod: data.paymentMethod,
-          referenceNumber: data.referenceNumber || undefined,
-          description: data.description || undefined,
-        });
+        await updateIncome(income._id, payload);
       } else {
-        await createIncome({
-          title: data.title,
-          category: data.category,
-          amount: data.amount,
-          date: new Date(data.date),
-          paymentMethod: data.paymentMethod,
-          referenceNumber: data.referenceNumber || undefined,
-          description: data.description || undefined,
-        });
+        await createIncome(payload);
       }
       onSuccess();
     } catch (error) {
@@ -162,6 +184,32 @@ export default function IncomeForm({ income, onSuccess }: IncomeFormProps) {
                   {categories.map((cat) => (
                     <SelectItem key={cat._id} value={cat._id}>
                       {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="owner"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Owner (Optional)</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select owner" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">None / Joint</SelectItem>
+                  {owners.map((owner) => (
+                    <SelectItem key={owner.name} value={owner.name}>
+                      {owner.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
