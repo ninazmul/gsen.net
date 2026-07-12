@@ -8,6 +8,7 @@ import {
   Users,
   Activity,
   Wallet,
+  User,
 } from "lucide-react";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useTheme } from "next-themes";
@@ -341,163 +342,203 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </div>
       </div>
 
-      {/* Owner Balance & Smart Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Owner Balances — spans 2 cols */}
-        <Card className="lg:col-span-2 p-5 shadow-sm border border-border bg-card">
-          <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 text-card-foreground mb-5">
-            3. Owner Balance
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b-2 border-border">
-                  <th className="text-left pb-3 text-muted-foreground font-semibold pr-4">
-                    Owner
-                  </th>
-                  <th className="text-right pb-3 text-muted-foreground font-semibold px-3">
-                    Total Sales
-                  </th>
-                  <th className="text-right pb-3 text-muted-foreground font-semibold px-3">
-                    Total Expenses
-                  </th>
-                  <th className="text-right pb-3 text-muted-foreground font-semibold px-3">
-                    Profit
-                  </th>
-                  <th className="text-right pb-3 text-muted-foreground font-semibold px-3">
-                    Withdraw
-                  </th>
-                  <th className="text-right pb-3 text-muted-foreground font-semibold pl-3">
-                    Current Balance
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.summary.ownerBalances.map((owner, index) => {
-                  const profit = owner.totalIncome - owner.totalExpenses;
-                  const initials = owner.name
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase();
-                  return (
-                    <tr
-                      key={index}
-                      className="border-b border-border/60 hover:bg-muted/20 transition-colors"
-                    >
-                      <td className="py-4 pr-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                            {initials}
-                          </div>
-                          <span className="font-semibold text-card-foreground">
-                            {owner.name}
-                          </span>
+      {/* Partner Settlement Overview & Smart Insights */}
+      <div className="space-y-4">
+        {/* Partner Settlement Overview */}
+        <Card className="p-6 shadow-sm border border-border bg-card">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400 tracking-tight">
+                3. Partner Settlement Overview
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Profit share and withdrawal status at a glance.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+            {(() => {
+              const totalBalance = data.summary.ownerBalances.reduce(
+                (s, o) => s + o.balance,
+                0,
+              );
+              const totalNetProfit = data.summary.netProfit;
+              const numOwners = data.summary.ownerBalances.length || 1;
+              const equalShare = totalNetProfit / numOwners;
+
+              return data.summary.ownerBalances.map((owner, index) => {
+                const alreadyTaken = owner.withdrawn;
+                const profitShare = equalShare;
+                // Remaining the owner can still take from their share
+                const remainingDue = Math.max(0, profitShare - alreadyTaken);
+                // How much they've gone over their share
+                const overdrawAmount = Math.max(0, alreadyTaken - profitShare);
+                const isOverdrawn = alreadyTaken > profitShare;
+                const totalBizBalance = totalBalance;
+
+                const sharePercent =
+                  numOwners > 0
+                    ? Math.round(100 / numOwners)
+                    : 0;
+
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-xl border-2 p-5 transition-all ${isOverdrawn
+                        ? "border-rose-200 dark:border-rose-900 bg-rose-50/30 dark:bg-rose-950/20"
+                        : "border-green-200 dark:border-green-900 bg-green-50/20 dark:bg-green-950/10"
+                      }`}
+                  >
+                    {/* Owner Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          <User />
                         </div>
-                      </td>
-                      <td className="py-4 px-3 text-right font-semibold text-card-foreground tabular-nums">
-                        ৳{" "}
-                        {owner.totalIncome.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td className="py-4 px-3 text-right font-semibold text-card-foreground tabular-nums">
-                        ৳{" "}
-                        {owner.totalExpenses.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td
-                        className={`py-4 px-3 text-right font-bold tabular-nums ${profit >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
+                        <span className="font-bold text-base uppercase tracking-wide text-card-foreground">
+                          {owner.name}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-full tracking-widest uppercase ${isOverdrawn
+                            ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
+                            : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
+                          }`}
                       >
-                        ৳{" "}
-                        {profit.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td className="py-4 px-3 text-right font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
-                        ৳{" "}
-                        {owner.withdrawn.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td
-                        className={`py-4 pl-3 text-right font-bold tabular-nums ${owner.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
+                        {isOverdrawn ? "Overdrawn" : "Available"}
+                      </span>
+                    </div>
+
+                    {/* Settlement Rows */}
+                    <div className="space-y-2 text-sm">
+                      {/* Profit Share */}
+                      <div className="flex items-center justify-between py-2 border-b border-border/50">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-400">
+                          Profit Share ({sharePercent}%)
+                        </span>
+                        <span className="font-semibold text-card-foreground tabular-nums">
+                          ৳{" "}
+                          {profitShare.toLocaleString(undefined, {
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Already Taken */}
+                      <div className="flex items-center justify-between py-2 border-b border-border/50">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-400">
+                          Already Taken (Withdrawn)
+                        </span>
+                        <span className="font-semibold text-card-foreground tabular-nums">
+                          ৳{" "}
+                          {alreadyTaken.toLocaleString(undefined, {
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Remaining Due */}
+                      <div className="flex items-center justify-between py-2 border-b border-border/50">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-400">
+                          Remaining Due (Can Take)
+                        </span>
+                        <span
+                          className={`font-bold tabular-nums ${remainingDue > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-muted-foreground"
+                            }`}
+                        >
+                          ৳{" "}
+                          {remainingDue.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Overdrawn / Due to Company */}
+                      <div className="flex items-center justify-between py-2">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-400">
+                          Overdrawn / Due to Company
+                        </span>
+                        <span
+                          className={`font-bold tabular-nums ${overdrawAmount > 0
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-muted-foreground"
+                            }`}
+                        >
+                          ৳{" "}
+                          {overdrawAmount.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status Message */}
+                    <div
+                      className={`mt-4 flex items-start gap-3 rounded-lg p-3 ${isOverdrawn
+                          ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900"
+                          : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"
+                        }`}
+                    >
+                      <div
+                        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 ${isOverdrawn
+                            ? "border-rose-500 text-rose-500"
+                            : "border-green-500 text-green-500"
+                          }`}
                       >
-                        ৳{" "}
-                        {owner.balance.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {/* Total Company Row */}
-                {(() => {
-                  const totIncome = data.summary.ownerBalances.reduce(
-                    (s, o) => s + o.totalIncome,
-                    0,
-                  );
-                  const totExpenses = data.summary.ownerBalances.reduce(
-                    (s, o) => s + o.totalExpenses,
-                    0,
-                  );
-                  const totProfit = totIncome - totExpenses;
-                  const totWithdrawn = data.summary.ownerBalances.reduce(
-                    (s, o) => s + o.withdrawn,
-                    0,
-                  );
-                  const totBalance = data.summary.ownerBalances.reduce(
-                    (s, o) => s + o.balance,
-                    0,
-                  );
-                  return (
-                    <tr className="bg-muted/30 border-t-2 border-border font-bold">
-                      <td className="py-4 pr-4 text-card-foreground text-sm">
-                        Total (Company)
-                      </td>
-                      <td className="py-4 px-3 text-right text-card-foreground tabular-nums">
-                        ৳{" "}
-                        {totIncome.toLocaleString(undefined, {
+                        {isOverdrawn ? (
+                          <span className="text-xs font-black leading-none">!</span>
+                        ) : (
+                          <svg
+                            viewBox="0 0 12 12"
+                            className="w-3 h-3 fill-current"
+                          >
+                            <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                      <div>
+                        <p
+                          className={`text-sm font-bold ${isOverdrawn
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-green-700 dark:text-green-400"
+                            }`}
+                        >
+                          {isOverdrawn
+                            ? "You are overdrawn."
+                            : `You can withdraw up to ৳ ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
+                        </p>
+                        <p
+                          className={`text-xs mt-0.5 ${isOverdrawn
+                              ? "text-rose-500 dark:text-rose-500"
+                              : "text-green-600 dark:text-green-500"
+                            }`}
+                        >
+                          {isOverdrawn
+                            ? "Company will recover this amount from future profits."
+                            : "based on your profit share."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Total available business balance note */}
+                    {!isOverdrawn && totalBizBalance > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground text-right">
+                        Total business balance: ৳{" "}
+                        {totalBizBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 0,
                         })}
-                      </td>
-                      <td className="py-4 px-3 text-right text-card-foreground tabular-nums">
-                        ৳{" "}
-                        {totExpenses.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td
-                        className={`py-4 px-3 text-right tabular-nums ${totProfit >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
-                      >
-                        ৳{" "}
-                        {totProfit.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td className="py-4 px-3 text-right text-rose-600 dark:text-rose-400 tabular-nums">
-                        ৳{" "}
-                        {totWithdrawn.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}
-                      </td>
-                      <td
-                        className={`py-4 pl-3 text-right tabular-nums ${totBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
-                      >
-                        ৳{" "}
-                        {totBalance.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  );
-                })()}
-              </tbody>
-            </table>
+                      </p>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </Card>
       </div>
@@ -632,7 +673,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                                   style={{
                                     backgroundColor:
                                       COLOR_PALETTE[
-                                        index % COLOR_PALETTE.length
+                                      index % COLOR_PALETTE.length
                                       ],
                                   }}
                                 />
