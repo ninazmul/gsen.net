@@ -63,6 +63,15 @@ export async function getDashboardData() {
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
 
+  // Current month range queries
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const endOfMonth = new Date();
+  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+  endOfMonth.setDate(0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
   // Aggregate Today's Income and Expense by owner
   const todayIncomeByOwner = await Income.aggregate([
     {
@@ -279,6 +288,11 @@ export async function getDashboardData() {
       totalExpenses: expenses,
       netProfit,
       ownerBalances,
+      currentMonthIncome: incomeMap.get(new Date().getMonth() + 1) || 0,
+      currentMonthIncomeCount: await Income.countDocuments({
+        deletedAt: null,
+        date: { $gte: startOfMonth, $lte: endOfMonth },
+      }),
     },
     monthlyPerformance: monthlyData,
     expenseBreakdown: JSON.parse(JSON.stringify(expenseBreakdown)),

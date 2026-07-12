@@ -9,6 +9,7 @@ import {
   Activity,
   Wallet,
   User,
+  Calendar,
 } from "lucide-react";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useTheme } from "next-themes";
@@ -94,6 +95,8 @@ type DashboardClientProps = {
       totalExpenses: number;
       netProfit: number;
       ownerBalances: OwnerBalance[];
+      currentMonthIncome: number;
+      currentMonthIncomeCount: number;
     };
     monthlyPerformance: MonthlyData[];
     expenseBreakdown: BreakdownItem[];
@@ -133,7 +136,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       <h2 className="text-2xl font-bold uppercase text-purple-900 dark:text-purple-400">
         1. Business Summary
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {/* Metric 1: Total Income */}
         <Card className="relative overflow-hidden bg-card p-6 shadow-sm border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-green-50/50 dark:bg-green-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
@@ -155,6 +158,33 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 font-medium">
                 <span className="bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
                   Total earnings
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Metric 5: Monthly Income */}
+        <Card className="relative overflow-hidden bg-card p-6 shadow-sm border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50/50 dark:bg-teal-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-xl shadow-inner group-hover:bg-teal-600 group-hover:text-white dark:group-hover:bg-teal-700 transition-colors duration-300">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5 w-full">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Monthly Income
+              </p>
+              <h2 className="text-2xl font-extrabold text-card-foreground tracking-tight">
+                ৳
+                {(data.summary.currentMonthIncome || 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </h2>
+              <div className="flex items-center gap-1.5 text-xs text-teal-600 dark:text-teal-400 font-medium">
+                <span className="bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full">
+                  {data.summary.currentMonthIncomeCount || 0} transaction{(data.summary.currentMonthIncomeCount || 0) !== 1 ? "s" : ""} this month
                 </span>
               </div>
             </div>
@@ -267,25 +297,103 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           2. Daily Business Entry
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {data.summary.ownerBalances.map((owner, index) => (
-            <div
-              key={index}
-              className="rounded-2xl overflow-hidden border border-border shadow-md hover:shadow-xl transition-all duration-300"
-            >
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#3e0078] to-[#6d28d9] dark:from-[#2d0059] dark:to-[#4c1d95] px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-full">
-                    <Users className="w-4 h-4 text-white" />
+          {(() => {
+            const ownerColors = [
+              {
+                from: "from-purple-50",
+                to: "to-violet-100",
+                darkFrom: "dark:from-purple-900/20",
+                darkTo: "dark:to-violet-900/20",
+                border: "border-purple-100",
+                darkBorder: "dark:border-purple-900/30",
+                iconBg: "bg-purple-100",
+                darkIconBg: "dark:bg-purple-900/30",
+                iconColor: "text-purple-700",
+                darkIconColor: "dark:text-purple-400",
+                text: "text-purple-900",
+                darkText: "dark:text-purple-300",
+              },
+              {
+                from: "from-sky-50",
+                to: "to-cyan-100",
+                darkFrom: "dark:from-sky-900/20",
+                darkTo: "dark:to-cyan-900/20",
+                border: "border-sky-100",
+                darkBorder: "dark:border-sky-900/30",
+                iconBg: "bg-sky-100",
+                darkIconBg: "dark:bg-sky-900/30",
+                iconColor: "text-sky-700",
+                darkIconColor: "dark:text-sky-400",
+                text: "text-sky-900",
+                darkText: "dark:text-sky-300",
+              },
+              {
+                from: "from-emerald-50",
+                to: "to-teal-100",
+                darkFrom: "dark:from-emerald-900/20",
+                darkTo: "dark:to-teal-900/20",
+                border: "border-emerald-100",
+                darkBorder: "dark:border-emerald-900/30",
+                iconBg: "bg-emerald-100",
+                darkIconBg: "dark:bg-emerald-900/30",
+                iconColor: "text-emerald-700",
+                darkIconColor: "dark:text-emerald-400",
+                text: "text-emerald-900",
+                darkText: "dark:text-emerald-300",
+              },
+              {
+                from: "from-amber-50",
+                to: "to-orange-100",
+                darkFrom: "dark:from-amber-900/20",
+                darkTo: "dark:to-orange-900/20",
+                border: "border-amber-100",
+                darkBorder: "dark:border-amber-900/30",
+                iconBg: "bg-amber-100",
+                darkIconBg: "dark:bg-amber-900/30",
+                iconColor: "text-amber-700",
+                darkIconColor: "dark:text-amber-400",
+                text: "text-amber-900",
+                darkText: "dark:text-amber-300",
+              },
+              {
+                from: "from-rose-50",
+                to: "to-pink-100",
+                darkFrom: "dark:from-rose-900/20",
+                darkTo: "dark:to-pink-900/20",
+                border: "border-rose-100",
+                darkBorder: "dark:border-rose-900/30",
+                iconBg: "bg-rose-100",
+                darkIconBg: "dark:bg-rose-900/30",
+                iconColor: "text-rose-700",
+                darkIconColor: "dark:text-rose-400",
+                text: "text-rose-900",
+                darkText: "dark:text-rose-300",
+              },
+            ];
+
+            return data.summary.ownerBalances.map((owner, index) => {
+              const c = ownerColors[index % ownerColors.length];
+              return (
+                <Card
+                  key={index}
+                  className="overflow-hidden border border-border shadow-sm bg-card hover:shadow-xl transition-all duration-300"
+                >
+                  {/* Header */}
+                  <div
+                    className={`bg-gradient-to-r ${c.from} ${c.to} ${c.darkFrom} ${c.darkTo} px-5 py-4 flex items-center justify-between border-b ${c.border} ${c.darkBorder}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 ${c.iconBg} ${c.darkIconBg} rounded-full`}>
+                        <Users className={`w-4 h-4 ${c.iconColor} ${c.darkIconColor}`} />
+                      </div>
+                      <span className={`${c.text} ${c.darkText} font-bold tracking-wider uppercase text-sm`}>
+                        {owner.name}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-white font-bold tracking-wider uppercase text-sm">
-                    {owner.name}
-                  </span>
-                </div>
-              </div>
 
               {/* Stats Grid */}
-              <div className="bg-card px-5 py-5 grid grid-cols-4 gap-3 rounded-t-xl">
+              <div className="px-5 py-5 grid grid-cols-4 gap-3">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">
                     Today&apos;s Income
@@ -337,8 +445,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   </p>
                 </div>
               </div>
-            </div>
-          ))}
+            </Card>
+              );
+            });
+          })()}
         </div>
       </div>
 
