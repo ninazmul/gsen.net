@@ -2,6 +2,8 @@
 
 import { connectToDatabase } from "@/lib/database";
 import Category from "@/lib/database/models/category.model";
+import Income from "@/lib/database/models/income.model";
+import Expense from "@/lib/database/models/expense.model";
 import { revalidatePath } from "next/cache";
 import type { FilterQuery } from "mongoose";
 import { logActivity } from "./activity-log.actions";
@@ -94,6 +96,23 @@ export async function deleteCategory(id: string) {
   const user = await currentUser();
 
   const category = await Category.findById<CategoryDoc>(id);
+
+  // Check if category is used in any income or expense records
+  const incomeCount = await Income.countDocuments({
+    category: id,
+    deletedAt: null,
+  });
+  const expenseCount = await Expense.countDocuments({
+    category: id,
+    deletedAt: null,
+  });
+
+  if (incomeCount > 0 || expenseCount > 0) {
+    throw new Error(
+      "Cannot delete category: it is used in income or expense records.",
+    );
+  }
+
   await Category.findByIdAndDelete(id);
 
   await logActivity({
