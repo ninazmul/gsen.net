@@ -96,6 +96,9 @@ export async function deleteCategory(id: string) {
   const user = await currentUser();
 
   const category = await Category.findById<CategoryDoc>(id);
+  if (!category) {
+    throw new Error("Category not found");
+  }
 
   // Check if category is used in any income or expense records
   const incomeCount = await Income.countDocuments({
@@ -113,7 +116,10 @@ export async function deleteCategory(id: string) {
     );
   }
 
-  await Category.findByIdAndDelete(id);
+  const deletedCategory = await Category.findByIdAndDelete(id);
+  if (!deletedCategory) {
+    throw new Error("Failed to delete category");
+  }
 
   await logActivity({
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
@@ -129,6 +135,12 @@ export async function deleteCategory(id: string) {
 
 export async function seedDefaultCategories() {
   await connectToDatabase();
+
+  // Only seed if there are no categories yet
+  const existingCategoriesCount = await Category.countDocuments();
+  if (existingCategoriesCount > 0) {
+    return;
+  }
 
   const incomeCategories = [
     { name: "Internet Bills", type: "Income" },
@@ -154,9 +166,6 @@ export async function seedDefaultCategories() {
   const allCategories = [...incomeCategories, ...expenseCategories];
 
   for (const cat of allCategories) {
-    const exists = await Category.findOne({ name: cat.name, type: cat.type });
-    if (!exists) {
-      await Category.create(cat);
-    }
+    await Category.create(cat);
   }
 }
