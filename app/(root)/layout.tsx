@@ -4,7 +4,6 @@ import { SignedIn, UserButton } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { seedDefaultCategories } from "@/lib/actions/category.actions";
 import {
   checkIsAdmin,
   getOrCreateCurrentAdmin,
@@ -31,9 +30,6 @@ export default async function AdminLayout({
 
   const isAdmin = await checkIsAdmin();
   if (!isAdmin) redirect("/access-denied");
-
-  // Seed default categories
-  await seedDefaultCategories();
 
   return (
     <SidebarProvider>
