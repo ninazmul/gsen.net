@@ -57,6 +57,11 @@ export async function getDashboardData() {
     },
   ]);
 
+  // Yearly/monthly range queries
+  const currentYear = new Date().getFullYear();
+  const startOfYear = new Date(currentYear, 0, 1);
+  const endOfYear = new Date(currentYear, 12, 0, 23, 59, 59, 999);
+
   // Today range queries
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -73,48 +78,96 @@ export async function getDashboardData() {
   endOfMonth.setHours(23, 59, 59, 999);
 
   // Aggregate Today's Income and Expense by owner
-  const todayIncomeByOwner = await Income.aggregate([
-    {
-      $match: {
-        deletedAt: null,
-        date: { $gte: startOfToday, $lte: endOfToday },
+  const [
+    todayIncomeByOwner,
+    todayExpensesByOwner,
+    todayWithdrawals,
+    monthlyIncomeByOwner,
+    monthlyExpensesByOwner,
+    monthlyWithdrawalsByOwner,
+  ] = await Promise.all([
+    Income.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfToday, $lte: endOfToday },
+        },
       },
-    },
-    {
-      $group: {
-        _id: "$owner",
-        total: { $sum: "$amount" },
+      {
+        $group: {
+          _id: "$owner",
+          total: { $sum: "$amount" },
+        },
       },
-    },
-  ]);
-
-  const todayExpensesByOwner = await Expense.aggregate([
-    {
-      $match: {
-        deletedAt: null,
-        date: { $gte: startOfToday, $lte: endOfToday },
+    ]),
+    Expense.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfToday, $lte: endOfToday },
+        },
       },
-    },
-    {
-      $group: {
-        _id: "$owner",
-        total: { $sum: "$amount" },
+      {
+        $group: {
+          _id: "$owner",
+          total: { $sum: "$amount" },
+        },
       },
-    },
-  ]);
-
-  const todayWithdrawals = await Withdrawal.aggregate([
-    {
-      $match: {
-        date: { $gte: startOfToday, $lte: endOfToday },
+    ]),
+    Withdrawal.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfToday, $lte: endOfToday },
+        },
       },
-    },
-    {
-      $group: {
-        _id: "$owner",
-        totalWithdrawn: { $sum: "$amount" },
+      {
+        $group: {
+          _id: "$owner",
+          totalWithdrawn: { $sum: "$amount" },
+        },
       },
-    },
+    ]),
+    Income.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { owner: "$owner", month: { $month: "$date" } },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+    Expense.aggregate([
+      {
+        $match: {
+          deletedAt: null,
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { owner: "$owner", month: { $month: "$date" } },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+    Withdrawal.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { owner: "$owner", month: { $month: "$date" } },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
   ]);
 
   // Calculate owner balances with transaction totals
@@ -145,6 +198,28 @@ export async function getDashboardData() {
         ?.totalWithdrawn || 0;
     const todayBalance = todayIncome - todayExpenses - todayWithdrawn;
 
+    const monthlyBalances = Array.from({ length: 12 }, (_, idx) => {
+      const m = idx + 1;
+      const mIncome = monthlyIncomeByOwner.find(
+        (i) => i._id?.owner === owner.name && i._id?.month === m
+      )?.total || 0;
+      const mExpense = monthlyExpensesByOwner.find(
+        (e) => e._id?.owner === owner.name && e._id?.month === m
+      )?.total || 0;
+      const mWithdrawn = monthlyWithdrawalsByOwner.find(
+        (w) => w._id?.owner === owner.name && w._id?.month === m
+      )?.total || 0;
+      const mBalance = mIncome - mExpense - mWithdrawn;
+
+      return {
+        month: m,
+        income: mIncome,
+        expenses: mExpense,
+        withdrawn: mWithdrawn,
+        balance: mBalance,
+      };
+    });
+
     return {
       name: owner.name,
       totalIncome,
@@ -155,14 +230,11 @@ export async function getDashboardData() {
       todayExpenses,
       todayWithdrawn,
       todayBalance,
+      monthlyBalances,
     };
   });
 
   // Monthly performance
-  const currentYear = new Date().getFullYear();
-  const startOfYear = new Date(currentYear, 0, 1);
-  const endOfYear = new Date(currentYear, 12, 0, 23, 59, 59, 999);
-
   const [incomeMonthly, expenseMonthly] = await Promise.all([
     Income.aggregate([
       {
@@ -289,6 +361,7 @@ export async function getDashboardData() {
       netProfit,
       ownerBalances,
       currentMonthIncome: incomeMap.get(new Date().getMonth() + 1) || 0,
+      currentMonthExpenses: expenseMap.get(new Date().getMonth() + 1) || 0,
       currentMonthIncomeCount: await Income.countDocuments({
         deletedAt: null,
         date: { $gte: startOfMonth, $lte: endOfMonth },

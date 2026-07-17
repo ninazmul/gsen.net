@@ -12,6 +12,7 @@ import {
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { CalendarDays } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -39,10 +40,12 @@ export default async function AdminLayout({
         <div className="flex justify-between items-center p-4 w-full border-b border-border text-purple-900 bg-white dark:text-purple-100 dark:bg-[#1a0040] dark:border-purple-900/40">
           <SidebarTrigger />
           <div className="flex justify-between w-full px-2">
-            <div>
-              <h1 className="text-xl font-bold">GESN.NET</h1>
-              <p className="text-xs">Business Account Management System</p>
-            </div>
+            <Link href="/">
+              <div>
+                <h1 className="text-xl font-bold">GESN.NET</h1>
+                <p className="text-xs">Business Account Management System</p>
+              </div>
+            </Link>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-xs md:text-sm font-medium">
                 <CalendarDays className="w-4 h-4 text-black dark:text-white animate-pulse" />
