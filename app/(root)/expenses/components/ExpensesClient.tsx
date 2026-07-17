@@ -49,7 +49,6 @@ interface Category {
 
 interface Expense {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -111,10 +110,8 @@ export default function ExpensesClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const {
-      expenses: newExpenses,
-      totalPages: newTotalPages,
-    } = await getExpenses(params);
+    const { expenses: newExpenses, totalPages: newTotalPages } =
+      await getExpenses(params);
     setExpenses(newExpenses);
     setTotalPages(newTotalPages);
   }, [search, categoryFilter, period, startDate, endDate, currentPage]);
@@ -144,7 +141,6 @@ export default function ExpensesClient({
 
   const handleExportExcel = () => {
     const data = expenses.map((exp) => ({
-      Title: exp.title,
       Category:
         typeof exp.category === "object" ? exp.category.name : exp.category,
       Amount: exp.amount,
@@ -160,7 +156,6 @@ export default function ExpensesClient({
 
   const handleExportCSV = () => {
     const data = expenses.map((exp) => ({
-      Title: exp.title,
       Category:
         typeof exp.category === "object" ? exp.category.name : exp.category,
       Amount: exp.amount,
@@ -272,7 +267,6 @@ export default function ExpensesClient({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
@@ -286,7 +280,6 @@ export default function ExpensesClient({
           <TableBody>
             {expenses.map((expense) => (
               <TableRow key={expense._id}>
-                <TableCell>{expense.title}</TableCell>
                 <TableCell>
                   <Badge>
                     {typeof expense.category === "object"

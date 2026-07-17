@@ -12,7 +12,6 @@ interface Category {
 
 interface Income {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -23,7 +22,6 @@ interface Income {
 
 interface Expense {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;

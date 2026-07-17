@@ -48,7 +48,6 @@ interface Category {
 
 interface Income {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -141,7 +140,6 @@ export default function IncomeClient({
 
   const handleExportExcel = () => {
     const data = incomes.map((inc) => ({
-      Title: inc.title,
       Category:
         typeof inc.category === "object" ? inc.category.name : inc.category,
       Amount: inc.amount,
@@ -157,7 +155,6 @@ export default function IncomeClient({
 
   const handleExportCSV = () => {
     const data = incomes.map((inc) => ({
-      Title: inc.title,
       Category:
         typeof inc.category === "object" ? inc.category.name : inc.category,
       Amount: inc.amount,
@@ -269,7 +266,6 @@ export default function IncomeClient({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
@@ -283,7 +279,6 @@ export default function IncomeClient({
           <TableBody>
             {incomes.map((income) => (
               <TableRow key={income._id}>
-                <TableCell>{income.title}</TableCell>
                 <TableCell>
                   <Badge>
                     {typeof income.category === "object"
@@ -317,7 +312,7 @@ export default function IncomeClient({
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl bg-white dark:bg-black">
+                      <DialogContent className="max-w-xl bg-white dark:bg-black">
                         <DialogHeader>
                           <DialogTitle>Edit Income</DialogTitle>
                         </DialogHeader>

@@ -42,7 +42,6 @@ interface Owner {
 
 interface Expense {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -60,7 +59,6 @@ interface ExpenseFormProps {
 }
 
 interface ExpenseFormData {
-  title: string;
   category: string;
   amount: number;
   date: string;
@@ -70,7 +68,11 @@ interface ExpenseFormData {
   owner: string;
 }
 
-export default function ExpenseForm({ expense, currentAdmin, onSuccess }: ExpenseFormProps) {
+export default function ExpenseForm({
+  expense,
+  currentAdmin,
+  onSuccess,
+}: ExpenseFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
 
@@ -87,37 +89,38 @@ export default function ExpenseForm({ expense, currentAdmin, onSuccess }: Expens
   const form = useForm<ExpenseFormData>({
     defaultValues: expense
       ? {
-           title: expense.title,
-           category:
-             typeof expense.category === "object"
-               ? expense.category._id
-               : expense.category,
-           amount: expense.amount,
-           date: new Date(expense.date).toISOString().split("T")[0],
-           paymentMethod: expense.paymentMethod,
-           referenceNumber: expense.referenceNumber ?? "",
-           description: expense.description ?? "",
-           owner: expense.owner ?? "none",
-         }
+        category:
+          typeof expense.category === "object"
+            ? expense.category._id
+            : expense.category,
+        amount: expense.amount,
+        date: new Date(expense.date).toISOString().split("T")[0],
+        paymentMethod: expense.paymentMethod,
+        referenceNumber: expense.referenceNumber ?? "",
+        description: expense.description ?? "",
+        owner: expense.owner ?? "",
+      }
       : {
-           title: "",
-           category: "",
-           amount: 0,
-           date: new Date().toISOString().split("T")[0],
-           paymentMethod: "",
-           referenceNumber: "",
-           description: "",
-           owner: "none",
-         },
+        category: "",
+        amount: "" as unknown as number,
+        date: new Date().toISOString().split("T")[0],
+        paymentMethod: "Cash",
+        referenceNumber: "",
+        description: "",
+        owner: "",
+      },
   });
 
   // Pre-select owner based on logged in user's email matching owner email
   useEffect(() => {
     if (!expense && currentAdmin?.email && owners.length > 0) {
       const match = owners.find(
-        (o) => o.email && o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase()
+        (o) =>
+          o.email &&
+          o.email.trim().toLowerCase() ===
+          currentAdmin.email.trim().toLowerCase(),
       );
-      if (match) {
+      if (match && !form.getValues("owner")) {
         form.setValue("owner", match.name);
       }
     }
@@ -126,7 +129,6 @@ export default function ExpenseForm({ expense, currentAdmin, onSuccess }: Expens
   const onSubmit = async (data: ExpenseFormData) => {
     try {
       const payload = {
-        title: data.title,
         category: data.category,
         amount: data.amount,
         date: new Date(data.date),
@@ -153,166 +155,176 @@ export default function ExpenseForm({ expense, currentAdmin, onSuccess }: Expens
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          rules={{ required: "Title is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Expense title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="max-h-[50vh] md:max-h-[60vh] overflow-y-auto space-y-4 pr-3 pb-4">
+          <FormField
+            control={form.control}
+            name="owner"
+            rules={{ required: "Owner is required" }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Owner</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select owner" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {owners.map((owner) => (
+                      <SelectItem key={owner.name} value={owner.name}>
+                        {owner.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="category"
-          rules={{ required: "Category is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormField
+            control={form.control}
+            name="category"
+            rules={{ required: "Category is required" }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="amount"
+            rules={{
+              required: "Amount is required",
+              min: { value: 0.01, message: "Amount must be greater than 0" },
+              validate: (value) => !isNaN(value) || "Amount is required"
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Amount</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Enter expense amount"
+                    {...field}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? "" : parseFloat(val));
+                    }}
+                  />
                 </FormControl>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="owner"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Owner (Optional)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+          <FormField
+            control={form.control}
+            name="date"
+            rules={{ required: "Date is required" }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select owner" />
-                  </SelectTrigger>
+                  <Input type="date" {...field} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">None / Joint</SelectItem>
-                  {owners.map((owner) => (
-                    <SelectItem key={owner.name} value={owner.name}>
-                      {owner.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="amount"
-          rules={{ required: "Amount is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              rules={{ required: "Payment method is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      <SelectItem value="Mobile Banking">Mobile Banking</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="date"
-          rules={{ required: "Date is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="paymentMethod"
-          rules={{ required: "Payment method is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Payment Method</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={form.control}
+              name="referenceNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Reference Number (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Reference number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
+                  <Textarea rows={2} placeholder="Expense description" {...field} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="Credit Card">Credit Card</SelectItem>
-                  <SelectItem value="Mobile Banking">Mobile Banking</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="referenceNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reference Number (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Reference number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Expense description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          {expense ? "Update Expense" : "Add Expense"}
-        </Button>
+        </div>
+        <div className="pt-2 border-t">
+          <Button type="submit" className="w-full">
+            {expense ? "Update Expense" : "Add Expense"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

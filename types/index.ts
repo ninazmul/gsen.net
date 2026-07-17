@@ -30,7 +30,6 @@ export interface Bill {
 
 export interface Expense {
   _id: string;
-  title: string;
   category: string;
   amount: number;
   expenseDate: Date;

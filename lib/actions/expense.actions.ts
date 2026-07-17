@@ -17,7 +17,6 @@ interface Owner {
 // Define types
 interface ExpenseDoc {
   _id: string;
-  title: string;
   category: string;
   amount: number;
   date: Date;
@@ -31,7 +30,6 @@ interface ExpenseDoc {
 }
 
 export async function createExpense(data: {
-  title: string;
   category: string;
   amount: number;
   date: Date;
@@ -50,7 +48,9 @@ export async function createExpense(data: {
     if (userEmail) {
       const settings = await getSettings();
       const match = (settings.owners as Owner[]).find(
-        (o) => o.email && o.email.trim().toLowerCase() === userEmail.trim().toLowerCase()
+        (o) =>
+          o.email &&
+          o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
       );
       if (match) {
         finalOwner = match.name;
@@ -64,7 +64,7 @@ export async function createExpense(data: {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Create",
-    description: `Created expense: ${data.title}`,
+    description: `Created expense of ৳${data.amount}`,
     recordId: expense._id,
     newData: JSON.parse(JSON.stringify(expense)),
   });
@@ -103,7 +103,6 @@ export async function getExpenses(params?: {
 
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
       { referenceNumber: { $regex: search, $options: "i" } },
     ];
@@ -140,7 +139,7 @@ export async function updateExpense(id: string, data: Partial<ExpenseDoc>) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Update",
-    description: `Updated expense: ${oldExpense?.title}`,
+    description: `Updated expense of ৳${oldExpense?.amount}`,
     recordId: expense?._id,
     oldData: JSON.parse(JSON.stringify(oldExpense)),
     newData: JSON.parse(JSON.stringify(expense)),
@@ -163,7 +162,7 @@ export async function softDeleteExpense(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Delete",
-    description: `Soft deleted expense: ${expense?.title}`,
+    description: `Soft deleted expense of ৳${expense?.amount}`,
     recordId: expense?._id,
     oldData: JSON.parse(JSON.stringify(expense)),
   });
@@ -184,7 +183,7 @@ export async function restoreExpense(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Restore",
-    description: `Restored expense: ${expense?.title}`,
+    description: `Restored expense of ৳${expense?.amount}`,
     recordId: expense?._id,
     newData: JSON.parse(JSON.stringify(expense)),
   });

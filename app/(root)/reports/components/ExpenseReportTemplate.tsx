@@ -12,7 +12,6 @@ interface Category {
 
 interface Expense {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -75,7 +74,6 @@ const ExpenseReportTemplate = forwardRef<
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left">Date</th>
-              <th className="border border-gray-300 p-2 text-left">Title</th>
               <th className="border border-gray-300 p-2 text-left">Category</th>
               <th className="border border-gray-300 p-2 text-left">
                 Payment Method
@@ -89,7 +87,6 @@ const ExpenseReportTemplate = forwardRef<
                 <td className="border border-gray-300 p-2">
                   {formatDate(exp.date)}
                 </td>
-                <td className="border border-gray-300 p-2">{exp.title}</td>
                 <td className="border border-gray-300 p-2">
                   {typeof exp.category === "object"
                     ? exp.category.name

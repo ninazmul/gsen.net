@@ -12,7 +12,6 @@ interface Category {
 
 interface Income {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -75,7 +74,6 @@ const IncomeReportTemplate = forwardRef<
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left">Date</th>
-              <th className="border border-gray-300 p-2 text-left">Title</th>
               <th className="border border-gray-300 p-2 text-left">Category</th>
               <th className="border border-gray-300 p-2 text-left">
                 Payment Method
@@ -89,7 +87,6 @@ const IncomeReportTemplate = forwardRef<
                 <td className="border border-gray-300 p-2">
                   {formatDate(inc.date)}
                 </td>
-                <td className="border border-gray-300 p-2">{inc.title}</td>
                 <td className="border border-gray-300 p-2">
                   {typeof inc.category === "object"
                     ? inc.category.name

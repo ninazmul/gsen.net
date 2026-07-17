@@ -55,7 +55,6 @@ interface Category {
 
 interface Income {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -66,7 +65,6 @@ interface Income {
 
 interface Expense {
   _id: string;
-  title: string;
   category: string | Category;
   amount: number;
   date: Date;
@@ -285,7 +283,6 @@ export default function ReportsClient({
       await exportToPDF(incomeReportTemplateRef.current, "income-report.pdf");
     } else {
       const data = incomeReport.incomes.map((inc) => ({
-        Title: inc.title,
         Category:
           typeof inc.category === "object" ? inc.category.name : inc.category,
         Amount: inc.amount,
@@ -308,7 +305,6 @@ export default function ReportsClient({
       await exportToPDF(expenseReportTemplateRef.current, "expense-report.pdf");
     } else {
       const data = expenseReport.expenses.map((exp) => ({
-        Title: exp.title,
         Category:
           typeof exp.category === "object" ? exp.category.name : exp.category,
         Amount: exp.amount,
@@ -482,7 +478,6 @@ export default function ReportsClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
@@ -492,7 +487,6 @@ export default function ReportsClient({
               <TableBody>
                 {incomeReport.incomes.map((income) => (
                   <TableRow key={income._id}>
-                    <TableCell>{income.title}</TableCell>
                     <TableCell>
                       <Badge>
                         {typeof income.category === "object"
@@ -567,7 +561,6 @@ export default function ReportsClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
@@ -577,7 +570,6 @@ export default function ReportsClient({
               <TableBody>
                 {expenseReport.expenses.map((expense) => (
                   <TableRow key={expense._id}>
-                    <TableCell>{expense.title}</TableCell>
                     <TableCell>
                       <Badge>
                         {typeof expense.category === "object"

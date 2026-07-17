@@ -16,7 +16,6 @@ interface Owner {
 
 interface IncomeDoc {
   _id: string;
-  title: string;
   category: string;
   amount: number;
   date: Date;
@@ -30,7 +29,6 @@ interface IncomeDoc {
 }
 
 export async function createIncome(data: {
-  title: string;
   category: string;
   amount: number;
   date: Date;
@@ -49,7 +47,9 @@ export async function createIncome(data: {
     if (userEmail) {
       const settings = await getSettings();
       const match = (settings.owners as Owner[]).find(
-        (o) => o.email && o.email.trim().toLowerCase() === userEmail.trim().toLowerCase()
+        (o) =>
+          o.email &&
+          o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
       );
       if (match) {
         finalOwner = match.name;
@@ -63,7 +63,7 @@ export async function createIncome(data: {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Create",
-    description: `Created income: ${data.title}`,
+    description: `Created income of ৳${data.amount}`,
     recordId: income._id,
     newData: JSON.parse(JSON.stringify(income)),
   });
@@ -102,7 +102,6 @@ export async function getIncomes(params?: {
 
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
       { referenceNumber: { $regex: search, $options: "i" } },
     ];
@@ -139,7 +138,7 @@ export async function updateIncome(id: string, data: Partial<IncomeDoc>) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Update",
-    description: `Updated income: ${oldIncome?.title}`,
+    description: `Updated income of ৳${oldIncome?.amount}`,
     recordId: income?._id,
     oldData: JSON.parse(JSON.stringify(oldIncome)),
     newData: JSON.parse(JSON.stringify(income)),
@@ -162,7 +161,7 @@ export async function softDeleteIncome(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Delete",
-    description: `Soft deleted income: ${income?.title}`,
+    description: `Soft deleted income of ৳${income?.amount}`,
     recordId: income?._id,
     oldData: JSON.parse(JSON.stringify(income)),
   });
@@ -183,7 +182,7 @@ export async function restoreIncome(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Restore",
-    description: `Restored income: ${income?.title}`,
+    description: `Restored income of ৳${income?.amount}`,
     recordId: income?._id,
     newData: JSON.parse(JSON.stringify(income)),
   });
