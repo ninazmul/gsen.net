@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ExpenseForm from "./ExpenseForm";
 import { getExpenses, softDeleteExpense } from "@/lib/actions/expense.actions";
@@ -81,6 +81,7 @@ export default function ExpensesClient({
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [selectedDescription, setSelectedDescription] = useState("");
 
   useEffect(() => {
     async function loadCategories() {
@@ -292,8 +293,33 @@ export default function ExpensesClient({
                 <TableCell>{expense.paymentMethod}</TableCell>
                 <TableCell>{expense.owner || "-"}</TableCell>
                 <TableCell>{expense.referenceNumber || "-"}</TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {expense.description}
+                <TableCell className="">
+                  {/* View Description */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setSelectedDescription(
+                            expense.description || "No description available",
+                          )
+                        }
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogContent className="max-w-md bg-white dark:bg-black">
+                      <DialogHeader>
+                        <DialogTitle>Expense Description</DialogTitle>
+                      </DialogHeader>
+
+                      <div className="mt-4 text-sm whitespace-pre-wrap">
+                        {selectedDescription}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </TableCell>
                 <TableCell className="flex gap-2">
                   {hasWriteAccess && (

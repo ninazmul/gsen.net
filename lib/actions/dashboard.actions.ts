@@ -3,6 +3,7 @@
 import { connectToDatabase } from "@/lib/database";
 import Income from "@/lib/database/models/income.model";
 import Expense from "@/lib/database/models/expense.model";
+import "@/lib/database/models/category.model";
 import Withdrawal from "@/lib/database/models/withdrawal.model";
 import { getSettings } from "./settings.actions";
 import { getRecentActivityLogs } from "./activity-log.actions";
