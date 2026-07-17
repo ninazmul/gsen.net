@@ -75,59 +75,64 @@ export default function IncomeForm({
   const [categories, setCategories] = useState<Category[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
 
+  // Initialize form
   const form = useForm<IncomeFormData>({
     defaultValues: income
       ? {
-        category:
-          typeof income.category === "object"
-            ? income.category._id
-            : income.category,
-        amount: income.amount,
-        date: new Date(income.date).toISOString().split("T")[0],
-        paymentMethod: income.paymentMethod,
-        referenceNumber: income.referenceNumber ?? "",
-        description: income.description ?? "",
-        owner: income.owner ?? "",
-      }
+          category:
+            typeof income.category === "object"
+              ? income.category._id
+              : income.category,
+          amount: income.amount,
+          date: new Date(income.date).toISOString().split("T")[0],
+          paymentMethod: income.paymentMethod,
+          referenceNumber: income.referenceNumber ?? "",
+          description: income.description ?? "",
+          owner: income.owner ?? "",
+        }
       : {
-        category: "",
-        amount: "" as unknown as number,
-        date: new Date().toISOString().split("T")[0],
-        paymentMethod: "Cash",
-        referenceNumber: "",
-        description: "",
-        owner: "",
-      },
+          category: "",
+          amount: "" as unknown as number,
+          date: new Date().toISOString().split("T")[0],
+          paymentMethod: "Cash",
+          referenceNumber: "",
+          description: "",
+          owner: "",
+        },
   });
 
+  // Load categories and owners (like ExpenseForm)
   useEffect(() => {
     async function loadData() {
       const cats = await getCategories({ type: "Income", active: true });
       setCategories(cats);
       const settings = await getSettings();
       setOwners(settings?.owners || []);
-
-      // Set default category as "Sales" for new income
-      if (!income && cats.length > 0) {
-        const salesCat = (cats as Category[]).find(
-          (c: Category) => c.name.trim().toLowerCase() === "sales"
-        );
-        if (salesCat) {
-          form.setValue("category", salesCat._id);
-        }
-      }
     }
     loadData();
-  }, [income, form]);
+  }, []); // Match ExpenseForm's empty dependency array
 
-  // Pre-select owner based on logged in user's email matching owner email
+  // Set default category for new income: try "Sales" first, otherwise first category
+  useEffect(() => {
+    if (!income && categories.length > 0) {
+      const salesCat = categories.find(
+        (c) => c.name.trim().toLowerCase() === "sales",
+      );
+      const defaultCat = salesCat || categories[0];
+      if (defaultCat) {
+        form.setValue("category", defaultCat._id);
+      }
+    }
+  }, [income, categories, form]);
+
+  // Pre-select owner based on logged in user's email matching owner email (like ExpenseForm)
   useEffect(() => {
     if (!income && currentAdmin?.email && owners.length > 0) {
       const match = owners.find(
         (o) =>
           o.email &&
           o.email.trim().toLowerCase() ===
-          currentAdmin.email.trim().toLowerCase(),
+            currentAdmin.email.trim().toLowerCase(),
       );
       if (match && !form.getValues("owner")) {
         form.setValue("owner", match.name);
@@ -231,7 +236,7 @@ export default function IncomeForm({
             rules={{
               required: "Amount is required",
               min: { value: 0.01, message: "Amount must be greater than 0" },
-              validate: (value) => !isNaN(value) || "Amount is required"
+              validate: (value) => !isNaN(value) || "Amount is required",
             }}
             render={({ field }) => (
               <FormItem>
@@ -288,9 +293,13 @@ export default function IncomeForm({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Bank Transfer">
+                        Bank Transfer
+                      </SelectItem>
                       <SelectItem value="Credit Card">Credit Card</SelectItem>
-                      <SelectItem value="Mobile Banking">Mobile Banking</SelectItem>
+                      <SelectItem value="Mobile Banking">
+                        Mobile Banking
+                      </SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -311,7 +320,8 @@ export default function IncomeForm({
                   <FormMessage />
                 </FormItem>
               )}
-            /></div>
+            />
+          </div>
 
           <FormField
             control={form.control}
@@ -320,13 +330,16 @@ export default function IncomeForm({
               <FormItem>
                 <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea rows={2} placeholder="Income description" {...field} />
+                  <Textarea
+                    rows={2}
+                    placeholder="Income description"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
         </div>
         <div className="pt-2 border-t">
           <Button type="submit" className="w-full">

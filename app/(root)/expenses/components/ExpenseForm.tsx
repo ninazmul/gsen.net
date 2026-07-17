@@ -89,26 +89,26 @@ export default function ExpenseForm({
   const form = useForm<ExpenseFormData>({
     defaultValues: expense
       ? {
-        category:
-          typeof expense.category === "object"
-            ? expense.category._id
-            : expense.category,
-        amount: expense.amount,
-        date: new Date(expense.date).toISOString().split("T")[0],
-        paymentMethod: expense.paymentMethod,
-        referenceNumber: expense.referenceNumber ?? "",
-        description: expense.description ?? "",
-        owner: expense.owner ?? "",
-      }
+          category:
+            typeof expense.category === "object"
+              ? expense.category._id
+              : expense.category,
+          amount: expense.amount,
+          date: new Date(expense.date).toISOString().split("T")[0],
+          paymentMethod: expense.paymentMethod,
+          referenceNumber: expense.referenceNumber ?? "",
+          description: expense.description ?? "",
+          owner: expense.owner ?? "",
+        }
       : {
-        category: "",
-        amount: "" as unknown as number,
-        date: new Date().toISOString().split("T")[0],
-        paymentMethod: "Cash",
-        referenceNumber: "",
-        description: "",
-        owner: "",
-      },
+          category: "",
+          amount: "" as unknown as number,
+          date: new Date().toISOString().split("T")[0],
+          paymentMethod: "Cash",
+          referenceNumber: "",
+          description: "",
+          owner: "",
+        },
   });
 
   // Pre-select owner based on logged in user's email matching owner email
@@ -118,7 +118,7 @@ export default function ExpenseForm({
         (o) =>
           o.email &&
           o.email.trim().toLowerCase() ===
-          currentAdmin.email.trim().toLowerCase(),
+            currentAdmin.email.trim().toLowerCase(),
       );
       if (match && !form.getValues("owner")) {
         form.setValue("owner", match.name);
@@ -222,7 +222,7 @@ export default function ExpenseForm({
             rules={{
               required: "Amount is required",
               min: { value: 0.01, message: "Amount must be greater than 0" },
-              validate: (value) => !isNaN(value) || "Amount is required"
+              validate: (value) => !isNaN(value) || "Amount is required",
             }}
             render={({ field }) => (
               <FormItem>
@@ -279,9 +279,13 @@ export default function ExpenseForm({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Bank Transfer">
+                        Bank Transfer
+                      </SelectItem>
                       <SelectItem value="Credit Card">Credit Card</SelectItem>
-                      <SelectItem value="Mobile Banking">Mobile Banking</SelectItem>
+                      <SelectItem value="Mobile Banking">
+                        Mobile Banking
+                      </SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -304,7 +308,7 @@ export default function ExpenseForm({
               )}
             />
           </div>
-          
+
           <FormField
             control={form.control}
             name="description"
@@ -312,13 +316,16 @@ export default function ExpenseForm({
               <FormItem>
                 <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea rows={2} placeholder="Expense description" {...field} />
+                  <Textarea
+                    rows={2}
+                    placeholder="Expense description"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
         </div>
         <div className="pt-2 border-t">
           <Button type="submit" className="w-full">
