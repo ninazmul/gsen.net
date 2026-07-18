@@ -132,8 +132,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedDailyMonth, setSelectedDailyMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth() + 1,
+  );
+  const [selectedDailyMonth, setSelectedDailyMonth] = useState<number>(
+    new Date().getMonth() + 1,
+  );
 
   const COLOR_PALETTE = [
     "#7c3aed",
@@ -156,7 +160,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           1. Monthly Business Summary
         </h2>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Month:</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Select Month:
+          </span>
           <Select
             value={selectedMonth.toString()}
             onValueChange={(val) => setSelectedMonth(parseInt(val))}
@@ -175,236 +181,114 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </div>
       </div>
       {(() => {
-        const monthData = data.monthlyPerformance.find((m) => m.month === selectedMonth);
-        const monthlyIncome = monthData ? monthData.income : (data.summary.currentMonthIncome || 0);
-        const monthlyExpenses = monthData ? monthData.expenses : (data.summary.currentMonthExpenses || 0);
+        const monthData = data.monthlyPerformance.find(
+          (m) => m.month === selectedMonth,
+        );
+        const monthlyIncome = monthData
+          ? monthData.income
+          : data.summary.currentMonthIncome || 0;
+        const monthlyExpenses = monthData
+          ? monthData.expenses
+          : data.summary.currentMonthExpenses || 0;
         const monthlyNetProfit = monthlyIncome - monthlyExpenses;
-        const monthlyProfitMargin = monthlyIncome > 0 ? (monthlyNetProfit / monthlyIncome) * 100 : 0;
-        const currentMonthName = monthData
-          ? `${monthData.monthName} ${new Date().getFullYear()}`
-          : new Date().toLocaleString("default", { month: "long", year: "numeric" });
 
         return (
-          <Card className="overflow-hidden shadow-md border border-border/80 bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-5 lg:p-6">
-              {/* Monthly Income */}
-              <div className="relative overflow-hidden rounded-2xl border border-green-200/60 dark:border-green-900/30 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-green-300/80 dark:hover:border-green-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 dark:bg-green-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-xl group-hover:bg-green-500 group-hover:text-white dark:group-hover:bg-green-600 transition-all duration-300">
-                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Monthly Income */}
+            <div className="group relative overflow-hidden rounded-2xl border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="absolute left-0 top-0 h-full w-1 bg-green-500" />
+
+              <div className="flex items-center gap-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 text-green-600 transition-all duration-300 group-hover:bg-green-500 group-hover:text-white dark:bg-green-900/40">
+                  <TrendingUp className="h-8 w-8" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                     Monthly Income
-                  </span>
-                </div>
-                <h2 className="text-2xl font-black text-card-foreground tracking-tight">
-                  ৳{monthlyIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h2>
-                <div className="mt-2">
-                  <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
-                    {currentMonthName}
-                  </span>
-                </div>
-              </div>
+                  </p>
 
-              {/* Monthly Expenses */}
-              <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-gradient-to-br from-rose-50/50 to-transparent dark:from-rose-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-rose-300/80 dark:hover:border-rose-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl group-hover:bg-rose-500 group-hover:text-white dark:group-hover:bg-rose-600 transition-all duration-300">
-                    <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Monthly Expenses
-                  </span>
-                </div>
-                <h2 className="text-2xl font-black text-card-foreground tracking-tight">
-                  ৳{monthlyExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h2>
-                <div className="mt-2">
-                  <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full">
-                    {currentMonthName}
-                  </span>
-                </div>
-              </div>
-
-              {/* Monthly Net Profit */}
-              <div className="relative overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-900/30 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-purple-300/80 dark:hover:border-purple-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl group-hover:bg-[#3e0078] group-hover:text-white dark:group-hover:bg-purple-600 transition-all duration-300">
-                    <DollarSign className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Monthly Net Profit
-                  </span>
-                </div>
-                <h2 className={`text-2xl font-black tracking-tight ${monthlyNetProfit >= 0 ? "text-card-foreground" : "text-rose-600 dark:text-rose-400"}`}>
-                  ৳{monthlyNetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h2>
-                <div className="mt-2">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${monthlyNetProfit >= 0 ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300" : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400"}`}>
-                    {monthlyNetProfit >= 0 ? "Profit this month" : "Loss this month"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Monthly Profit Margin */}
-              <div className="relative overflow-hidden rounded-2xl border border-sky-200/60 dark:border-sky-900/30 bg-gradient-to-br from-sky-50/50 to-transparent dark:from-sky-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-sky-300/80 dark:hover:border-sky-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-500 dark:bg-sky-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-sky-100 dark:bg-sky-900/40 rounded-xl group-hover:bg-sky-500 group-hover:text-white dark:group-hover:bg-sky-600 transition-all duration-300">
-                    <Activity className="w-4 h-4 text-sky-600 dark:text-sky-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Profit Margin
-                  </span>
-                </div>
-                <h2 className={`text-2xl font-black tracking-tight ${monthlyProfitMargin >= 0 ? "text-card-foreground" : "text-rose-600 dark:text-rose-400"}`}>
-                  {monthlyProfitMargin.toFixed(1)}%
-                </h2>
-                <div className="mt-2">
-                  <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-full">
-                    {currentMonthName}
-                  </span>
+                  <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
+                    ৳
+                    {monthlyIncome.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </h2>
                 </div>
               </div>
             </div>
-          </Card>
+
+            {/* Monthly Expenses */}
+            <div className="group relative overflow-hidden rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
+
+              <div className="flex items-center gap-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white dark:bg-rose-900/40">
+                  <TrendingDown className="h-8 w-8" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Monthly Expenses
+                  </p>
+
+                  <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
+                    ৳
+                    {monthlyExpenses.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </h2>
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Net Profit */}
+            <div className="group relative overflow-hidden rounded-2xl border border-purple-200/60 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
+
+              <div className="flex items-center gap-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-900/40">
+                  <DollarSign className="h-8 w-8" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Monthly Net Profit
+                  </p>
+
+                  <h2
+                    className={`mt-1 md:text-xl lg:text-3xl font-black tracking-tight ${
+                      monthlyNetProfit >= 0
+                        ? "text-card-foreground"
+                        : "text-rose-600 dark:text-rose-400"
+                    }`}
+                  >
+                    ৳
+                    {monthlyNetProfit.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </h2>
+                </div>
+              </div>
+            </div>
+          </div>
         );
       })()}
-
-
-      {/* Lifetime Metrics - Unified Financial Overview */}
-      <div className="space-y-6">
-        <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3 border-b border-border/40 pb-4">
-          <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          2. Company Lifetime Metrics
-        </h2>
-        <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
-          {/* Main layout: responsive grid split */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border/60">
-            
-            {/* Left Hero Area: Available Balance (Active Treasury) */}
-            <div className="lg:col-span-5 p-8 flex flex-col justify-between bg-purple-50/20 dark:bg-purple-950/5 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-2xl">
-                    <Wallet className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Treasury Balance
-                    </span>
-                    <h3 className="text-sm font-bold text-purple-950 dark:text-purple-300">
-                      Available Balance
-                    </h3>
-                  </div>
-                </div>
-
-                {(() => {
-                  const totalBalance = data.summary.ownerBalances.reduce(
-                    (sum, o) => sum + o.balance,
-                    0,
-                  );
-                  return (
-                    <div className="space-y-2">
-                      <h1 className="text-4xl font-black text-card-foreground tracking-tight">
-                        ৳
-                        {totalBalance.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </h1>
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${totalBalance >= 0 ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400" : "bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400"}`}>
-                          {totalBalance >= 0 ? "Fully Funded" : "Overdrawn"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Combined partners equity
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Right Side: Lifetime breakdown grid */}
-            <div className="lg:col-span-7 p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
-              {/* Stat 1: Total Income */}
-              <div className="relative overflow-hidden rounded-2xl border border-green-200/60 dark:border-green-900/30 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-green-300/80 dark:hover:border-green-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 dark:bg-green-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-xl group-hover:bg-green-500 group-hover:text-white dark:group-hover:bg-green-600 transition-all duration-300">
-                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Total Income
-                  </span>
-                </div>
-                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
-                  ৳{data.summary.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Gross lifetime revenue
-                </p>
-              </div>
-
-              {/* Stat 2: Total Expenses */}
-              <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-gradient-to-br from-rose-50/50 to-transparent dark:from-rose-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-rose-300/80 dark:hover:border-rose-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl group-hover:bg-rose-500 group-hover:text-white dark:group-hover:bg-rose-600 transition-all duration-300">
-                    <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Total Expenses
-                  </span>
-                </div>
-                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
-                  ৳{data.summary.totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Gross lifetime spend
-                </p>
-              </div>
-
-              {/* Stat 3: Net Profit */}
-              <div className="relative overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-900/30 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-purple-300/80 dark:hover:border-purple-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl group-hover:bg-[#3e0078] group-hover:text-white dark:group-hover:bg-purple-600 transition-all duration-300">
-                    <DollarSign className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Net Profit
-                  </span>
-                </div>
-                <h3 className={`text-xl font-extrabold tracking-tight ${data.summary.netProfit >= 0 ? "text-card-foreground" : "text-rose-600 dark:text-rose-400"}`}>
-                  ৳{data.summary.netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  {data.summary.netProfit >= 0 ? "Net business gain" : "Net business loss"}
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </Card>
-      </div>
 
       {/* Daily Business Entry Cards */}
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            3. Daily/Monthly Partner Entry
+            2. Daily & Monthly Partner Entry
           </h2>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Month:</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Select Month:
+            </span>
             <Select
               value={selectedDailyMonth.toString()}
               onValueChange={(val) => setSelectedDailyMonth(parseInt(val))}
@@ -497,16 +381,21 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               },
             ];
 
-            const selectedMonthObj = data.monthlyPerformance.find((m) => m.month === selectedDailyMonth);
-            const monthLabel = selectedMonthObj ? selectedMonthObj.monthName : "Selected Month";
+            const selectedMonthObj = data.monthlyPerformance.find(
+              (m) => m.month === selectedDailyMonth,
+            );
+            const monthLabel = selectedMonthObj
+              ? selectedMonthObj.monthName
+              : "Selected Month";
 
             return data.summary.ownerBalances.map((owner, index) => {
               const c = ownerColors[index % ownerColors.length];
-              const mData = owner.monthlyBalances?.find((m) => m.month === selectedDailyMonth);
+              const mData = owner.monthlyBalances?.find(
+                (m) => m.month === selectedDailyMonth,
+              );
               const displayIncome = mData ? mData.income : 0;
               const displayExpenses = mData ? mData.expenses : 0;
-              const displayWithdrawn = mData ? mData.withdrawn : 0;
-              const displayBalance = mData ? mData.balance : 0;
+              const displayNetProfit = displayIncome - displayExpenses;
 
               return (
                 <Card
@@ -518,24 +407,34 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     className={`bg-gradient-to-r ${c.from} ${c.to} ${c.darkFrom} ${c.darkTo} px-5 py-4 flex items-center justify-between border-b ${c.border} ${c.darkBorder}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 ${c.iconBg} ${c.darkIconBg} rounded-full`}>
-                        <Users className={`w-4 h-4 ${c.iconColor} ${c.darkIconColor}`} />
+                      <div
+                        className={`p-2 ${c.iconBg} ${c.darkIconBg} rounded-full`}
+                      >
+                        <Users
+                          className={`w-4 h-4 ${c.iconColor} ${c.darkIconColor}`}
+                        />
                       </div>
-                      <span className={`${c.text} ${c.darkText} font-bold tracking-wider uppercase text-sm`}>
+                      <span
+                        className={`${c.text} ${c.darkText} font-bold tracking-wider uppercase text-sm`}
+                      >
                         {owner.name}
                       </span>
                     </div>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="px-5 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="px-5 py-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div className="relative overflow-hidden rounded-xl bg-green-50/50 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/20 p-3.5">
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 dark:bg-green-400 rounded-r-full" />
                       <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
                         {monthLabel} Income
                       </p>
                       <p className="text-2xl font-bold text-green-600 dark:text-green-400 tabular-nums">
-                        ৳{displayIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ৳
+                        {displayIncome.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                     <div className="relative overflow-hidden rounded-xl bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/50 dark:border-rose-900/20 p-3.5">
@@ -544,25 +443,24 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                         {monthLabel} Expenses
                       </p>
                       <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                        ৳{displayExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                    <div className="relative overflow-hidden rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-900/20 p-3.5">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 dark:bg-amber-400 rounded-r-full" />
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                        {monthLabel} Withdraw
-                      </p>
-                      <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
-                        ৳{displayWithdrawn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ৳
+                        {displayExpenses.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                     <div className="relative overflow-hidden rounded-xl bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/50 dark:border-purple-900/20 p-3.5">
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
                       <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                        {monthLabel} Balance
+                        {monthLabel} Net Profit
                       </p>
-                      <p className={`text-2xl font-bold tabular-nums ${displayBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
-                        ৳{displayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 tabular-nums">
+                        ৳
+                        {displayNetProfit.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                   </div>
@@ -606,23 +504,25 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 const totalBizBalance = totalBalance;
 
                 const sharePercent =
-                  numOwners > 0
-                    ? Math.round(100 / numOwners)
-                    : 0;
+                  numOwners > 0 ? Math.round(100 / numOwners) : 0;
 
                 return (
                   <Card
                     key={index}
-                    className={`overflow-hidden border shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group ${isOverdrawn
-                      ? "border-rose-300/60 dark:border-rose-900/40"
-                      : "border-border/80"
-                      }`}
+                    className={`overflow-hidden border shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group ${
+                      isOverdrawn
+                        ? "border-rose-300/60 dark:border-rose-900/40"
+                        : "border-border/80"
+                    }`}
                   >
                     {/* Owner Header */}
-                    <div className={`px-5 py-4 flex items-center justify-between border-b ${isOverdrawn
-                      ? "bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-950/20 dark:to-rose-900/10 border-rose-200/60 dark:border-rose-900/30"
-                      : "bg-gradient-to-r from-purple-50 to-violet-100/50 dark:from-purple-950/20 dark:to-violet-900/10 border-purple-200/60 dark:border-purple-900/30"
-                      }`}>
+                    <div
+                      className={`px-5 py-4 flex items-center justify-between border-b ${
+                        isOverdrawn
+                          ? "bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-950/20 dark:to-rose-900/10 border-rose-200/60 dark:border-rose-900/30"
+                          : "bg-gradient-to-r from-purple-50 to-violet-100/50 dark:from-purple-950/20 dark:to-violet-900/10 border-purple-200/60 dark:border-purple-900/30"
+                      }`}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
                           <User />
@@ -632,10 +532,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                         </span>
                       </div>
                       <span
-                        className={`text-xs font-bold px-3 py-1 rounded-full tracking-widest uppercase ${isOverdrawn
-                          ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
-                          : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
-                          }`}
+                        className={`text-xs font-bold px-3 py-1 rounded-full tracking-widest uppercase ${
+                          isOverdrawn
+                            ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
+                            : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
+                        }`}
                       >
                         {isOverdrawn ? "Overdrawn" : "Available"}
                       </span>
@@ -678,10 +579,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                           Remaining Due (Can Take)
                         </span>
                         <span
-                          className={`text-base font-bold tabular-nums ${remainingDue > 0
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-muted-foreground"
-                            }`}
+                          className={`text-base font-bold tabular-nums ${
+                            remainingDue > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-muted-foreground"
+                          }`}
                         >
                           ৳{" "}
                           {remainingDue.toLocaleString(undefined, {
@@ -698,10 +600,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                           Overdrawn / Due to Company
                         </span>
                         <span
-                          className={`text-base font-bold tabular-nums ${overdrawAmount > 0
-                            ? "text-rose-600 dark:text-rose-400"
-                            : "text-muted-foreground"
-                            }`}
+                          className={`text-base font-bold tabular-nums ${
+                            overdrawAmount > 0
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-muted-foreground"
+                          }`}
                         >
                           ৳{" "}
                           {overdrawAmount.toLocaleString(undefined, {
@@ -715,44 +618,57 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     {/* Status Message */}
                     <div className="px-5 pb-5">
                       <div
-                        className={`flex items-start gap-3 rounded-xl p-3.5 ${isOverdrawn
-                          ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900"
-                          : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"
-                          }`}
+                        className={`flex items-start gap-3 rounded-xl p-3.5 ${
+                          isOverdrawn
+                            ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900"
+                            : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"
+                        }`}
                       >
                         <div
-                          className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 ${isOverdrawn
-                            ? "border-rose-500 text-rose-500"
-                            : "border-green-500 text-green-500"
-                            }`}
+                          className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                            isOverdrawn
+                              ? "border-rose-500 text-rose-500"
+                              : "border-green-500 text-green-500"
+                          }`}
                         >
                           {isOverdrawn ? (
-                            <span className="text-xs font-black leading-none">!</span>
+                            <span className="text-xs font-black leading-none">
+                              !
+                            </span>
                           ) : (
                             <svg
                               viewBox="0 0 12 12"
                               className="w-3 h-3 fill-current"
                             >
-                              <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                              <path
+                                d="M10 3L5 8.5 2 5.5"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           )}
                         </div>
                         <div>
                           <p
-                            className={`text-sm font-bold ${isOverdrawn
-                              ? "text-rose-600 dark:text-rose-400"
-                              : "text-green-700 dark:text-green-400"
-                              }`}
+                            className={`text-sm font-bold ${
+                              isOverdrawn
+                                ? "text-rose-600 dark:text-rose-400"
+                                : "text-green-700 dark:text-green-400"
+                            }`}
                           >
                             {isOverdrawn
                               ? "You are overdrawn."
                               : `You can withdraw up to ৳ ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
                           </p>
                           <p
-                            className={`text-xs mt-0.5 ${isOverdrawn
-                              ? "text-rose-500 dark:text-rose-500"
-                              : "text-green-600 dark:text-green-500"
-                              }`}
+                            className={`text-xs mt-0.5 ${
+                              isOverdrawn
+                                ? "text-rose-500 dark:text-rose-500"
+                                : "text-green-600 dark:text-green-500"
+                            }`}
                           >
                             {isOverdrawn
                               ? "Company will recover this amount from future profits."
@@ -775,6 +691,142 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 );
               });
             })()}
+          </div>
+        </Card>
+      </div>
+
+      {/* Lifetime Metrics - Unified Financial Overview */}
+      <div className="space-y-6">
+        <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3 border-b border-border/40 pb-4">
+          <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
+          2. Company Lifetime Metrics
+        </h2>
+        <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
+          {/* Main layout: responsive grid split */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border/60">
+            {/* Left Hero Area: Available Balance (Active Treasury) */}
+            <div className="lg:col-span-5 p-8 flex flex-col justify-between bg-purple-50/20 dark:bg-purple-950/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-2xl">
+                    <Wallet className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Treasury Balance
+                    </span>
+                    <h3 className="text-sm font-bold text-purple-950 dark:text-purple-300">
+                      Available Balance
+                    </h3>
+                  </div>
+                </div>
+
+                {(() => {
+                  const totalBalance = data.summary.ownerBalances.reduce(
+                    (sum, o) => sum + o.balance,
+                    0,
+                  );
+                  return (
+                    <div className="space-y-2">
+                      <h1 className="text-4xl font-black text-card-foreground tracking-tight">
+                        ৳
+                        {totalBalance.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </h1>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${totalBalance >= 0 ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400" : "bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400"}`}
+                        >
+                          {totalBalance >= 0 ? "Fully Funded" : "Overdrawn"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Combined partners equity
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Right Side: Lifetime breakdown grid */}
+            <div className="lg:col-span-7 p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
+              {/* Stat 1: Total Income */}
+              <div className="relative overflow-hidden rounded-2xl border border-green-200/60 dark:border-green-900/30 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-green-300/80 dark:hover:border-green-800/50 transition-all duration-300 group">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 dark:bg-green-400 rounded-r-full" />
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-xl group-hover:bg-green-500 group-hover:text-white dark:group-hover:bg-green-600 transition-all duration-300">
+                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Total Income
+                  </span>
+                </div>
+                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
+                  ৳
+                  {data.summary.totalIncome.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Gross lifetime revenue
+                </p>
+              </div>
+
+              {/* Stat 2: Total Expenses */}
+              <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-gradient-to-br from-rose-50/50 to-transparent dark:from-rose-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-rose-300/80 dark:hover:border-rose-800/50 transition-all duration-300 group">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl group-hover:bg-rose-500 group-hover:text-white dark:group-hover:bg-rose-600 transition-all duration-300">
+                    <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Total Expenses
+                  </span>
+                </div>
+                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
+                  ৳
+                  {data.summary.totalExpenses.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Gross lifetime spend
+                </p>
+              </div>
+
+              {/* Stat 3: Net Profit */}
+              <div className="relative overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-900/30 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-purple-300/80 dark:hover:border-purple-800/50 transition-all duration-300 group">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl group-hover:bg-[#3e0078] group-hover:text-white dark:group-hover:bg-purple-600 transition-all duration-300">
+                    <DollarSign className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Net Profit
+                  </span>
+                </div>
+                <h3
+                  className={`text-xl font-extrabold tracking-tight ${data.summary.netProfit >= 0 ? "text-card-foreground" : "text-rose-600 dark:text-rose-400"}`}
+                >
+                  ৳
+                  {data.summary.netProfit.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {data.summary.netProfit >= 0
+                    ? "Net business gain"
+                    : "Net business loss"}
+                </p>
+              </div>
+            </div>
           </div>
         </Card>
       </div>
@@ -871,7 +923,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             {/* Category Cards List */}
             <div className="flex-1 p-5 lg:p-6">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/40">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Breakdown</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Category Breakdown
+                </span>
                 <span className="ml-auto text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-0.5 rounded-full">
                   {data.expenseBreakdown.length} categories
                 </span>
