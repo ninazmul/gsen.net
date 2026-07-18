@@ -52,48 +52,50 @@
   }
 
   .dark {
-    --background: 224 30% 7%;
-    --foreground: 210 40% 94%;
+    --background: 240 20% 4%;
+    --foreground: 210 40% 96%;
 
-    --card: 224 28% 10%;
-    --card-foreground: 210 40% 94%;
+    --card: 240 18% 7%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 224 28% 10%;
-    --popover-foreground: 210 40% 94%;
+    --popover: 240 18% 7%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 263 70% 60%;
+    --primary: 263 70% 65%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 224 22% 16%;
-    --secondary-foreground: 210 40% 94%;
+    --secondary: 240 15% 12%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 224 22% 16%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 240 15% 12%;
+    --muted-foreground: 215 20% 60%;
 
-    --accent: 224 22% 16%;
-    --accent-foreground: 210 40% 94%;
+    --accent: 260 20% 14%;
+    --accent-foreground: 210 40% 96%;
 
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 224 18% 18%;
-    --input: 224 18% 18%;
-    --ring: 263 70% 60%;
+    --border: 240 15% 16%;
+    --input: 240 15% 16%;
+    --ring: 263 70% 65%;
 
-    --sidebar-background: 224 30% 7%;
-    --sidebar-foreground: 210 30% 75%;
+    --sidebar-background: 240 20% 5%;
+    --sidebar-foreground: 210 30% 80%;
     --sidebar-primary: 263 70% 65%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 224 22% 14%;
-    --sidebar-accent-foreground: 210 30% 85%;
-    --sidebar-border: 224 18% 16%;
-    --sidebar-ring: 263 70% 60%;
+    --sidebar-accent: 240 18% 10%;
+    --sidebar-accent-foreground: 210 30% 90%;
+    --sidebar-border: 240 15% 15%;
+    --sidebar-ring: 263 70% 65%;
 
-    /* Brand color variables for dark mode */
+    /* Brand */
     --brand-color: #a78bfa;
     --brand-hover: #8b5cf6;
-    --chart-tooltip-bg: #1e1b2e;
-    --chart-tooltip-border: #2e2b3e;
+
+    /* Charts */
+    --chart-tooltip-bg: #12101a;
+    --chart-tooltip-border: #27213a;
     --chart-tick-color: #94a3b8;
   }
 }
@@ -118,7 +120,6 @@ body {
 
 /* ========================================== TAILWIND STYLES */
 @layer utilities {
-  
 }
 
 /* ========================================== CLERK STYLES */

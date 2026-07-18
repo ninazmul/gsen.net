@@ -107,10 +107,8 @@ export default function WithdrawalsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const {
-      withdrawals: newWithdrawals,
-      totalPages: newTotalPages,
-    } = await getWithdrawals(params);
+    const { withdrawals: newWithdrawals, totalPages: newTotalPages } =
+      await getWithdrawals(params);
     setWithdrawals(newWithdrawals);
     setTotalPages(newTotalPages);
   }, [search, ownerFilter, period, startDate, endDate, currentPage]);
@@ -180,7 +178,7 @@ export default function WithdrawalsClient({
                   <Plus className="mr-2 h-4 w-4" /> Add Withdrawal
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-white dark:bg-black">
+              <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
                 <DialogHeader>
                   <DialogTitle>Add New Withdrawal</DialogTitle>
                 </DialogHeader>
@@ -296,7 +294,7 @@ export default function WithdrawalsClient({
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl bg-white dark:bg-black">
+                      <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
                         <DialogHeader>
                           <DialogTitle>Edit Withdrawal</DialogTitle>
                         </DialogHeader>

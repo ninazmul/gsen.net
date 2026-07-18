@@ -503,7 +503,7 @@ export default function DashboardClient({
               <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
 
               <div className="flex items-center gap-5">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-900/40">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-[#0F0A19]/40">
                   <DollarSign className="h-8 w-8" />
                 </div>
 
@@ -788,7 +788,7 @@ export default function DashboardClient({
       </div>
 
       <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-[#8B5CF6]/20 dark:bg-black sm:max-w-2xl">
+        <DialogContent className="max-h-[92vh] overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-[#8B5CF6]/20 dark:bg-purple-[#0F0A19] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">
               {entryMode === "sale" ? "Add Sale" : "Add Expense"}
@@ -818,7 +818,7 @@ export default function DashboardClient({
       </Dialog>
 
       <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-        <SheetContent className="w-full overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-blue-500/20 dark:bg-black sm:max-w-2xl">
+        <SheetContent className="w-full overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-blue-500/20 dark:bg-purple-[#0F0A19] sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2 text-2xl font-black">
               <CalendarDays className="h-5 w-5 text-[#3B82F6]" />
@@ -1191,10 +1191,10 @@ export default function DashboardClient({
           <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border/60">
             {/* Left Hero Area: Available Balance (Active Treasury) */}
             <div className="lg:col-span-5 p-8 flex flex-col justify-between bg-purple-50/20 dark:bg-purple-950/5 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-900/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-[#0F0A19]/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-2xl">
+                  <div className="p-3 bg-purple-100 dark:bg-purple-[#0F0A19]/40 text-purple-700 dark:text-purple-300 rounded-2xl">
                     <Wallet className="w-6 h-6" />
                   </div>
                   <div>
@@ -1284,7 +1284,7 @@ export default function DashboardClient({
                 <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
 
                 <div className="flex items-center gap-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-900/40">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-[#0F0A19]/40">
                     <DollarSign className="h-5 w-5" />
                   </div>
 
@@ -1326,7 +1326,7 @@ export default function DashboardClient({
           <div className="flex flex-col lg:flex-row">
             {/* Donut Chart Area */}
             <div className="lg:w-72 flex-shrink-0 p-6 lg:p-8 flex flex-col items-center justify-center bg-purple-50/20 dark:bg-purple-950/5 border-b lg:border-b-0 lg:border-r border-border/60 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-900/10 rounded-bl-full -z-10" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-purple-[#0F0A19]/10 rounded-bl-full -z-10" />
               {(() => {
                 const totalExpense = data.expenseBreakdown.reduce(
                   (s, e) => s + e.total,

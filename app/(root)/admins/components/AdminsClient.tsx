@@ -96,10 +96,7 @@ export default function AdminsClient({
     }
   };
 
-  const handleUpdate = async (
-    id: string,
-    data: Partial<EditAdminFormData>,
-  ) => {
+  const handleUpdate = async (id: string, data: Partial<EditAdminFormData>) => {
     try {
       await updateAdmin(id, data);
       toast.success("Admin updated successfully");
@@ -138,7 +135,7 @@ export default function AdminsClient({
                 <UserPlus className="mr-2 h-4 w-4" /> Add Admin
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white dark:bg-black">
+            <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
               <DialogHeader>
                 <DialogTitle>Add New Admin</DialogTitle>
               </DialogHeader>
@@ -164,7 +161,9 @@ export default function AdminsClient({
                 <TableCell>{admin.email}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={admin.role === "superadmin" ? "default" : "secondary"}
+                    variant={
+                      admin.role === "superadmin" ? "default" : "secondary"
+                    }
                   >
                     {admin.role}
                   </Badge>
@@ -189,7 +188,7 @@ export default function AdminsClient({
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl bg-white dark:bg-black">
+                        <DialogContent className="max-w-3xl bg-white dark:bg-purple-[#0F0A19]">
                           <DialogHeader>
                             <DialogTitle>Edit Admin</DialogTitle>
                           </DialogHeader>
@@ -257,10 +256,7 @@ function CreateAdminForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />

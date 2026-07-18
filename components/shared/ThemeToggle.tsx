@@ -9,34 +9,39 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch by only rendering after mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <div className="w-10 h-10" />; // Placeholder to avoid layout shift
+    return <div className="h-10 w-10" />;
   }
 
-  // Check if current active theme is dark
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const isDark = theme === "dark";
 
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="text-purple-900 hover:bg-white/10 hover:text-white dark:text-zinc-300 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100 h-10 w-10 rounded-full transition-all duration-200"
+      className="
+        h-10 w-10 rounded-full
+        text-purple-900 
+        hover:bg-purple-100/50
+        hover:text-purple-700
+        
+        dark:text-purple-200
+        dark:hover:bg-purple-900/30
+        dark:hover:text-purple-100
+        
+        transition-all duration-300
+      "
       title="Toggle Theme"
     >
-      {!isDark ? (
-        <Sun className="h-[1.1rem] w-[1.1rem] text-purple-900 transition-all duration-300" />
+      {isDark ? (
+        <Moon className="h-[1.1rem] w-[1.1rem] transition-transform duration-300 hover:rotate-12" />
       ) : (
-        <Moon className="h-[1.1rem] w-[1.1rem] text-purple-100 transition-all duration-300" />
+        <Sun className="h-[1.1rem] w-[1.1rem] transition-transform duration-300 hover:rotate-45" />
       )}
     </Button>
   );

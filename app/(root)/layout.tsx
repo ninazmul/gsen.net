@@ -38,7 +38,7 @@ export default async function AdminLayout({
       <Toaster />
       <main className="flex-1 h-screen mx-auto overflow-y-auto bg-background">
         <div className="flex justify-between items-center p-4 w-full border-b border-border text-purple-900 bg-white dark:text-purple-100 dark:bg-[#1a0040] dark:border-purple-900/40">
-          <SidebarTrigger />
+          <SidebarTrigger className="h-11 w-11 rounded-lg bg-[#6D28D9] text-white shadow-md hover:bg-[#7C3AED] transition-colors" />
           <div className="flex justify-between w-full px-2">
             <Link href="/">
               <div>

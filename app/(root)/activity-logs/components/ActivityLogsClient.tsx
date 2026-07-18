@@ -473,7 +473,7 @@ export default function ActivityLogsClient({
       </Card>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-hidden p-0 bg-white dark:bg-black">
+        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-hidden p-0 bg-white dark:bg-purple-[#0F0A19]">
           <DialogHeader className="border-b px-6 py-5">
             <DialogTitle className="text-xl font-bold sm:text-2xl">
               Activity Log Details
