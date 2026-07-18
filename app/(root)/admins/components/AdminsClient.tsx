@@ -135,7 +135,7 @@ export default function AdminsClient({
                 <UserPlus className="mr-2 h-4 w-4" /> Add Admin
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
+            <DialogContent className="max-w-2xl bg-white dark:bg-[#0F0A19]">
               <DialogHeader>
                 <DialogTitle>Add New Admin</DialogTitle>
               </DialogHeader>
@@ -188,7 +188,7 @@ export default function AdminsClient({
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl bg-white dark:bg-purple-[#0F0A19]">
+                        <DialogContent className="max-w-3xl bg-white dark:bg-[#0F0A19]">
                           <DialogHeader>
                             <DialogTitle>Edit Admin</DialogTitle>
                           </DialogHeader>

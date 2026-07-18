@@ -103,7 +103,7 @@ export default function CategoriesClient({
                 <Plus className="mr-2 h-4 w-4" /> Add Category
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
+            <DialogContent className="max-w-2xl bg-white dark:bg-[#0F0A19]">
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
               </DialogHeader>
@@ -180,7 +180,7 @@ export default function CategoriesClient({
                           <Edit className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl bg-white dark:bg-purple-[#0F0A19]">
+                      <DialogContent className="max-w-2xl bg-white dark:bg-[#0F0A19]">
                         <DialogHeader>
                           <DialogTitle>Edit Category</DialogTitle>
                         </DialogHeader>
