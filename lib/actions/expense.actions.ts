@@ -3,7 +3,7 @@
 import { connectToDatabase } from "@/lib/database";
 import Expense from "@/lib/database/models/expense.model";
 import { revalidatePath } from "next/cache";
-import type { FilterQuery } from "mongoose";
+import type { FilterQuery, Types } from "mongoose";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { checkWritePermissionServer } from "./permission-actions";
@@ -75,6 +75,7 @@ export async function createExpense(data: {
 }
 
 export async function getExpenses(params?: {
+  owner?: string | Types.ObjectId;
   category?: string;
   startDate?: Date;
   endDate?: Date;
@@ -85,6 +86,7 @@ export async function getExpenses(params?: {
   await connectToDatabase();
 
   const {
+    owner,
     category,
     startDate,
     endDate,
@@ -92,13 +94,27 @@ export async function getExpenses(params?: {
     page = 1,
     limit = 10,
   } = params || {};
+
   const skip = (page - 1) * limit;
 
-  const query: FilterQuery<ExpenseDoc> = { deletedAt: null };
+  const query: FilterQuery<ExpenseDoc> = {
+    deletedAt: null,
+  };
 
-  if (category) query.category = category;
+  // Owner filter
+  if (owner) {
+    query.owner = owner;
+  }
+
+  if (category) {
+    query.category = category;
+  }
+
   if (startDate && endDate) {
-    query.date = { $gte: startDate, $lte: endDate };
+    query.date = {
+      $gte: startDate,
+      $lte: endDate,
+    };
   }
 
   if (search) {
@@ -108,7 +124,7 @@ export async function getExpenses(params?: {
     ];
   }
 
-  const expenses = await Expense.find<ExpenseDoc>(query)
+  const expenses = await Expense.find(query)
     .populate("category")
     .sort({ date: -1, createdAt: -1 })
     .skip(skip)

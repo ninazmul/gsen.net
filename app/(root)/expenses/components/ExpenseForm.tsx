@@ -55,6 +55,7 @@ interface Expense {
 interface ExpenseFormProps {
   expense?: Expense;
   currentAdmin?: Admin | null;
+  defaultOwner?: string;
   onSuccess: () => void;
 }
 
@@ -71,6 +72,7 @@ interface ExpenseFormData {
 export default function ExpenseForm({
   expense,
   currentAdmin,
+  defaultOwner,
   onSuccess,
 }: ExpenseFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -107,11 +109,17 @@ export default function ExpenseForm({
           paymentMethod: "Cash",
           referenceNumber: "",
           description: "",
-          owner: "",
+          owner: defaultOwner ?? "",
         },
   });
 
   // Pre-select owner based on logged in user's email matching owner email
+  useEffect(() => {
+    if (!expense && defaultOwner) {
+      form.setValue("owner", defaultOwner);
+    }
+  }, [defaultOwner, expense, form]);
+
   useEffect(() => {
     if (!expense && currentAdmin?.email && owners.length > 0) {
       const match = owners.find(

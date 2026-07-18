@@ -54,6 +54,7 @@ interface Income {
 interface IncomeFormProps {
   income?: Income;
   currentAdmin?: Admin | null;
+  defaultOwner?: string;
   onSuccess: () => void;
 }
 
@@ -70,6 +71,7 @@ interface IncomeFormData {
 export default function IncomeForm({
   income,
   currentAdmin,
+  defaultOwner,
   onSuccess,
 }: IncomeFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -97,7 +99,7 @@ export default function IncomeForm({
           paymentMethod: "Cash",
           referenceNumber: "",
           description: "",
-          owner: "",
+          owner: defaultOwner ?? "",
         },
   });
 
@@ -126,6 +128,12 @@ export default function IncomeForm({
   }, [income, categories, form]);
 
   // Pre-select owner based on logged in user's email matching owner email (like ExpenseForm)
+  useEffect(() => {
+    if (!income && defaultOwner) {
+      form.setValue("owner", defaultOwner);
+    }
+  }, [defaultOwner, form, income]);
+
   useEffect(() => {
     if (!income && currentAdmin?.email && owners.length > 0) {
       const match = owners.find(

@@ -15,7 +15,7 @@ const DashboardPage = async () => {
 
   try {
     const dashboardData = await getDashboardData();
-    return <DashboardClient data={dashboardData} />;
+    return <DashboardClient data={dashboardData} currentAdmin={admin} />;
   } catch (error) {
     console.error("Dashboard error:", error);
     throw error;

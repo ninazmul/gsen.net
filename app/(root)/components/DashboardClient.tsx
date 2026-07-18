@@ -1,6 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp,
   TrendingDown,
@@ -9,9 +14,14 @@ import {
   Activity,
   Wallet,
   User,
+  Plus,
+  ReceiptText,
+  History,
+  CalendarDays,
 } from "lucide-react";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useTheme } from "next-themes";
+import { toast } from "react-hot-toast";
 import {
   Select,
   SelectContent,
@@ -19,6 +29,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { getExpenses } from "@/lib/actions/expense.actions";
+import { getIncomes } from "@/lib/actions/income.actions";
+import IncomeForm from "../income/components/IncomeForm";
+import ExpenseForm from "../expenses/components/ExpenseForm";
+import { type Admin } from "@/lib/actions/admin.actions";
 
 interface Category {
   _id: string;
@@ -35,6 +64,8 @@ interface Income {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
+  createdAt?: Date;
 }
 
 interface Expense {
@@ -45,6 +76,8 @@ interface Expense {
   paymentMethod: string;
   referenceNumber?: string;
   description?: string;
+  owner?: string;
+  createdAt?: Date;
 }
 
 interface ActivityLog {
@@ -126,9 +159,29 @@ type DashboardClientProps = {
     };
     recentLogs: ActivityLog[];
   };
+  currentAdmin: Admin | null;
 };
 
-export default function DashboardClient({ data }: DashboardClientProps) {
+type EntryMode = "sale" | "expense";
+type HistoryPeriod = "today" | "week" | "month" | "custom";
+type HistoryType = "all" | "sale" | "expense";
+
+interface PartnerHistoryItem {
+  id: string;
+  type: "sale" | "expense";
+  category: string;
+  amount: number;
+  date: Date;
+  paymentMethod: string;
+  referenceNumber?: string;
+  description?: string;
+}
+
+export default function DashboardClient({
+  data,
+  currentAdmin,
+}: DashboardClientProps) {
+  const router = useRouter();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -138,6 +191,21 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   const [selectedDailyMonth, setSelectedDailyMonth] = useState<number>(
     new Date().getMonth() + 1,
   );
+  const [entryOpen, setEntryOpen] = useState(false);
+  const [entryMode, setEntryMode] = useState<EntryMode>("sale");
+  const [selectedPartner, setSelectedPartner] = useState<string>("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyPartner, setHistoryPartner] = useState("");
+  const [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod>("today");
+  const [historyType, setHistoryType] = useState<HistoryType>("all");
+  const [customStartDate, setCustomStartDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [customEndDate, setCustomEndDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [historyItems, setHistoryItems] = useState<PartnerHistoryItem[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   const COLOR_PALETTE = [
     "#7c3aed",
@@ -150,6 +218,192 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
   const tooltipBg = isDark ? "#1e1b2e" : "#ffffff";
   const tooltipBorder = isDark ? "#2e2b3e" : "#e2e8f0";
+
+  const formatCurrency = (amount: number) =>
+    `৳${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
+  const selectedPerformanceMonth =
+    data.monthlyPerformance.find((m) => m.month === selectedDailyMonth)
+      ?.monthName || "Selected Month";
+
+  const combinedPartnerSummary = useMemo(() => {
+    return data.summary.ownerBalances.reduce(
+      (summary, owner) => {
+        const monthly = owner.monthlyBalances?.find(
+          (m) => m.month === selectedDailyMonth,
+        );
+
+        summary.todaySales += owner.todayIncome;
+        summary.todayExpenses += owner.todayExpenses;
+        summary.monthSales += monthly?.income || 0;
+        summary.monthExpenses += monthly?.expenses || 0;
+
+        return summary;
+      },
+      {
+        todaySales: 0,
+        todayExpenses: 0,
+        monthSales: 0,
+        monthExpenses: 0,
+      },
+    );
+  }, [data.summary.ownerBalances, selectedDailyMonth]);
+
+  const openEntryModal = (mode: EntryMode, partner: string) => {
+    setEntryMode(mode);
+    setSelectedPartner(partner);
+    setEntryOpen(true);
+  };
+
+  const openHistorySheet = (partner: string) => {
+    setHistoryPartner(partner);
+    setHistoryPeriod("today");
+    setHistoryType("all");
+    setCustomStartDate(new Date().toISOString().split("T")[0]);
+    setCustomEndDate(new Date().toISOString().split("T")[0]);
+    setHistoryOpen(true);
+  };
+
+  const getHistoryRange = useCallback(() => {
+    const now = new Date();
+    const start = new Date(now);
+    const end = new Date(now);
+
+    if (historyPeriod === "today") {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    } else if (historyPeriod === "week") {
+      const day = start.getDay();
+      start.setDate(start.getDate() - day);
+      start.setHours(0, 0, 0, 0);
+      end.setTime(start.getTime());
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+    } else if (historyPeriod === "month") {
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0);
+      end.setHours(23, 59, 59, 999);
+    } else {
+      const customStart = new Date(customStartDate);
+      const customEnd = new Date(customEndDate);
+      customStart.setHours(0, 0, 0, 0);
+      customEnd.setHours(23, 59, 59, 999);
+      return { startDate: customStart, endDate: customEnd };
+    }
+
+    return { startDate: start, endDate: end };
+  }, [customEndDate, customStartDate, historyPeriod]);
+
+  useEffect(() => {
+    if (!historyOpen || !historyPartner) return;
+
+    async function loadHistory() {
+      setIsHistoryLoading(true);
+      try {
+        const { startDate, endDate } = getHistoryRange();
+        const requests = [];
+
+        if (historyType === "all" || historyType === "sale") {
+          requests.push(
+            getIncomes({
+              owner: historyPartner,
+              startDate,
+              endDate,
+              page: 1,
+              limit: 200,
+            }),
+          );
+        }
+
+        if (historyType === "all" || historyType === "expense") {
+          requests.push(
+            getExpenses({
+              owner: historyPartner,
+              startDate,
+              endDate,
+              page: 1,
+              limit: 200,
+            }),
+          );
+        }
+
+        const results = await Promise.all(requests);
+        const nextItems: PartnerHistoryItem[] = [];
+
+        results.forEach((result) => {
+          if ("incomes" in result) {
+            result.incomes.forEach((income: Income) => {
+              nextItems.push({
+                id: income._id,
+                type: "sale",
+                category:
+                  typeof income.category === "object"
+                    ? income.category.name
+                    : "Sales",
+                amount: income.amount,
+                date: new Date(income.date),
+                paymentMethod: income.paymentMethod,
+                referenceNumber: income.referenceNumber,
+                description: income.description,
+              });
+            });
+          }
+
+          if ("expenses" in result) {
+            result.expenses.forEach((expense: Expense) => {
+              nextItems.push({
+                id: expense._id,
+                type: "expense",
+                category:
+                  typeof expense.category === "object"
+                    ? expense.category.name
+                    : "Expense",
+                amount: expense.amount,
+                date: new Date(expense.date),
+                paymentMethod: expense.paymentMethod,
+                referenceNumber: expense.referenceNumber,
+                description: expense.description,
+              });
+            });
+          }
+        });
+
+        setHistoryItems(
+          nextItems.sort((a, b) => b.date.getTime() - a.date.getTime()),
+        );
+      } catch (error) {
+        console.error("Error loading partner history:", error);
+        toast.error("Failed to load partner history");
+      } finally {
+        setIsHistoryLoading(false);
+      }
+    }
+
+    loadHistory();
+  }, [
+    historyOpen,
+    historyPartner,
+    historyPeriod,
+    historyType,
+    customStartDate,
+    customEndDate,
+    getHistoryRange,
+  ]);
+
+  const handleEntrySuccess = () => {
+    toast.success(
+      entryMode === "sale"
+        ? "Sale added successfully"
+        : "Expense added successfully",
+    );
+    setEntryOpen(false);
+    router.refresh();
+  };
 
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto flex flex-col gap-10 bg-background min-h-screen">
@@ -278,22 +532,27 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         );
       })()}
 
-      {/* Daily Business Entry Cards */}
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
-          <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3">
-            <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            2. Daily & Monthly Partner Entry
-          </h2>
-          <div className="flex items-center gap-3">
+      {/* Daily & Monthly Partner Performance */}
+      <div className="space-y-6 rounded-3xl border border-[#8B5CF6]/20 bg-gradient-to-br from-[#8B5CF6]/10 via-card to-background p-4 shadow-xl shadow-[#8B5CF6]/10 dark:from-[#8B5CF6]/15 dark:via-card dark:to-background sm:p-6">
+        <div className="flex flex-col gap-4 border-b border-[#8B5CF6]/20 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-3 text-2xl font-black tracking-tight text-purple-950 dark:text-purple-300 md:text-3xl">
+              <span className="h-8 w-2 rounded-full bg-[#8B5CF6]" />
+              2. Daily & Monthly Partner Performance
+            </h2>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              Combined and partner-level sales, expenses, and net performance.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Select Month:
+              Select Month
             </span>
             <Select
               value={selectedDailyMonth.toString()}
               onValueChange={(val) => setSelectedDailyMonth(parseInt(val))}
             >
-              <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
+              <SelectTrigger className="w-full border-[#8B5CF6]/30 bg-card text-card-foreground shadow-sm sm:w-[180px]">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -306,170 +565,396 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(() => {
-            const ownerColors = [
-              {
-                from: "from-purple-50",
-                to: "to-violet-100",
-                darkFrom: "dark:from-purple-900/20",
-                darkTo: "dark:to-violet-900/20",
-                border: "border-purple-100",
-                darkBorder: "dark:border-purple-900/30",
-                iconBg: "bg-purple-100",
-                darkIconBg: "dark:bg-purple-900/30",
-                iconColor: "text-purple-700",
-                darkIconColor: "dark:text-purple-400",
-                text: "text-purple-900",
-                darkText: "dark:text-purple-300",
-              },
-              {
-                from: "from-sky-50",
-                to: "to-cyan-100",
-                darkFrom: "dark:from-sky-900/20",
-                darkTo: "dark:to-cyan-900/20",
-                border: "border-sky-100",
-                darkBorder: "dark:border-sky-900/30",
-                iconBg: "bg-sky-100",
-                darkIconBg: "dark:bg-sky-900/30",
-                iconColor: "text-sky-700",
-                darkIconColor: "dark:text-sky-400",
-                text: "text-sky-900",
-                darkText: "dark:text-sky-300",
-              },
-              {
-                from: "from-emerald-50",
-                to: "to-teal-100",
-                darkFrom: "dark:from-emerald-900/20",
-                darkTo: "dark:to-teal-900/20",
-                border: "border-emerald-100",
-                darkBorder: "dark:border-emerald-900/30",
-                iconBg: "bg-emerald-100",
-                darkIconBg: "dark:bg-emerald-900/30",
-                iconColor: "text-emerald-700",
-                darkIconColor: "dark:text-emerald-400",
-                text: "text-emerald-900",
-                darkText: "dark:text-emerald-300",
-              },
-              {
-                from: "from-amber-50",
-                to: "to-orange-100",
-                darkFrom: "dark:from-amber-900/20",
-                darkTo: "dark:to-orange-900/20",
-                border: "border-amber-100",
-                darkBorder: "dark:border-amber-900/30",
-                iconBg: "bg-amber-100",
-                darkIconBg: "dark:bg-amber-900/30",
-                iconColor: "text-amber-700",
-                darkIconColor: "dark:text-amber-400",
-                text: "text-amber-900",
-                darkText: "dark:text-amber-300",
-              },
-              {
-                from: "from-rose-50",
-                to: "to-pink-100",
-                darkFrom: "dark:from-rose-900/20",
-                darkTo: "dark:to-pink-900/20",
-                border: "border-rose-100",
-                darkBorder: "dark:border-rose-900/30",
-                iconBg: "bg-rose-100",
-                darkIconBg: "dark:bg-rose-900/30",
-                iconColor: "text-rose-700",
-                darkIconColor: "dark:text-rose-400",
-                text: "text-rose-900",
-                darkText: "dark:text-rose-300",
-              },
-            ];
 
-            const selectedMonthObj = data.monthlyPerformance.find(
-              (m) => m.month === selectedDailyMonth,
-            );
-            const monthLabel = selectedMonthObj
-              ? selectedMonthObj.monthName
-              : "Selected Month";
-
-            return data.summary.ownerBalances.map((owner, index) => {
-              const c = ownerColors[index % ownerColors.length];
-              const mData = owner.monthlyBalances?.find(
-                (m) => m.month === selectedDailyMonth,
-              );
-              const displayIncome = mData ? mData.income : 0;
-              const displayExpenses = mData ? mData.expenses : 0;
-              const displayNetProfit = displayIncome - displayExpenses;
+        <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
+          <div className="border-b border-border/60 bg-[#8B5CF6]/10 px-5 py-4 dark:bg-[#8B5CF6]/15">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B5CF6] text-white shadow-md">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Combined Business Summary
+                </p>
+                <h3 className="text-lg font-black text-card-foreground">
+                  Today and {selectedPerformanceMonth}
+                </h3>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
+            {[
+              {
+                label: "Today",
+                sales: combinedPartnerSummary.todaySales,
+                expenses: combinedPartnerSummary.todayExpenses,
+              },
+              {
+                label: selectedPerformanceMonth,
+                sales: combinedPartnerSummary.monthSales,
+                expenses: combinedPartnerSummary.monthExpenses,
+              },
+            ].map((summary) => {
+              const net = summary.sales - summary.expenses;
 
               return (
-                <Card
-                  key={index}
-                  className="overflow-hidden border border-border/80 shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group"
+                <div
+                  key={summary.label}
+                  className="rounded-2xl border border-border/70 bg-background/70 p-4 shadow-sm dark:bg-background/30"
                 >
-                  {/* Header */}
-                  <div
-                    className={`bg-gradient-to-r ${c.from} ${c.to} ${c.darkFrom} ${c.darkTo} px-5 py-4 flex items-center justify-between border-b ${c.border} ${c.darkBorder}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`p-2 ${c.iconBg} ${c.darkIconBg} rounded-full`}
+                  <p className="mb-4 text-sm font-black uppercase tracking-wider text-[#8B5CF6]">
+                    {summary.label}
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-green-200/70 bg-green-50/70 p-3 dark:border-green-900/30 dark:bg-green-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Sales
+                      </p>
+                      <p className="mt-1 text-xl font-black text-green-600 dark:text-green-400">
+                        {formatCurrency(summary.sales)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-rose-200/70 bg-rose-50/70 p-3 dark:border-rose-900/30 dark:bg-rose-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Expenses
+                      </p>
+                      <p className="mt-1 text-xl font-black text-rose-600 dark:text-rose-400">
+                        {formatCurrency(summary.expenses)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-purple-200/70 bg-purple-50/70 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Net
+                      </p>
+                      <p
+                        className={`mt-1 text-xl font-black ${
+                          net >= 0
+                            ? "text-[#8B5CF6]"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
                       >
-                        <Users
-                          className={`w-4 h-4 ${c.iconColor} ${c.darkIconColor}`}
-                        />
-                      </div>
-                      <span
-                        className={`${c.text} ${c.darkText} font-bold tracking-wider uppercase text-sm`}
-                      >
+                        {formatCurrency(net)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          {data.summary.ownerBalances.map((owner, index) => {
+            const monthly = owner.monthlyBalances?.find(
+              (m) => m.month === selectedDailyMonth,
+            );
+            const monthSales = monthly?.income || 0;
+            const monthExpenses = monthly?.expenses || 0;
+            const monthNet = monthSales - monthExpenses;
+            const todayNet = owner.todayIncome - owner.todayExpenses;
+
+            return (
+              <Card
+                key={`${owner.name}-${index}`}
+                className="overflow-hidden border border-border/80 bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#8B5CF6]/40 hover:shadow-2xl"
+              >
+                <div className="flex items-center justify-between gap-4 border-b border-border/70 bg-gradient-to-r from-[#8B5CF6]/15 to-transparent px-5 py-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#8B5CF6] text-white shadow-md">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-black uppercase tracking-wide text-card-foreground">
                         {owner.name}
-                      </span>
+                      </p>
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        Partner performance
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className="border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/10">
+                    {selectedPerformanceMonth}
+                  </Badge>
+                </div>
+
+                <div className="space-y-4 p-5">
+                  <div>
+                    <p className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                      Today
+                    </p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl border border-green-200/60 bg-green-50/70 p-3 dark:border-green-900/30 dark:bg-green-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Sales
+                        </p>
+                        <p className="mt-1 text-lg font-black text-green-600 dark:text-green-400">
+                          {formatCurrency(owner.todayIncome)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-rose-200/60 bg-rose-50/70 p-3 dark:border-rose-900/30 dark:bg-rose-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Expenses
+                        </p>
+                        <p className="mt-1 text-lg font-black text-rose-600 dark:text-rose-400">
+                          {formatCurrency(owner.todayExpenses)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-purple-200/60 bg-purple-50/70 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Net
+                        </p>
+                        <p
+                          className={`mt-1 text-lg font-black ${
+                            todayNet >= 0
+                              ? "text-[#8B5CF6]"
+                              : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
+                          {formatCurrency(todayNet)}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Stats Grid */}
-                  <div className="px-5 py-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <div className="relative overflow-hidden rounded-xl bg-green-50/50 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/20 p-3.5">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 dark:bg-green-400 rounded-r-full" />
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                        {monthLabel} Income
-                      </p>
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-400 tabular-nums">
-                        ৳
-                        {displayIncome.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </p>
+                  <div>
+                    <p className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                      This Month
+                    </p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl border border-green-200/60 bg-green-50/70 p-3 dark:border-green-900/30 dark:bg-green-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Sales
+                        </p>
+                        <p className="mt-1 text-lg font-black text-green-600 dark:text-green-400">
+                          {formatCurrency(monthSales)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-rose-200/60 bg-rose-50/70 p-3 dark:border-rose-900/30 dark:bg-rose-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Expenses
+                        </p>
+                        <p className="mt-1 text-lg font-black text-rose-600 dark:text-rose-400">
+                          {formatCurrency(monthExpenses)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-purple-200/60 bg-purple-50/70 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Net
+                        </p>
+                        <p
+                          className={`mt-1 text-lg font-black ${
+                            monthNet >= 0
+                              ? "text-[#8B5CF6]"
+                              : "text-rose-600 dark:text-rose-400"
+                          }`}
+                        >
+                          {formatCurrency(monthNet)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="relative overflow-hidden rounded-xl bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/50 dark:border-rose-900/20 p-3.5">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                        {monthLabel} Expenses
-                      </p>
-                      <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                        ৳
-                        {displayExpenses.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </p>
-                    </div>
-                    <div className="relative overflow-hidden rounded-xl bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/50 dark:border-purple-900/20 p-3.5">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                        {monthLabel} Net Profit
-                      </p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 tabular-nums">
-                        ৳
-                        {displayNetProfit.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 border-t border-border/70 bg-muted/20 p-5 sm:grid-cols-3">
+                  <Button
+                    type="button"
+                    onClick={() => openEntryModal("sale", owner.name)}
+                    className="h-12 rounded-xl bg-[#22C55E] font-bold text-white shadow-lg shadow-green-500/20 hover:bg-[#16A34A] hover:shadow-xl"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Sale
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => openEntryModal("expense", owner.name)}
+                    className="h-12 rounded-xl bg-[#F43F5E] font-bold text-white shadow-lg shadow-rose-500/20 hover:bg-[#E11D48] hover:shadow-xl"
+                  >
+                    <ReceiptText className="h-4 w-4" />
+                    Add Expense
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => openHistorySheet(owner.name)}
+                    className="h-12 rounded-xl bg-[#3B82F6] font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-[#2563EB] hover:shadow-xl"
+                  >
+                    <History className="h-4 w-4" />
+                    View History
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-[#8B5CF6]/20 dark:bg-black sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">
+              {entryMode === "sale" ? "Add Sale" : "Add Expense"}
+            </DialogTitle>
+            <DialogDescription>
+              Partner auto-selected: {selectedPartner || "No partner selected"}
+            </DialogDescription>
+          </DialogHeader>
+          {entryMode === "sale" ? (
+            <IncomeForm
+              currentAdmin={currentAdmin}
+              defaultOwner={selectedPartner}
+              onSuccess={() => {
+                handleEntrySuccess();
+              }}
+            />
+          ) : (
+            <ExpenseForm
+              currentAdmin={currentAdmin}
+              defaultOwner={selectedPartner}
+              onSuccess={() => {
+                handleEntrySuccess();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent className="w-full overflow-y-auto border-[#8B5CF6]/25 bg-white shadow-2xl shadow-blue-500/20 dark:bg-black sm:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2 text-2xl font-black">
+              <CalendarDays className="h-5 w-5 text-[#3B82F6]" />
+              Partner History
+            </SheetTitle>
+            <SheetDescription>
+              Showing history for {historyPartner || "selected partner"}.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Period</Label>
+                <Select
+                  value={historyPeriod}
+                  onValueChange={(value) =>
+                    setHistoryPeriod(value as HistoryPeriod)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="custom">Custom Date</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <Select
+                  value={historyType}
+                  onValueChange={(value) =>
+                    setHistoryType(value as HistoryType)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="sale">Sales</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {historyPeriod === "custom" && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="history-start-date">Start Date</Label>
+                  <Input
+                    id="history-start-date"
+                    type="date"
+                    value={customStartDate}
+                    onChange={(event) => setCustomStartDate(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="history-end-date">End Date</Label>
+                  <Input
+                    id="history-end-date"
+                    type="date"
+                    value={customEndDate}
+                    onChange={(event) => setCustomEndDate(event.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {isHistoryLoading && (
+                <div className="rounded-2xl border border-border/70 p-6 text-center text-sm text-muted-foreground">
+                  Loading history...
+                </div>
+              )}
+
+              {!isHistoryLoading &&
+                historyItems.map((item) => (
+                  <div
+                    key={`${item.type}-${item.id}`}
+                    className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <Badge
+                          className={`mb-2 ${
+                            item.type === "sale"
+                              ? "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-950/30 dark:text-green-400"
+                              : "bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-400"
+                          }`}
+                        >
+                          {item.type === "sale" ? "Sale" : "Expense"}
+                        </Badge>
+                        <p className="font-bold text-card-foreground">
+                          {item.category}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.date.toLocaleDateString()} ·{" "}
+                          {item.paymentMethod}
+                          {item.referenceNumber
+                            ? ` · Ref: ${item.referenceNumber}`
+                            : ""}
+                        </p>
+                        {item.description && (
+                          <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                      <p
+                        className={`shrink-0 text-lg font-black ${
+                          item.type === "sale"
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {formatCurrency(item.amount)}
                       </p>
                     </div>
                   </div>
-                </Card>
-              );
-            });
-          })()}
-        </div>
-      </div>
+                ))}
+
+              {!isHistoryLoading && historyItems.length === 0 && (
+                <div className="rounded-2xl border border-border/70 p-8 text-center text-sm text-muted-foreground">
+                  No partner history found for this filter.
+                </div>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Partner Settlement Overview */}
       <div className="space-y-6">
