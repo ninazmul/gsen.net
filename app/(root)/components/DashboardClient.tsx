@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -233,28 +233,28 @@ export default function DashboardClient({
     data.monthlyPerformance.find((m) => m.month === selectedDailyMonth)
       ?.monthName || "Selected Month";
 
-  const combinedPartnerSummary = useMemo(() => {
-    return data.summary.ownerBalances.reduce(
-      (summary, owner) => {
-        const monthly = owner.monthlyBalances?.find(
-          (m) => m.month === selectedDailyMonth,
-        );
+  // const combinedPartnerSummary = useMemo(() => {
+  //   return data.summary.ownerBalances.reduce(
+  //     (summary, owner) => {
+  //       const monthly = owner.monthlyBalances?.find(
+  //         (m) => m.month === selectedDailyMonth,
+  //       );
 
-        summary.todaySales += owner.todayIncome;
-        summary.todayExpenses += owner.todayExpenses;
-        summary.monthSales += monthly?.income || 0;
-        summary.monthExpenses += monthly?.expenses || 0;
+  //       summary.todaySales += owner.todayIncome;
+  //       summary.todayExpenses += owner.todayExpenses;
+  //       summary.monthSales += monthly?.income || 0;
+  //       summary.monthExpenses += monthly?.expenses || 0;
 
-        return summary;
-      },
-      {
-        todaySales: 0,
-        todayExpenses: 0,
-        monthSales: 0,
-        monthExpenses: 0,
-      },
-    );
-  }, [data.summary.ownerBalances, selectedDailyMonth]);
+  //       return summary;
+  //     },
+  //     {
+  //       todaySales: 0,
+  //       todayExpenses: 0,
+  //       monthSales: 0,
+  //       monthExpenses: 0,
+  //     },
+  //   );
+  // }, [data.summary.ownerBalances, selectedDailyMonth]);
 
   const openEntryModal = (mode: EntryMode, partner: string) => {
     setEntryMode(mode);
@@ -719,7 +719,7 @@ export default function DashboardClient({
           })}
         </div>
 
-        <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
+        {/* <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
           <div className="border-b border-border/60 bg-[#8B5CF6]/10 px-5 py-4 dark:bg-[#8B5CF6]/15">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B5CF6] text-white shadow-md">
@@ -794,7 +794,7 @@ export default function DashboardClient({
               );
             })}
           </div>
-        </Card>
+        </Card> */}
       </div>
 
       <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
