@@ -471,7 +471,9 @@ export default function DashboardClient({
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
+                    <span className="text-xs lg:text-lg text-muted-foreground">
+                      SAR
+                    </span>
                   </h2>
                 </div>
               </div>
@@ -496,7 +498,9 @@ export default function DashboardClient({
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
+                    <span className="text-xs lg:text-lg text-muted-foreground">
+                      SAR
+                    </span>
                   </h2>
                 </div>
               </div>
@@ -527,7 +531,9 @@ export default function DashboardClient({
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
+                    <span className="text-xs lg:text-lg text-muted-foreground">
+                      SAR
+                    </span>
                   </h2>
                 </div>
               </div>
@@ -570,83 +576,6 @@ export default function DashboardClient({
           </div>
         </div>
 
-        <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
-          <div className="border-b border-border/60 bg-[#8B5CF6]/10 px-5 py-4 dark:bg-[#8B5CF6]/15">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B5CF6] text-white shadow-md">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Combined Business Summary
-                </p>
-                <h3 className="text-lg font-black text-card-foreground">
-                  Today and {selectedPerformanceMonth}
-                </h3>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
-            {[
-              {
-                label: "Today",
-                sales: combinedPartnerSummary.todaySales,
-                expenses: combinedPartnerSummary.todayExpenses,
-              },
-              {
-                label: selectedPerformanceMonth,
-                sales: combinedPartnerSummary.monthSales,
-                expenses: combinedPartnerSummary.monthExpenses,
-              },
-            ].map((summary) => {
-              const net = summary.sales - summary.expenses;
-
-              return (
-                <div
-                  key={summary.label}
-                  className="rounded-2xl border border-border/70 bg-background/70 p-4 shadow-sm dark:bg-background/30"
-                >
-                  <p className="mb-4 text-sm font-black uppercase tracking-wider text-[#8B5CF6]">
-                    {summary.label}
-                  </p>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-green-200/70 bg-green-50/70 p-3 dark:border-green-900/30 dark:bg-green-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Sales
-                      </p>
-                      <p className="mt-1 text-xl font-black text-green-600 dark:text-green-400">
-                        {formatCurrency(summary.sales)}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-rose-200/70 bg-rose-50/70 p-3 dark:border-rose-900/30 dark:bg-rose-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Expenses
-                      </p>
-                      <p className="mt-1 text-xl font-black text-rose-600 dark:text-rose-400">
-                        {formatCurrency(summary.expenses)}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-purple-200/70 bg-purple-50/70 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Net
-                      </p>
-                      <p
-                        className={`mt-1 text-xl font-black ${
-                          net >= 0
-                            ? "text-[#8B5CF6]"
-                            : "text-rose-600 dark:text-rose-400"
-                        }`}
-                      >
-                        {formatCurrency(net)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           {data.summary.ownerBalances.map((owner, index) => {
             const monthly = owner.monthlyBalances?.find(
@@ -660,7 +589,7 @@ export default function DashboardClient({
             return (
               <Card
                 key={`${owner.name}-${index}`}
-                className="overflow-hidden border border-border/80 bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#8B5CF6]/40 hover:shadow-2xl"
+                className="overflow-hidden border border-[#8B5CF6]/25 bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#8B5CF6]/40 hover:shadow-2xl"
               >
                 <div className="flex items-center justify-between gap-4 border-b border-border/70 bg-gradient-to-r from-[#8B5CF6]/15 to-transparent px-5 py-4">
                   <div className="flex min-w-0 items-center gap-3">
@@ -789,6 +718,83 @@ export default function DashboardClient({
             );
           })}
         </div>
+
+        <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
+          <div className="border-b border-border/60 bg-[#8B5CF6]/10 px-5 py-4 dark:bg-[#8B5CF6]/15">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B5CF6] text-white shadow-md">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Combined Business Summary
+                </p>
+                <h3 className="text-lg font-black text-card-foreground">
+                  Today and {selectedPerformanceMonth}
+                </h3>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
+            {[
+              {
+                label: "Today",
+                sales: combinedPartnerSummary.todaySales,
+                expenses: combinedPartnerSummary.todayExpenses,
+              },
+              {
+                label: selectedPerformanceMonth,
+                sales: combinedPartnerSummary.monthSales,
+                expenses: combinedPartnerSummary.monthExpenses,
+              },
+            ].map((summary) => {
+              const net = summary.sales - summary.expenses;
+
+              return (
+                <div
+                  key={summary.label}
+                  className="rounded-2xl border border-border/70 bg-background/70 p-4 shadow-sm dark:bg-background/30"
+                >
+                  <p className="mb-4 text-sm font-black uppercase tracking-wider text-[#8B5CF6]">
+                    {summary.label}
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-green-200/70 bg-green-50/70 p-3 dark:border-green-900/30 dark:bg-green-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Sales
+                      </p>
+                      <p className="mt-1 text-xl font-black text-green-600 dark:text-green-400">
+                        {formatCurrency(summary.sales)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-rose-200/70 bg-rose-50/70 p-3 dark:border-rose-900/30 dark:bg-rose-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Expenses
+                      </p>
+                      <p className="mt-1 text-xl font-black text-rose-600 dark:text-rose-400">
+                        {formatCurrency(summary.expenses)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-purple-200/70 bg-purple-50/70 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Net
+                      </p>
+                      <p
+                        className={`mt-1 text-xl font-black ${
+                          net >= 0
+                            ? "text-[#8B5CF6]"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {formatCurrency(net)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
