@@ -220,7 +220,7 @@ export default function DashboardClient({
   const tooltipBorder = isDark ? "#2e2b3e" : "#e2e8f0";
 
   const formatCurrency = (amount: number) =>
-    `﷼${amount.toLocaleString(undefined, {
+    `⃁ ${amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -463,7 +463,7 @@ export default function DashboardClient({
                   </p>
 
                   <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
-                    ﷼
+                    ⃁{" "}
                     {monthlyIncome.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -488,7 +488,7 @@ export default function DashboardClient({
                   </p>
 
                   <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
-                    ﷼
+                    ⃁{" "}
                     {monthlyExpenses.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -519,7 +519,7 @@ export default function DashboardClient({
                         : "text-rose-600 dark:text-rose-400"
                     }`}
                   >
-                    ﷼
+                    ⃁{" "}
                     {monthlyNetProfit.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -1036,7 +1036,7 @@ export default function DashboardClient({
                           Profit Share ({sharePercent}%)
                         </span>
                         <span className="text-base font-bold text-card-foreground tabular-nums">
-                          ﷼{" "}
+                          ⃁{" "}
                           {profitShare.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
                           })}
@@ -1050,7 +1050,7 @@ export default function DashboardClient({
                           Already Taken (Withdrawn)
                         </span>
                         <span className="text-base font-bold text-card-foreground tabular-nums">
-                          ﷼{" "}
+                          ⃁{" "}
                           {alreadyTaken.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
                           })}
@@ -1070,7 +1070,7 @@ export default function DashboardClient({
                               : "text-muted-foreground"
                           }`}
                         >
-                          ﷼{" "}
+                          ⃁{" "}
                           {remainingDue.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -1091,7 +1091,7 @@ export default function DashboardClient({
                               : "text-muted-foreground"
                           }`}
                         >
-                          ﷼{" "}
+                          ⃁{" "}
                           {overdrawAmount.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -1146,7 +1146,7 @@ export default function DashboardClient({
                           >
                             {isOverdrawn
                               ? "You are overdrawn."
-                              : `You can withdraw up to ﷼ ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
+                              : `You can withdraw up to ⃁ ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
                           </p>
                           <p
                             className={`text-xs mt-0.5 ${
@@ -1165,7 +1165,7 @@ export default function DashboardClient({
                       {/* Total available business balance note */}
                       {!isOverdrawn && totalBizBalance > 0 && (
                         <p className="mt-2 text-xs text-muted-foreground text-right">
-                          Total business balance: ﷼{" "}
+                          Total business balance: ⃁{" "}
                           {totalBizBalance.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
                           })}
@@ -1215,7 +1215,7 @@ export default function DashboardClient({
                   return (
                     <div className="space-y-2">
                       <h1 className="text-xl md:text-2xl lg:text-4xl font-black text-card-foreground tracking-tight">
-                        ﷼
+                        ⃁{" "}
                         {totalBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -1244,7 +1244,7 @@ export default function DashboardClient({
                     </p>
 
                     <h2 className="mt-1 md:text-xl font-black tracking-tight">
-                      ﷼
+                      ⃁{" "}
                       {data.summary.totalIncome.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -1269,7 +1269,7 @@ export default function DashboardClient({
                     </p>
 
                     <h2 className="mt-1 md:text-xl font-black tracking-tight">
-                      ﷼
+                      ⃁{" "}
                       {data.summary.totalExpenses.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -1300,7 +1300,7 @@ export default function DashboardClient({
                           : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
-                      ﷼
+                      ⃁{" "}
                       {data.summary.netProfit.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -1368,7 +1368,7 @@ export default function DashboardClient({
                         </Pie>
                         <Tooltip
                           formatter={(value, name) => [
-                            `﷼${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                            `⃁ ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                             name,
                           ]}
                           contentStyle={{
@@ -1388,7 +1388,7 @@ export default function DashboardClient({
                         Total
                       </p>
                       <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
-                        ﷼
+                        ⃁{" "}
                         {totalExpense.toLocaleString(undefined, {
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
@@ -1451,7 +1451,7 @@ export default function DashboardClient({
                             </div>
                             <div className="flex items-center gap-4 flex-shrink-0">
                               <span className="text-base font-bold text-card-foreground tabular-nums">
-                                ﷼{" "}
+                                ⃁{" "}
                                 {entry.total.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
