@@ -94,12 +94,12 @@ export default function CategoriesClient({
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Categories</h1>
         {hasWriteAccess && (
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Plus className="mr-2 h-4 w-4" /> Add Category
               </Button>
             </DialogTrigger>

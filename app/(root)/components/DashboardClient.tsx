@@ -961,7 +961,7 @@ export default function DashboardClient({
         <div className="border-b border-border/40 pb-4">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            4. Partner Settlement Overview
+            3. Partner Settlement Overview
           </h2>
           <p className="text-sm text-muted-foreground mt-1 pl-4">
             Profit share and withdrawal status at a glance.
@@ -1184,7 +1184,7 @@ export default function DashboardClient({
       <div className="space-y-6">
         <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-3 border-b border-border/40 pb-4">
           <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          2. Company Lifetime Metrics
+          4. Company Lifetime Metrics
         </h2>
         <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
           {/* Main layout: responsive grid split */}
@@ -1214,23 +1214,13 @@ export default function DashboardClient({
                   );
                   return (
                     <div className="space-y-2">
-                      <h1 className="text-4xl font-black text-card-foreground tracking-tight">
+                      <h1 className="text-xl md:text-2xl lg:text-4xl font-black text-card-foreground tracking-tight">
                         ৳
                         {totalBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
                       </h1>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${totalBalance >= 0 ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400" : "bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400"}`}
-                        >
-                          {totalBalance >= 0 ? "Fully Funded" : "Overdrawn"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Combined partners equity
-                        </span>
-                      </div>
                     </div>
                   );
                 })()}
@@ -1240,76 +1230,84 @@ export default function DashboardClient({
             {/* Right Side: Lifetime breakdown grid */}
             <div className="lg:col-span-7 p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
               {/* Stat 1: Total Income */}
-              <div className="relative overflow-hidden rounded-2xl border border-green-200/60 dark:border-green-900/30 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-green-300/80 dark:hover:border-green-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 dark:bg-green-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-xl group-hover:bg-green-500 group-hover:text-white dark:group-hover:bg-green-600 transition-all duration-300">
-                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 group-hover:text-white transition-colors duration-300" />
+              <div className="group relative overflow-hidden rounded-2xl border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className="absolute left-0 top-0 h-full w-1 bg-green-500" />
+
+                <div className="flex items-center gap-5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 text-green-600 transition-all duration-300 group-hover:bg-green-500 group-hover:text-white dark:bg-green-900/40">
+                    <TrendingUp className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Total Income
-                  </span>
+
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Total Income
+                    </p>
+
+                    <h2 className="mt-1 md:text-xl font-black tracking-tight">
+                      ৳
+                      {data.summary.totalIncome.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </h2>
+                  </div>
                 </div>
-                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
-                  ৳
-                  {data.summary.totalIncome.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Gross lifetime revenue
-                </p>
               </div>
 
               {/* Stat 2: Total Expenses */}
-              <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-gradient-to-br from-rose-50/50 to-transparent dark:from-rose-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-rose-300/80 dark:hover:border-rose-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-xl group-hover:bg-rose-500 group-hover:text-white dark:group-hover:bg-rose-600 transition-all duration-300">
-                    <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 group-hover:text-white transition-colors duration-300" />
+              <div className="group relative overflow-hidden rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
+
+                <div className="flex items-center gap-5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white dark:bg-rose-900/40">
+                    <TrendingDown className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Total Expenses
-                  </span>
+
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Total Expenses
+                    </p>
+
+                    <h2 className="mt-1 md:text-xl font-black tracking-tight">
+                      ৳
+                      {data.summary.totalExpenses.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </h2>
+                  </div>
                 </div>
-                <h3 className="text-xl font-extrabold text-card-foreground tracking-tight">
-                  ৳
-                  {data.summary.totalExpenses.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Gross lifetime spend
-                </p>
               </div>
 
               {/* Stat 3: Net Profit */}
-              <div className="relative overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-900/30 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10 dark:to-transparent p-5 hover:shadow-md hover:border-purple-300/80 dark:hover:border-purple-800/50 transition-all duration-300 group">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 dark:bg-purple-400 rounded-r-full" />
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl group-hover:bg-[#3e0078] group-hover:text-white dark:group-hover:bg-purple-600 transition-all duration-300">
-                    <DollarSign className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors duration-300" />
+              <div className="group relative overflow-hidden rounded-2xl border border-purple-200/60 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
+
+                <div className="flex items-center gap-5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-purple-900/40">
+                    <DollarSign className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Net Profit
-                  </span>
+
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Net Profit
+                    </p>
+
+                    <h2
+                      className={`mt-1 md:text-xl font-black tracking-tight ${
+                        data.summary.netProfit >= 0
+                          ? "text-card-foreground"
+                          : "text-rose-600 dark:text-rose-400"
+                      }`}
+                    >
+                      ৳
+                      {data.summary.netProfit.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </h2>
+                  </div>
                 </div>
-                <h3
-                  className={`text-xl font-extrabold tracking-tight ${data.summary.netProfit >= 0 ? "text-card-foreground" : "text-rose-600 dark:text-rose-400"}`}
-                >
-                  ৳
-                  {data.summary.netProfit.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  {data.summary.netProfit >= 0
-                    ? "Net business gain"
-                    : "Net business loss"}
-                </p>
               </div>
             </div>
           </div>
@@ -1389,7 +1387,7 @@ export default function DashboardClient({
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
                         Total
                       </p>
-                      <p className="text-2xl font-black text-card-foreground leading-tight tracking-tight">
+                      <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
                         ৳
                         {totalExpense.toLocaleString(undefined, {
                           minimumFractionDigits: 0,

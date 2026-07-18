@@ -413,18 +413,20 @@ export default function ReportsClient({
         value={activeTab}
         onValueChange={setActiveTab}
       >
-        <TabsList>
-          <TabsTrigger value="income">Income Report</TabsTrigger>
-          <TabsTrigger value="expenses">Expense Report</TabsTrigger>
-          <TabsTrigger value="profit">Profit Report</TabsTrigger>
-          <TabsTrigger value="category">Category Report</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly Performance</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-2">
+          <TabsList className="inline-flex min-w-max gap-2">
+            <TabsTrigger value="income">Income Report</TabsTrigger>
+            <TabsTrigger value="expenses">Expense Report</TabsTrigger>
+            <TabsTrigger value="profit">Profit Report</TabsTrigger>
+            <TabsTrigger value="category">Category Report</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly Performance</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="income">
           <Card>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <h3 className="text-xl font-semibold">Income Report</h3>
                 <Select
                   value={selectedIncomeCategory}
@@ -507,7 +509,7 @@ export default function ReportsClient({
         <TabsContent value="expenses">
           <Card>
             <div className="p-4 flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <h3 className="text-xl font-semibold">Expense Report</h3>
                 <Select
                   value={selectedExpenseCategory}
@@ -570,8 +572,8 @@ export default function ReportsClient({
               <TableBody>
                 {expenseReport.expenses.map((expense) => (
                   <TableRow key={expense._id}>
-                    <TableCell>
-                      <Badge>
+                    <TableCell className="w-max">
+                      <Badge className="w-max">
                         {typeof expense.category === "object"
                           ? expense.category.name
                           : expense.category}
@@ -629,7 +631,7 @@ export default function ReportsClient({
 
         <TabsContent value="category">
           <Card>
-            <div className="p-4 flex justify-between items-center">
+            <div className="p-4 flex flex-wrap justify-between items-center gap-4">
               <h3 className="text-xl font-semibold">Category Report</h3>
               <div className="flex gap-2">
                 <Button
@@ -690,8 +692,8 @@ export default function ReportsClient({
 
         <TabsContent value="monthly">
           <Card>
-            <div className="p-4 flex justify-between items-center">
-              <div className="flex items-center gap-4">
+            <div className="p-4 flex flex-wrap justify-between items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <h3 className="text-xl font-semibold">
                   Monthly Performance - {year}
                 </h3>

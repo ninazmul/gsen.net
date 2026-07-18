@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -49,7 +48,14 @@ interface ActivityLog {
   createdAt: Date;
 }
 
-const IGNORED_KEYS = ["_id", "__v", "createdAt", "updatedAt", "clerkUserId", "deletedAt"];
+const IGNORED_KEYS = [
+  "_id",
+  "__v",
+  "createdAt",
+  "updatedAt",
+  "clerkUserId",
+  "deletedAt",
+];
 
 function formatKey(key: string): string {
   const result = key.replace(/([A-Z])/g, " $1");
@@ -59,7 +65,12 @@ function formatKey(key: string): string {
 function formatValue(key: string, value: unknown): React.ReactNode {
   if (value === null || value === undefined) return "-";
 
-  if (key === "date" || key === "createdAt" || key === "updatedAt" || key === "deletedAt") {
+  if (
+    key === "date" ||
+    key === "createdAt" ||
+    key === "updatedAt" ||
+    key === "deletedAt"
+  ) {
     try {
       const d = new Date(value as string | number | Date);
       if (!isNaN(d.getTime())) {
@@ -120,20 +131,17 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
   const newObj = (log.newData as Record<string, unknown>) || {};
 
   const allKeys = Array.from(
-    new Set([
-      ...Object.keys(oldObj),
-      ...Object.keys(newObj),
-    ])
+    new Set([...Object.keys(oldObj), ...Object.keys(newObj)]),
   ).filter((key) => !IGNORED_KEYS.includes(key));
 
   if (isUpdate) {
     const changedKeys = allKeys.filter(
-      (key) => JSON.stringify(oldObj[key]) !== JSON.stringify(newObj[key])
+      (key) => JSON.stringify(oldObj[key]) !== JSON.stringify(newObj[key]),
     );
 
     if (changedKeys.length === 0) {
       return (
-        <div className="text-sm text-gray-500 py-4 text-center">
+        <div className="py-6 text-center text-sm text-muted-foreground">
           No fields were modified or differences were inside excluded metadata.
         </div>
       );
@@ -141,24 +149,34 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
 
     return (
       <div className="space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-2">Changes Summary</h3>
-        <div className="border border-border rounded-md overflow-hidden bg-card">
-          <Table>
+        <h3 className="border-b pb-2 text-lg font-semibold">Changes Summary</h3>
+
+        <div className="overflow-x-auto rounded-lg border bg-card">
+          <Table className="min-w-[700px]">
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead className="w-1/3">Field</TableHead>
-                <TableHead className="w-1/3 text-red-600">Old Value</TableHead>
-                <TableHead className="w-1/3 text-green-600">New Value</TableHead>
+                <TableHead className="min-w-[180px]">Field</TableHead>
+                <TableHead className="min-w-[250px] text-red-600">
+                  Old Value
+                </TableHead>
+                <TableHead className="min-w-[250px] text-green-600">
+                  New Value
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {changedKeys.map((key) => (
                 <TableRow key={key}>
-                  <TableCell className="font-medium text-foreground/70">{formatKey(key)}</TableCell>
-                  <TableCell className="bg-rose-50/10 dark:bg-rose-900/10 text-muted-foreground line-through decoration-red-400">
+                  <TableCell className="font-medium text-foreground/70 whitespace-nowrap">
+                    {formatKey(key)}
+                  </TableCell>
+
+                  <TableCell className="bg-rose-50/10 text-muted-foreground break-words whitespace-pre-wrap dark:bg-rose-900/10 line-through decoration-red-400">
                     {formatValue(key, oldObj[key])}
                   </TableCell>
-                  <TableCell className="bg-green-50/10 dark:bg-green-900/10 text-foreground font-semibold">
+
+                  <TableCell className="bg-green-50/10 font-semibold break-words whitespace-pre-wrap dark:bg-green-900/10">
                     {formatValue(key, newObj[key])}
                   </TableCell>
                 </TableRow>
@@ -171,13 +189,14 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
   }
 
   const dataObject = log.action === "Delete" ? oldObj : newObj;
+
   const displayKeys = Object.keys(dataObject).filter(
-    (key) => !IGNORED_KEYS.includes(key)
+    (key) => !IGNORED_KEYS.includes(key),
   );
 
   if (displayKeys.length === 0) {
     return (
-      <div className="text-sm text-gray-500 py-4 text-center">
+      <div className="py-6 text-center text-sm text-muted-foreground">
         No record details available.
       </div>
     );
@@ -185,22 +204,27 @@ function ActivityDetailsView({ log }: { log: ActivityLog }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-lg border-b pb-2">
+      <h3 className="border-b pb-2 text-lg font-semibold">
         Record Details ({log.action === "Delete" ? "Deleted Data" : "New Data"})
       </h3>
-      <div className="border border-border rounded-md overflow-hidden bg-card">
-        <Table>
+
+      <div className="overflow-x-auto rounded-lg border bg-card">
+        <Table className="min-w-[600px]">
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-1/3">Field</TableHead>
-              <TableHead className="w-2/3">Value</TableHead>
+              <TableHead className="min-w-[180px]">Field</TableHead>
+              <TableHead className="min-w-[350px]">Value</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {displayKeys.map((key) => (
               <TableRow key={key}>
-                <TableCell className="font-medium text-foreground/70">{formatKey(key)}</TableCell>
-                <TableCell className="text-foreground">
+                <TableCell className="font-medium text-foreground/70 whitespace-nowrap">
+                  {formatKey(key)}
+                </TableCell>
+
+                <TableCell className="break-words whitespace-pre-wrap">
                   {formatValue(key, dataObject[key])}
                 </TableCell>
               </TableRow>
@@ -251,10 +275,19 @@ export default function ActivityLogsClient({
       params.startDate = range.startDate;
       params.endDate = range.endDate;
     }
-    const { logs: newLogs, totalPages: newTotalPages } = await getActivityLogs(params);
+    const { logs: newLogs, totalPages: newTotalPages } =
+      await getActivityLogs(params);
     setLogs(newLogs);
     setTotalPages(newTotalPages);
-  }, [search, moduleFilter, actionFilter, period, startDate, endDate, currentPage]);
+  }, [
+    search,
+    moduleFilter,
+    actionFilter,
+    period,
+    startDate,
+    endDate,
+    currentPage,
+  ]);
 
   // Reset to page 1 when any filters change
   useEffect(() => {
@@ -291,7 +324,7 @@ export default function ActivityLogsClient({
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Activity Logs</h1>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={handleExportExcel}>
@@ -440,81 +473,109 @@ export default function ActivityLogsClient({
       </Card>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl bg-white dark:bg-black max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
+        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-hidden p-0 bg-white dark:bg-black">
+          <DialogHeader className="border-b px-6 py-5">
+            <DialogTitle className="text-xl font-bold sm:text-2xl">
               Activity Log Details
             </DialogTitle>
           </DialogHeader>
 
           {selectedLog && (
-            <div className="space-y-6 mt-4">
-              {/* Metadata Details */}
-              <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-md border border-border text-sm">
+            <div className="space-y-6 overflow-y-auto p-6">
+              {/* Metadata */}
+              <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/50 p-4 sm:grid-cols-2">
                 <div>
-                  <span className="text-muted-foreground block">Date & Time</span>
-                  <span className="font-medium">
+                  <span className="block text-sm text-muted-foreground">
+                    Date & Time
+                  </span>
+                  <p className="mt-1 break-words font-medium">
                     {formatDate(selectedLog.date)}{" "}
                     {new Date(selectedLog.date).toLocaleTimeString()}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="block text-sm text-muted-foreground">
+                    Admin
                   </span>
+                  <p className="mt-1 break-all font-medium">
+                    {selectedLog.adminEmail}
+                  </p>
                 </div>
+
                 <div>
-                  <span className="text-muted-foreground block">Admin</span>
-                  <span className="font-medium">{selectedLog.adminEmail}</span>
+                  <span className="block text-sm text-muted-foreground">
+                    Module
+                  </span>
+                  <Badge variant="outline" className="mt-2 w-fit font-semibold">
+                    {selectedLog.module}
+                  </Badge>
                 </div>
+
                 <div>
-                  <span className="text-muted-foreground block">Module</span>
-                  <div>
-                    <Badge variant="outline" className="font-semibold mt-1">
-                      {selectedLog.module}
-                    </Badge>
-                  </div>
+                  <span className="block text-sm text-muted-foreground">
+                    Action
+                  </span>
+
+                  <Badge
+                    className="mt-2 w-fit"
+                    variant={
+                      selectedLog.action === "Create"
+                        ? "default"
+                        : selectedLog.action === "Update"
+                          ? "secondary"
+                          : selectedLog.action === "Delete"
+                            ? "destructive"
+                            : "outline"
+                    }
+                  >
+                    {selectedLog.action}
+                  </Badge>
                 </div>
-                <div>
-                  <span className="text-muted-foreground block">Action</span>
-                  <div>
-                    <Badge
-                      variant={
-                        selectedLog.action === "Create"
-                          ? "default"
-                          : selectedLog.action === "Update"
-                            ? "secondary"
-                            : selectedLog.action === "Delete"
-                              ? "destructive"
-                              : "outline"
-                      }
-                      className="mt-1"
-                    >
-                      {selectedLog.action}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-gray-500 block">Description</span>
-                  <span className="font-medium text-gray-805">
+
+                <div className="sm:col-span-2">
+                  <span className="block text-sm text-muted-foreground">
+                    Description
+                  </span>
+
+                  <p className="mt-1 break-words font-medium">
                     {selectedLog.description}
-                  </span>
+                  </p>
                 </div>
+
                 {(selectedLog.ipAddress || selectedLog.browser) && (
-                  <div className="col-span-2 grid grid-cols-2 gap-4 border-t pt-2 mt-2 text-xs text-gray-500">
+                  <div className="grid grid-cols-1 gap-4 border-t pt-4 text-sm sm:col-span-2 sm:grid-cols-2">
                     {selectedLog.ipAddress && (
                       <div>
-                        <span>IP Address: </span>
-                        <span className="font-mono">{selectedLog.ipAddress}</span>
+                        <span className="block text-muted-foreground">
+                          IP Address
+                        </span>
+
+                        <p className="mt-1 break-all font-mono">
+                          {selectedLog.ipAddress}
+                        </p>
                       </div>
                     )}
+
                     {selectedLog.browser && (
                       <div>
-                        <span>Browser/OS: </span>
-                        <span>{selectedLog.browser}</span>
+                        <span className="block text-muted-foreground">
+                          Browser / OS
+                        </span>
+
+                        <p className="mt-1 break-words">
+                          {selectedLog.browser}
+                        </p>
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Dynamic Details View */}
-              <ActivityDetailsView log={selectedLog} />
+              {/* Activity Details */}
+              <div className="w-full">
+                <ActivityDetailsView log={selectedLog} />
+              </div>
             </div>
           )}
         </DialogContent>

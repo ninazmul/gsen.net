@@ -171,9 +171,9 @@ export default function IncomeClient({
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Income</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={handleExportExcel}>
             <Download className="mr-2 h-4 w-4" /> Excel
           </Button>
@@ -183,7 +183,7 @@ export default function IncomeClient({
           {hasWriteAccess && (
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" /> Add Income
                 </Button>
               </DialogTrigger>

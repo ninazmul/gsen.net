@@ -47,7 +47,7 @@ export default async function AdminLayout({
               </div>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-xs md:text-sm font-medium">
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-xs md:text-sm font-medium">
                 <CalendarDays className="w-4 h-4 text-black dark:text-white animate-pulse" />
                 <span>{formatDate(new Date())}</span>
               </div>
