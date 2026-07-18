@@ -196,7 +196,7 @@ export default function WithdrawalForm({
                     <span
                       className={`font-semibold ${ob.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
                     >
-                      ⃁{ob.balance.toFixed(2)}
+                      ﷼{ob.balance.toFixed(2)}
                     </span>
                   </div>
                 );
@@ -213,7 +213,7 @@ export default function WithdrawalForm({
                     : "text-rose-600 dark:text-rose-400"
                 }
               >
-                ⃁{totalBalance.toFixed(2)}
+                ﷼{totalBalance.toFixed(2)}
               </span>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function WithdrawalForm({
             validate: (value) => {
               if (value <= 0) return "Amount must be greater than 0";
               if (value > maxWithdrawable)
-                return `Amount exceeds total available balance (⃁${maxWithdrawable.toFixed(2)})`;
+                return `Amount exceeds total available balance (﷼${maxWithdrawable.toFixed(2)})`;
               return true;
             },
           }}

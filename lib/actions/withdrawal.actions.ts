@@ -124,7 +124,7 @@ export async function createWithdrawal(data: {
   const { totalBalance } = await getWithdrawalBalances();
   if (data.amount > totalBalance) {
     throw new Error(
-      `Insufficient balance. Total Available: ⃁${totalBalance.toFixed(2)}`,
+      `Insufficient balance. Total Available: ﷼${totalBalance.toFixed(2)}`,
     );
   }
 
@@ -218,7 +218,7 @@ export async function updateWithdrawal(
 
     if (newAmount > baseTotalBalance) {
       throw new Error(
-        `Insufficient balance. Total Available: ⃁${baseTotalBalance.toFixed(2)}`,
+        `Insufficient balance. Total Available: ﷼${baseTotalBalance.toFixed(2)}`,
       );
     }
   }

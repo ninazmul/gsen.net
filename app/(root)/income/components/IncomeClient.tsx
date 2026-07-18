@@ -287,7 +287,7 @@ export default function IncomeClient({
                       : income.category}
                   </Badge>
                 </TableCell>
-                <TableCell>⃁{income.amount.toFixed(2)}</TableCell>
+                <TableCell>﷼{income.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(income.date)}</TableCell>
                 <TableCell>{income.paymentMethod}</TableCell>
                 <TableCell>{income.owner || "-"}</TableCell>

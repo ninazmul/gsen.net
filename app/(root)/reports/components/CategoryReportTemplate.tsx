@@ -75,7 +75,7 @@ const CategoryReportTemplate = forwardRef<
                   {item.count}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ⃁{item.total.toFixed(2)}
+                  ﷼{item.total.toFixed(2)}
                 </td>
               </tr>
             ))}

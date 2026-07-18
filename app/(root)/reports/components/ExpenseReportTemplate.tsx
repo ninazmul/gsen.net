@@ -62,7 +62,7 @@ const ExpenseReportTemplate = forwardRef<
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-lg font-semibold">
             Total Expenses:{" "}
-            <span className="text-red-600">⃁{total.toFixed(2)}</span>
+            <span className="text-red-600">﷼{total.toFixed(2)}</span>
           </p>
         </div>
       </div>
@@ -96,7 +96,7 @@ const ExpenseReportTemplate = forwardRef<
                   {exp.paymentMethod}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ⃁{exp.amount.toFixed(2)}
+                  ﷼{exp.amount.toFixed(2)}
                 </td>
               </tr>
             ))}

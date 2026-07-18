@@ -58,13 +58,13 @@ const MonthlyReportTemplate = forwardRef<
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-sm text-gray-500">Yearly Income</p>
           <p className="text-xl font-bold text-green-600">
-            ⃁{yearlyTotal.income.toFixed(2)}
+            ﷼{yearlyTotal.income.toFixed(2)}
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-sm text-gray-500">Yearly Expenses</p>
           <p className="text-xl font-bold text-red-600">
-            ⃁{yearlyTotal.expenses.toFixed(2)}
+            ﷼{yearlyTotal.expenses.toFixed(2)}
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
@@ -74,7 +74,7 @@ const MonthlyReportTemplate = forwardRef<
               yearlyTotal.profit >= 0 ? "text-[#3e0078]" : "text-red-600"
             }`}
           >
-            ⃁{yearlyTotal.profit.toFixed(2)}
+            ﷼{yearlyTotal.profit.toFixed(2)}
           </p>
         </div>
       </div>
@@ -101,17 +101,17 @@ const MonthlyReportTemplate = forwardRef<
               <tr key={item.month}>
                 <td className="border border-gray-300 p-2">{item.monthName}</td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ⃁{item.totalIncome.toFixed(2)}
+                  ﷼{item.totalIncome.toFixed(2)}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ⃁{item.totalExpenses.toFixed(2)}
+                  ﷼{item.totalExpenses.toFixed(2)}
                 </td>
                 <td
                   className={`border border-gray-300 p-2 text-right font-bold ${
                     item.profit >= 0 ? "text-[#3e0078]" : "text-red-600"
                   }`}
                 >
-                  ⃁{item.profit.toFixed(2)}
+                  ﷼{item.profit.toFixed(2)}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">
                   {item.profitPercent.toFixed(2)}%

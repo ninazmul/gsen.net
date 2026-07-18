@@ -473,7 +473,7 @@ export default function ReportsClient({
               <p className="text-lg font-semibold">
                 Total Income:{" "}
                 <span className="text-green-600">
-                  ⃁{incomeReport.total.toFixed(2)}
+                  ﷼{incomeReport.total.toFixed(2)}
                 </span>
               </p>
             </div>
@@ -496,7 +496,7 @@ export default function ReportsClient({
                           : income.category}
                       </Badge>
                     </TableCell>
-                    <TableCell>⃁{income.amount.toFixed(2)}</TableCell>
+                    <TableCell>﷼{income.amount.toFixed(2)}</TableCell>
                     <TableCell>{formatDate(income.date)}</TableCell>
                     <TableCell>{income.paymentMethod}</TableCell>
                   </TableRow>
@@ -556,7 +556,7 @@ export default function ReportsClient({
               <p className="text-lg font-semibold">
                 Total Expenses:{" "}
                 <span className="text-red-600">
-                  ⃁{expenseReport.total.toFixed(2)}
+                  ﷼{expenseReport.total.toFixed(2)}
                 </span>
               </p>
             </div>
@@ -579,7 +579,7 @@ export default function ReportsClient({
                           : expense.category}
                       </Badge>
                     </TableCell>
-                    <TableCell>⃁{expense.amount.toFixed(2)}</TableCell>
+                    <TableCell>﷼{expense.amount.toFixed(2)}</TableCell>
                     <TableCell>{formatDate(expense.date)}</TableCell>
                     <TableCell>{expense.paymentMethod}</TableCell>
                   </TableRow>
@@ -604,13 +604,13 @@ export default function ReportsClient({
               <Card className="p-4">
                 <p className="text-sm text-gray-500">Total Income</p>
                 <p className="text-2xl font-bold text-green-600">
-                  ⃁{profitReport.totalIncome.toFixed(2)}
+                  ﷼{profitReport.totalIncome.toFixed(2)}
                 </p>
               </Card>
               <Card className="p-4">
                 <p className="text-sm text-gray-500">Total Expenses</p>
                 <p className="text-2xl font-bold text-red-600">
-                  ⃁{profitReport.totalExpenses.toFixed(2)}
+                  ﷼{profitReport.totalExpenses.toFixed(2)}
                 </p>
               </Card>
               <Card className="p-4">
@@ -622,7 +622,7 @@ export default function ReportsClient({
                       : "text-red-600"
                   }`}
                 >
-                  ⃁{profitReport.netProfit.toFixed(2)}
+                  ﷼{profitReport.netProfit.toFixed(2)}
                 </p>
               </Card>
             </div>
@@ -681,7 +681,7 @@ export default function ReportsClient({
                         {item.category.type}
                       </Badge>
                     </TableCell>
-                    <TableCell>⃁{item.total.toFixed(2)}</TableCell>
+                    <TableCell>﷼{item.total.toFixed(2)}</TableCell>
                     <TableCell>{item.count}</TableCell>
                   </TableRow>
                 ))}
@@ -741,13 +741,13 @@ export default function ReportsClient({
               <Card className="p-4">
                 <p className="text-sm text-gray-500">Yearly Income</p>
                 <p className="text-2xl font-bold text-green-600">
-                  ⃁{monthlyReport.yearlyTotal.income.toFixed(2)}
+                  ﷼{monthlyReport.yearlyTotal.income.toFixed(2)}
                 </p>
               </Card>
               <Card className="p-4">
                 <p className="text-sm text-gray-500">Yearly Expenses</p>
                 <p className="text-2xl font-bold text-red-600">
-                  ⃁{monthlyReport.yearlyTotal.expenses.toFixed(2)}
+                  ﷼{monthlyReport.yearlyTotal.expenses.toFixed(2)}
                 </p>
               </Card>
               <Card className="p-4">
@@ -759,7 +759,7 @@ export default function ReportsClient({
                       : "text-red-600"
                   }`}
                 >
-                  ⃁{monthlyReport.yearlyTotal.profit.toFixed(2)}
+                  ﷼{monthlyReport.yearlyTotal.profit.toFixed(2)}
                 </p>
               </Card>
             </div>
@@ -777,8 +777,8 @@ export default function ReportsClient({
                 {monthlyReport.monthlyData.map((item) => (
                   <TableRow key={item.month}>
                     <TableCell>{item.monthName}</TableCell>
-                    <TableCell>⃁{item.totalIncome.toFixed(2)}</TableCell>
-                    <TableCell>⃁{item.totalExpenses.toFixed(2)}</TableCell>
+                    <TableCell>﷼{item.totalIncome.toFixed(2)}</TableCell>
+                    <TableCell>﷼{item.totalExpenses.toFixed(2)}</TableCell>
                     <TableCell
                       className={
                         item.profit >= 0
@@ -786,7 +786,7 @@ export default function ReportsClient({
                           : "text-red-600 font-bold"
                       }
                     >
-                      ⃁{item.profit.toFixed(2)}
+                      ﷼{item.profit.toFixed(2)}
                     </TableCell>
                     <TableCell>{item.profitPercent.toFixed(2)}%</TableCell>
                   </TableRow>
