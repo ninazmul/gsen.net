@@ -84,7 +84,7 @@ function formatValue(key: string, value: unknown): React.ReactNode {
 
   if (key === "amount") {
     if (typeof value === "number") {
-      return `⃁${value.toFixed(2)}`;
+      return `${value.toFixed(2)} SAR`;
     }
   }
 

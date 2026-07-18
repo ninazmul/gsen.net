@@ -269,7 +269,10 @@ export default function WithdrawalsClient({
             {withdrawals.map((withdrawal) => (
               <TableRow key={withdrawal._id}>
                 <TableCell>{withdrawal.owner}</TableCell>
-                <TableCell>⃁{withdrawal.amount.toFixed(2)}</TableCell>
+                <TableCell>
+                  {withdrawal.amount.toFixed(2)}{" "}
+                  <span className="text-xs text-muted-foreground">SAR</span>
+                </TableCell>
                 <TableCell>{formatDate(withdrawal.date)}</TableCell>
                 <TableCell className="max-w-xs truncate">
                   {withdrawal.description}

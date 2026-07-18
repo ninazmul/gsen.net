@@ -75,13 +75,15 @@ const ProfitReportTemplate = forwardRef<
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-sm text-gray-500">Total Income</p>
           <p className="text-xl font-bold text-green-600">
-            ⃁{totalIncome.toFixed(2)}
+            {totalIncome.toFixed(2)}{" "}
+            <span className="text-xs text-muted-foreground">SAR</span>
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-sm text-gray-500">Total Expenses</p>
           <p className="text-xl font-bold text-red-600">
-            ⃁{totalExpenses.toFixed(2)}
+            {totalExpenses.toFixed(2)}{" "}
+            <span className="text-xs text-muted-foreground">SAR</span>
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
@@ -91,7 +93,8 @@ const ProfitReportTemplate = forwardRef<
               netProfit >= 0 ? "text-[#3e0078]" : "text-red-600"
             }`}
           >
-            ⃁{netProfit.toFixed(2)}
+            {netProfit.toFixed(2)}{" "}
+            <span className="text-xs text-muted-foreground">SAR</span>
           </p>
         </div>
       </div>

@@ -64,7 +64,7 @@ export async function createExpense(data: {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Create",
-    description: `Created expense of ⃁${data.amount}`,
+    description: `Created expense of ${data.amount} SAR`,
     recordId: expense._id,
     newData: JSON.parse(JSON.stringify(expense)),
   });
@@ -155,7 +155,7 @@ export async function updateExpense(id: string, data: Partial<ExpenseDoc>) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Update",
-    description: `Updated expense of ⃁${oldExpense?.amount}`,
+    description: `Updated expense of ${oldExpense?.amount} SAR`,
     recordId: expense?._id,
     oldData: JSON.parse(JSON.stringify(oldExpense)),
     newData: JSON.parse(JSON.stringify(expense)),
@@ -178,7 +178,7 @@ export async function softDeleteExpense(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Delete",
-    description: `Soft deleted expense of ⃁${expense?.amount}`,
+    description: `Soft deleted expense of ${expense?.amount} SAR`,
     recordId: expense?._id,
     oldData: JSON.parse(JSON.stringify(expense)),
   });
@@ -199,7 +199,7 @@ export async function restoreExpense(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Expense",
     action: "Restore",
-    description: `Restored expense of ⃁${expense?.amount}`,
+    description: `Restored expense of ${expense?.amount} SAR`,
     recordId: expense?._id,
     newData: JSON.parse(JSON.stringify(expense)),
   });

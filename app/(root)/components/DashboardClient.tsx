@@ -219,11 +219,15 @@ export default function DashboardClient({
   const tooltipBg = isDark ? "#1e1b2e" : "#ffffff";
   const tooltipBorder = isDark ? "#2e2b3e" : "#e2e8f0";
 
-  const formatCurrency = (amount: number) =>
-    `⃁ ${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+  const formatCurrency = (amount: number) => (
+    <>
+      {amount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}{" "}
+      <span className="text-xs text-muted-foreground">SAR</span>
+    </>
+  );
 
   const selectedPerformanceMonth =
     data.monthlyPerformance.find((m) => m.month === selectedDailyMonth)
@@ -463,11 +467,11 @@ export default function DashboardClient({
                   </p>
 
                   <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
-                    ⃁{" "}
                     {monthlyIncome.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    })}
+                    })}{" "}
+                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
                   </h2>
                 </div>
               </div>
@@ -488,11 +492,11 @@ export default function DashboardClient({
                   </p>
 
                   <h2 className="mt-1 md:text-xl lg:text-3xl font-black tracking-tight">
-                    ⃁{" "}
                     {monthlyExpenses.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    })}
+                    })}{" "}
+                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
                   </h2>
                 </div>
               </div>
@@ -519,11 +523,11 @@ export default function DashboardClient({
                         : "text-rose-600 dark:text-rose-400"
                     }`}
                   >
-                    ⃁{" "}
                     {monthlyNetProfit.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    })}
+                    })}{" "}
+                    <span className="text-xs lg:text-lg text-muted-foreground">SAR</span>
                   </h2>
                 </div>
               </div>
@@ -968,7 +972,7 @@ export default function DashboardClient({
           </p>
         </div>
         <Card className="p-6 shadow-md border border-border/80 bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {(() => {
               const totalBalance = data.summary.ownerBalances.reduce(
                 (s, o) => s + o.balance,
@@ -1036,10 +1040,12 @@ export default function DashboardClient({
                           Profit Share ({sharePercent}%)
                         </span>
                         <span className="text-base font-bold text-card-foreground tabular-nums">
-                          ⃁{" "}
                           {profitShare.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
-                          })}
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
                         </span>
                       </div>
 
@@ -1050,10 +1056,12 @@ export default function DashboardClient({
                           Already Taken (Withdrawn)
                         </span>
                         <span className="text-base font-bold text-card-foreground tabular-nums">
-                          ⃁{" "}
                           {alreadyTaken.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
-                          })}
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
                         </span>
                       </div>
 
@@ -1070,11 +1078,13 @@ export default function DashboardClient({
                               : "text-muted-foreground"
                           }`}
                         >
-                          ⃁{" "}
                           {remainingDue.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                          })}
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
                         </span>
                       </div>
 
@@ -1091,11 +1101,13 @@ export default function DashboardClient({
                               : "text-muted-foreground"
                           }`}
                         >
-                          ⃁{" "}
                           {overdrawAmount.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                          })}
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -1146,7 +1158,7 @@ export default function DashboardClient({
                           >
                             {isOverdrawn
                               ? "You are overdrawn."
-                              : `You can withdraw up to ⃁ ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
+                              : `You can withdraw up to ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })} SAR.`}
                           </p>
                           <p
                             className={`text-xs mt-0.5 ${
@@ -1165,10 +1177,13 @@ export default function DashboardClient({
                       {/* Total available business balance note */}
                       {!isOverdrawn && totalBizBalance > 0 && (
                         <p className="mt-2 text-xs text-muted-foreground text-right">
-                          Total business balance: ⃁{" "}
+                          Total business balance:{" "}
                           {totalBizBalance.toLocaleString(undefined, {
                             minimumFractionDigits: 0,
-                          })}
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
                         </p>
                       )}
                     </div>
@@ -1215,11 +1230,13 @@ export default function DashboardClient({
                   return (
                     <div className="space-y-2">
                       <h1 className="text-xl md:text-2xl lg:text-4xl font-black text-card-foreground tracking-tight">
-                        ⃁{" "}
                         {totalBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        })}
+                        })}{" "}
+                        <span className="text-xs lg:text-lg text-muted-foreground">
+                          SAR
+                        </span>
                       </h1>
                     </div>
                   );
@@ -1228,7 +1245,7 @@ export default function DashboardClient({
             </div>
 
             {/* Right Side: Lifetime breakdown grid */}
-            <div className="lg:col-span-7 p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
+            <div className="lg:col-span-7 p-6 lg:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {/* Stat 1: Total Income */}
               <div className="group relative overflow-hidden rounded-2xl border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <div className="absolute left-0 top-0 h-full w-1 bg-green-500" />
@@ -1244,11 +1261,11 @@ export default function DashboardClient({
                     </p>
 
                     <h2 className="mt-1 md:text-xl font-black tracking-tight">
-                      ⃁{" "}
                       {data.summary.totalIncome.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
-                      })}
+                      })}{" "}
+                      <span className="text-xs text-muted-foreground">SAR</span>
                     </h2>
                   </div>
                 </div>
@@ -1269,11 +1286,11 @@ export default function DashboardClient({
                     </p>
 
                     <h2 className="mt-1 md:text-xl font-black tracking-tight">
-                      ⃁{" "}
                       {data.summary.totalExpenses.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
-                      })}
+                      })}{" "}
+                      <span className="text-xs text-muted-foreground">SAR</span>
                     </h2>
                   </div>
                 </div>
@@ -1300,11 +1317,11 @@ export default function DashboardClient({
                           : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
-                      ⃁{" "}
                       {data.summary.netProfit.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
-                      })}
+                      })}{" "}
+                      <span className="text-xs text-muted-foreground">SAR</span>
                     </h2>
                   </div>
                 </div>
@@ -1368,7 +1385,7 @@ export default function DashboardClient({
                         </Pie>
                         <Tooltip
                           formatter={(value, name) => [
-                            `⃁ ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                            `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`,
                             name,
                           ]}
                           contentStyle={{
@@ -1388,11 +1405,13 @@ export default function DashboardClient({
                         Total
                       </p>
                       <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
-                        ⃁{" "}
                         {totalExpense.toLocaleString(undefined, {
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0,
-                        })}
+                        })}{" "}
+                        <span className="text-xs text-muted-foreground">
+                          SAR
+                        </span>
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
                         This Month
@@ -1451,11 +1470,13 @@ export default function DashboardClient({
                             </div>
                             <div className="flex items-center gap-4 flex-shrink-0">
                               <span className="text-base font-bold text-card-foreground tabular-nums">
-                                ⃁{" "}
                                 {entry.total.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
-                                })}
+                                })}{" "}
+                                <span className="text-xs text-muted-foreground">
+                                  SAR
+                                </span>
                               </span>
                               <span className="text-xs font-bold text-muted-foreground tabular-nums bg-muted/50 px-2 py-0.5 rounded-full min-w-[52px] text-center">
                                 {pct.toFixed(1)}%

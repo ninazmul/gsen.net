@@ -62,7 +62,10 @@ const IncomeReportTemplate = forwardRef<
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-lg font-semibold">
             Total Income:{" "}
-            <span className="text-green-600">⃁{total.toFixed(2)}</span>
+            <span className="text-green-600">
+              {total.toFixed(2)}{" "}
+              <span className="text-xs text-muted-foreground">SAR</span>
+            </span>
           </p>
         </div>
       </div>
@@ -96,7 +99,8 @@ const IncomeReportTemplate = forwardRef<
                   {inc.paymentMethod}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">
-                  ⃁{inc.amount.toFixed(2)}
+                  {inc.amount.toFixed(2)}{" "}
+                  <span className="text-xs text-muted-foreground">SAR</span>
                 </td>
               </tr>
             ))}
