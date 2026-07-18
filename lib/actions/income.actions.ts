@@ -63,7 +63,7 @@ export async function createIncome(data: {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Create",
-    description: `Created income of ৳${data.amount}`,
+    description: `Created income of ⃁${data.amount}`,
     recordId: income._id,
     newData: JSON.parse(JSON.stringify(income)),
   });
@@ -154,7 +154,7 @@ export async function updateIncome(id: string, data: Partial<IncomeDoc>) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Update",
-    description: `Updated income of ৳${oldIncome?.amount}`,
+    description: `Updated income of ⃁${oldIncome?.amount}`,
     recordId: income?._id,
     oldData: JSON.parse(JSON.stringify(oldIncome)),
     newData: JSON.parse(JSON.stringify(income)),
@@ -177,7 +177,7 @@ export async function softDeleteIncome(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Delete",
-    description: `Soft deleted income of ৳${income?.amount}`,
+    description: `Soft deleted income of ⃁${income?.amount}`,
     recordId: income?._id,
     oldData: JSON.parse(JSON.stringify(income)),
   });
@@ -198,7 +198,7 @@ export async function restoreIncome(id: string) {
     adminEmail: user?.emailAddresses[0]?.emailAddress || "",
     module: "Income",
     action: "Restore",
-    description: `Restored income of ৳${income?.amount}`,
+    description: `Restored income of ⃁${income?.amount}`,
     recordId: income?._id,
     newData: JSON.parse(JSON.stringify(income)),
   });

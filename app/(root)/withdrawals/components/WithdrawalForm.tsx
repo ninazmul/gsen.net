@@ -97,7 +97,10 @@ export default function WithdrawalForm({
   useEffect(() => {
     if (!withdrawal && currentAdmin?.email && ownerBalances.length > 0) {
       const match = ownerBalances.find(
-        (o) => o.email && o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase()
+        (o) =>
+          o.email &&
+          o.email.trim().toLowerCase() ===
+            currentAdmin.email.trim().toLowerCase(),
       );
       if (match) {
         form.setValue("owner", match.name);
@@ -128,7 +131,8 @@ export default function WithdrawalForm({
       }
       onSuccess();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       toast.error(errorMessage);
       console.error("Error saving withdrawal:", error);
     }
@@ -144,7 +148,11 @@ export default function WithdrawalForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Owner</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select owner" />
@@ -180,20 +188,32 @@ export default function WithdrawalForm({
                         : "bg-white dark:bg-zinc-950 border-gray-100 dark:border-zinc-900"
                     }`}
                   >
-                    <span className={`font-medium ${isSelected ? "text-primary font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+                    <span
+                      className={`font-medium ${isSelected ? "text-primary font-semibold" : "text-gray-600 dark:text-gray-400"}`}
+                    >
                       {ob.name}:
                     </span>
-                    <span className={`font-semibold ${ob.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}>
-                      ৳{ob.balance.toFixed(2)}
+                    <span
+                      className={`font-semibold ${ob.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}`}
+                    >
+                      ⃁{ob.balance.toFixed(2)}
                     </span>
                   </div>
                 );
               })}
             </div>
             <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between text-sm font-bold">
-              <span className="text-gray-800 dark:text-gray-200">Total Business Balance:</span>
-              <span className={totalBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-rose-600 dark:text-rose-400"}>
-                ৳{totalBalance.toFixed(2)}
+              <span className="text-gray-800 dark:text-gray-200">
+                Total Business Balance:
+              </span>
+              <span
+                className={
+                  totalBalance >= 0
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-rose-600 dark:text-rose-400"
+                }
+              >
+                ⃁{totalBalance.toFixed(2)}
               </span>
             </div>
           </div>
@@ -202,13 +222,14 @@ export default function WithdrawalForm({
         <FormField
           control={form.control}
           name="amount"
-          rules={{ 
+          rules={{
             required: "Amount is required",
             validate: (value) => {
               if (value <= 0) return "Amount must be greater than 0";
-              if (value > maxWithdrawable) return `Amount exceeds total available balance (৳${maxWithdrawable.toFixed(2)})`;
+              if (value > maxWithdrawable)
+                return `Amount exceeds total available balance (⃁${maxWithdrawable.toFixed(2)})`;
               return true;
-            }
+            },
           }}
           render={({ field }) => (
             <FormItem>

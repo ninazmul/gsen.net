@@ -288,7 +288,7 @@ export default function ExpensesClient({
                       : expense.category}
                   </Badge>
                 </TableCell>
-                <TableCell>৳{expense.amount.toFixed(2)}</TableCell>
+                <TableCell>⃁{expense.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(expense.date)}</TableCell>
                 <TableCell>{expense.paymentMethod}</TableCell>
                 <TableCell>{expense.owner || "-"}</TableCell>
