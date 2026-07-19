@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Form,
   FormControl,
   FormField,
@@ -148,24 +141,17 @@ export default function WithdrawalForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Owner</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select owner" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {ownerBalances.map((owner) => (
-                    <SelectItem key={owner.name} value={owner.name}>
-                      {owner.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input
+                  disabled
+                  placeholder="Auto-detected owner"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">
+                The owner is detected automatically from your account.
+              </p>
               <FormMessage />
             </FormItem>
           )}

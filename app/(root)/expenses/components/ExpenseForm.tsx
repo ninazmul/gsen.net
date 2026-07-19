@@ -171,24 +171,17 @@ export default function ExpenseForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Owner</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select owner" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {owners.map((owner) => (
-                      <SelectItem key={owner.name} value={owner.name}>
-                        {owner.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input
+                    disabled
+                    placeholder="Auto-detected owner"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  The owner is detected automatically from your account.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
