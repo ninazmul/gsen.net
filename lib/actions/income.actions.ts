@@ -2,6 +2,7 @@
 
 import { connectToDatabase } from "@/lib/database";
 import Income from "@/lib/database/models/income.model";
+import Category from "@/lib/database/models/category.model";
 import { revalidatePath } from "next/cache";
 import type { FilterQuery, Types } from "mongoose";
 import { logActivity } from "./activity-log.actions";
@@ -26,6 +27,39 @@ interface IncomeDoc {
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ImportIncomeRow {
+  categoryName: string;
+  amount: number;
+  date: string | Date;
+  paymentMethod: string;
+  referenceNumber?: string;
+  description?: string;
+  owner?: string;
+}
+
+async function resolveIncomeOwner(
+  fallbackOwner?: string,
+): Promise<string | undefined> {
+  if (fallbackOwner && fallbackOwner.trim()) {
+    return fallbackOwner.trim();
+  }
+
+  const user = await currentUser();
+  const userEmail = user?.emailAddresses[0]?.emailAddress;
+  if (!userEmail) {
+    return undefined;
+  }
+
+  const settings = await getSettings();
+  const match = (settings.owners as Owner[]).find(
+    (o) =>
+      o.email &&
+      o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
+  );
+
+  return match?.name;
 }
 
 export async function createIncome(data: {
@@ -71,6 +105,90 @@ export async function createIncome(data: {
   revalidatePath("/income");
   revalidatePath("/");
   return JSON.parse(JSON.stringify(income));
+}
+
+export async function importIncomesFromExcel(rows: ImportIncomeRow[]) {
+  await checkWritePermissionServer("income");
+  await connectToDatabase();
+  const user = await currentUser();
+
+  if (!rows?.length) {
+    return { importedCount: 0 };
+  }
+
+  const createdIncomes = [];
+  const normalizedRows = rows.filter(
+    (row) =>
+      row &&
+      Object.values(row).some(
+        (value) => value !== "" && value !== undefined && value !== null,
+      ),
+  );
+
+  for (const [index, row] of normalizedRows.entries()) {
+    const categoryName = row.categoryName?.toString().trim();
+    const amount = Number(row.amount);
+    const paymentMethod = row.paymentMethod?.toString().trim();
+    const dateValue = row.date instanceof Date ? row.date : new Date(row.date);
+
+    if (!categoryName) {
+      throw new Error(`Row ${index + 2}: Category name is required`);
+    }
+
+    if (!paymentMethod) {
+      throw new Error(`Row ${index + 2}: Payment method is required`);
+    }
+
+    if (Number.isNaN(amount) || amount <= 0) {
+      throw new Error(
+        `Row ${index + 2}: Amount must be a valid positive number`,
+      );
+    }
+
+    if (Number.isNaN(dateValue.getTime())) {
+      throw new Error(`Row ${index + 2}: Date is invalid`);
+    }
+
+    const category = await Category.findOne({
+      name: {
+        $regex: `^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $options: "i",
+      },
+      type: "Income",
+    });
+
+    if (!category) {
+      throw new Error(
+        `Row ${index + 2}: Category "${categoryName}" was not found`,
+      );
+    }
+
+    const owner = await resolveIncomeOwner(row.owner);
+    const income = await Income.create({
+      category: category._id,
+      amount,
+      date: dateValue,
+      paymentMethod,
+      referenceNumber: row.referenceNumber?.toString().trim() || undefined,
+      description: row.description?.toString().trim() || undefined,
+      owner,
+    });
+
+    createdIncomes.push(income);
+  }
+
+  await logActivity({
+    adminEmail: user?.emailAddresses[0]?.emailAddress || "",
+    module: "Income",
+    action: "Create",
+    description: `Imported ${createdIncomes.length} incomes from Excel`,
+    newData: JSON.parse(JSON.stringify(createdIncomes)),
+  });
+
+  revalidatePath("/income");
+  revalidatePath("/");
+
+  return { importedCount: createdIncomes.length };
 }
 
 export async function getIncomes(params?: {
