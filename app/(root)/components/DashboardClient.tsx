@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/sheet";
 import { getExpenses } from "@/lib/actions/expense.actions";
 import { getIncomes } from "@/lib/actions/income.actions";
+import { getSettings } from "@/lib/actions/settings.actions";
 import IncomeForm from "../income/components/IncomeForm";
 import ExpenseForm from "../expenses/components/ExpenseForm";
 import { type Admin } from "@/lib/actions/admin.actions";
@@ -177,6 +178,11 @@ interface PartnerHistoryItem {
   description?: string;
 }
 
+interface OwnerSetting {
+  name: string;
+  email: string;
+}
+
 export default function DashboardClient({
   data,
   currentAdmin,
@@ -206,6 +212,38 @@ export default function DashboardClient({
   );
   const [historyItems, setHistoryItems] = useState<PartnerHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [ownerEmailLookup, setOwnerEmailLookup] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadOwnerEmails() {
+      try {
+        const settings = await getSettings();
+        if (!isMounted) return;
+
+        const owners = (settings?.owners || []) as OwnerSetting[];
+        const lookup = owners.reduce((acc: Record<string, string>, owner) => {
+          if (owner?.name) {
+            acc[owner.name] = owner.email || "";
+          }
+          return acc;
+        }, {});
+
+        setOwnerEmailLookup(lookup);
+      } catch (error) {
+        console.error("Error loading owner emails:", error);
+      }
+    }
+
+    loadOwnerEmails();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const COLOR_PALETTE = [
     "#7c3aed",
@@ -585,6 +623,13 @@ export default function DashboardClient({
             const monthExpenses = monthly?.expenses || 0;
             const monthNet = monthSales - monthExpenses;
             const todayNet = owner.todayIncome - owner.todayExpenses;
+            const ownerEmail = ownerEmailLookup[owner.name] || "";
+            const canManageOwner = Boolean(
+              currentAdmin?.email &&
+              ownerEmail &&
+              currentAdmin.email.trim().toLowerCase() ===
+                ownerEmail.trim().toLowerCase(),
+            );
 
             return (
               <Card
@@ -692,7 +737,8 @@ export default function DashboardClient({
                   <Button
                     type="button"
                     onClick={() => openEntryModal("sale", owner.name)}
-                    className="h-10 rounded-xl bg-[#22C55E] font-bold text-white shadow-lg shadow-green-500/20 hover:bg-[#16A34A] hover:shadow-xl"
+                    disabled={!canManageOwner}
+                    className="h-10 rounded-xl bg-[#22C55E] font-bold text-white shadow-lg shadow-green-500/20 hover:bg-[#16A34A] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
                   >
                     <Plus className="h-4 w-4" />
                     Add Sale
@@ -700,7 +746,8 @@ export default function DashboardClient({
                   <Button
                     type="button"
                     onClick={() => openEntryModal("expense", owner.name)}
-                    className="h-10 rounded-xl bg-[#F43F5E] font-bold text-white shadow-lg shadow-rose-500/20 hover:bg-[#E11D48] hover:shadow-xl"
+                    disabled={!canManageOwner}
+                    className="h-10 rounded-xl bg-[#F43F5E] font-bold text-white shadow-lg shadow-rose-500/20 hover:bg-[#E11D48] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
                   >
                     <ReceiptText className="h-4 w-4" />
                     Add Expense
@@ -971,7 +1018,7 @@ export default function DashboardClient({
         <div className="border-b border-border/40 pb-2">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            3. Partner Settlement Overview
+            3. Owner Settlement Overview
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5 pl-4">
             Profit share and withdrawal status at a glance.
