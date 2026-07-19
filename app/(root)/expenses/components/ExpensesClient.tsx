@@ -246,19 +246,26 @@ export default function ExpensesClient({
           ),
         )
         .map((row) => ({
-          categoryName: String(
-            getCellValue(row, ["Category Name", "Category", "categoryName"]) ??
-              "",
-          ).trim(),
-          amount: Number(getCellValue(row, ["Amount", "amount"]) ?? 0),
-          date: String(getCellValue(row, ["Date", "date"]) ?? "").trim(),
-          paymentMethod: String(
-            getCellValue(row, [
-              "Payment Method",
-              "PaymentMethod",
-              "paymentMethod",
-            ]) ?? "",
-          ).trim(),
+          categoryName:
+            String(
+              getCellValue(row, [
+                "Category Name",
+                "Category",
+                "categoryName",
+              ]) ?? "",
+            ).trim() || "Uncategorized",
+          amount: Number(getCellValue(row, ["Amount", "amount"]) ?? 0) || 1,
+          date:
+            String(getCellValue(row, ["Date", "date"]) ?? "").trim() ||
+            new Date().toISOString().split("T")[0],
+          paymentMethod:
+            String(
+              getCellValue(row, [
+                "Payment Method",
+                "PaymentMethod",
+                "paymentMethod",
+              ]) ?? "",
+            ).trim() || "Cash",
           referenceNumber: String(
             getCellValue(row, [
               "Reference Number",
@@ -278,7 +285,15 @@ export default function ExpensesClient({
       }
 
       const result = await importExpensesFromExcel(payload);
-      toast.success(`${result.importedCount} expenses imported successfully`);
+      const summaryMessage =
+        result.failedCount > 0
+          ? `Import complete: ${result.importedCount} expenses imported, ${result.failedCount} failed${result.errors[0] ? `. First issue: ${result.errors[0]}` : ""}`
+          : `${result.importedCount} expenses imported successfully`;
+      if (result.importedCount > 0) {
+        toast.success(summaryMessage);
+      } else {
+        toast.error(summaryMessage);
+      }
       await loadExpenses();
     } catch (error) {
       const errorMessage =

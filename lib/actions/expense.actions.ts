@@ -99,7 +99,7 @@ export async function importExpensesFromExcel(rows: ImportExpenseRow[]) {
   const user = await currentUser();
 
   if (!rows?.length) {
-    return { importedCount: 0 };
+    return { importedCount: 0, failedCount: 0, errors: [] };
   }
 
   const createdExpenses = [];
@@ -110,71 +110,75 @@ export async function importExpensesFromExcel(rows: ImportExpenseRow[]) {
         (value) => value !== "" && value !== undefined && value !== null,
       ),
   );
+  const errors: string[] = [];
 
   for (const [index, row] of normalizedRows.entries()) {
-    const categoryName = row.categoryName?.toString().trim();
-    const amount = Number(row.amount);
-    const paymentMethod = row.paymentMethod?.toString().trim();
-    const dateValue = row.date instanceof Date ? row.date : new Date(row.date);
+    try {
+      const categoryName =
+        row.categoryName?.toString().trim() || "Uncategorized";
+      const parsedAmount = Number(row.amount);
+      const amount =
+        Number.isNaN(parsedAmount) || parsedAmount <= 0 ? 1 : parsedAmount;
+      const paymentMethod = row.paymentMethod?.toString().trim() || "Cash";
+      const rawDate = row.date?.toString().trim();
+      const parsedDate = rawDate ? new Date(rawDate) : new Date();
+      const dateValue = Number.isNaN(parsedDate.getTime())
+        ? new Date()
+        : parsedDate;
 
-    if (!categoryName) {
-      throw new Error(`Row ${index + 2}: Category name is required`);
+      let category = await Category.findOne({
+        name: {
+          $regex: `^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          $options: "i",
+        },
+        type: "Expense",
+      });
+
+      if (!category) {
+        category = await Category.create({
+          name: categoryName,
+          type: "Expense",
+          color: "#3e0078",
+          active: true,
+        });
+      }
+
+      const owner = await resolveExpenseOwner(row.owner);
+      const expense = await Expense.create({
+        category: category._id,
+        amount,
+        date: dateValue,
+        paymentMethod,
+        referenceNumber: row.referenceNumber?.toString().trim() || undefined,
+        description: row.description?.toString().trim() || undefined,
+        owner,
+      });
+
+      createdExpenses.push(expense);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      errors.push(`Row ${index + 2}: ${message}`);
     }
-
-    if (!paymentMethod) {
-      throw new Error(`Row ${index + 2}: Payment method is required`);
-    }
-
-    if (Number.isNaN(amount) || amount <= 0) {
-      throw new Error(
-        `Row ${index + 2}: Amount must be a valid positive number`,
-      );
-    }
-
-    if (Number.isNaN(dateValue.getTime())) {
-      throw new Error(`Row ${index + 2}: Date is invalid`);
-    }
-
-    const category = await Category.findOne({
-      name: {
-        $regex: `^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-        $options: "i",
-      },
-      type: "Expense",
-    });
-
-    if (!category) {
-      throw new Error(
-        `Row ${index + 2}: Category "${categoryName}" was not found`,
-      );
-    }
-
-    const owner = await resolveExpenseOwner(row.owner);
-    const expense = await Expense.create({
-      category: category._id,
-      amount,
-      date: dateValue,
-      paymentMethod,
-      referenceNumber: row.referenceNumber?.toString().trim() || undefined,
-      description: row.description?.toString().trim() || undefined,
-      owner,
-    });
-
-    createdExpenses.push(expense);
   }
 
-  await logActivity({
-    adminEmail: user?.emailAddresses[0]?.emailAddress || "",
-    module: "Expense",
-    action: "Create",
-    description: `Imported ${createdExpenses.length} expenses from Excel`,
-    newData: JSON.parse(JSON.stringify(createdExpenses)),
-  });
+  if (createdExpenses.length) {
+    await logActivity({
+      adminEmail: user?.emailAddresses[0]?.emailAddress || "",
+      module: "Expense",
+      action: "Create",
+      description: `Imported ${createdExpenses.length} expenses from Excel`,
+      newData: JSON.parse(JSON.stringify(createdExpenses)),
+    });
+  }
 
   revalidatePath("/expenses");
   revalidatePath("/");
 
-  return { importedCount: createdExpenses.length };
+  return {
+    importedCount: createdExpenses.length,
+    failedCount: errors.length,
+    errors,
+  };
 }
 
 export async function getExpenses(params?: {
