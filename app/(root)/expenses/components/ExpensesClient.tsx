@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type ChangeEvent,
+} from "react";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,10 +34,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Download, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Download, Eye, Upload } from "lucide-react";
 import { toast } from "react-hot-toast";
+import * as XLSX from "xlsx";
 import ExpenseForm from "./ExpenseForm";
-import { getExpenses, softDeleteExpense } from "@/lib/actions/expense.actions";
+import {
+  getExpenses,
+  importExpensesFromExcel,
+  softDeleteExpense,
+} from "@/lib/actions/expense.actions";
 import { getCategories } from "@/lib/actions/category.actions";
 import { exportToExcel, exportToCSV, getDateRange } from "@/lib/export-utils";
 import { useWritePermission } from "@/lib/hooks/useWritePermission";
@@ -82,6 +93,8 @@ export default function ExpensesClient({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [selectedDescription, setSelectedDescription] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadCategories() {
@@ -170,6 +183,117 @@ export default function ExpensesClient({
     toast.success("CSV exported successfully");
   };
 
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        "Category Name": "Utilities",
+        Amount: 250,
+        Date: "2026-07-19",
+        "Payment Method": "Cash",
+        Owner: "admin@example.com",
+        "Reference Number": "REF-001",
+        Description: "Monthly electricity bill",
+      },
+    ];
+
+    exportToExcel(
+      templateData,
+      "expense-import-template.xlsx",
+      "Expense Import",
+    );
+    toast.success("Import template downloaded successfully");
+  };
+
+  const getCellValue = (
+    row: Record<string, unknown>,
+    possibleKeys: string[],
+  ) => {
+    const normalizedKeys = Object.keys(row).map((key) =>
+      key.trim().toLowerCase(),
+    );
+
+    for (const key of possibleKeys) {
+      const match = normalizedKeys.indexOf(key.trim().toLowerCase());
+      if (match >= 0) {
+        return row[Object.keys(row)[match]];
+      }
+    }
+
+    return undefined;
+  };
+
+  const handleImportExcel = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsImporting(true);
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        worksheet,
+        {
+          defval: "",
+        },
+      );
+
+      const payload = rows
+        .filter((row) =>
+          Object.values(row).some(
+            (value) => value !== "" && value !== undefined && value !== null,
+          ),
+        )
+        .map((row) => ({
+          categoryName: String(
+            getCellValue(row, ["Category Name", "Category", "categoryName"]) ??
+              "",
+          ).trim(),
+          amount: Number(getCellValue(row, ["Amount", "amount"]) ?? 0),
+          date: String(getCellValue(row, ["Date", "date"]) ?? "").trim(),
+          paymentMethod: String(
+            getCellValue(row, [
+              "Payment Method",
+              "PaymentMethod",
+              "paymentMethod",
+            ]) ?? "",
+          ).trim(),
+          referenceNumber: String(
+            getCellValue(row, [
+              "Reference Number",
+              "ReferenceNumber",
+              "referenceNumber",
+            ]) ?? "",
+          ).trim(),
+          description: String(
+            getCellValue(row, ["Description", "description"]) ?? "",
+          ).trim(),
+          owner: String(getCellValue(row, ["Owner", "owner"]) ?? "").trim(),
+        }));
+
+      if (!payload.length) {
+        toast.error("No rows found in the uploaded file");
+        return;
+      }
+
+      const result = await importExpensesFromExcel(payload);
+      toast.success(`${result.importedCount} expenses imported successfully`);
+      await loadExpenses();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to import expense data";
+      toast.error(errorMessage);
+    } finally {
+      setIsImporting(false);
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-4">
@@ -181,6 +305,28 @@ export default function ExpensesClient({
           <Button variant="secondary" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
+          {hasWriteAccess && (
+            <>
+              <Button variant="outline" onClick={handleDownloadTemplate}>
+                <Download className="mr-2 h-4 w-4" /> Template
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isImporting}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {isImporting ? "Importing..." : "Import Excel"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={handleImportExcel}
+              />
+            </>
+          )}
           {hasWriteAccess && (
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>

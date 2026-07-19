@@ -189,7 +189,7 @@ export default function IncomeClient({
         Amount: 1000,
         Date: "2026-07-19",
         "Payment Method": "Cash",
-        Owner: "John Doe",
+        Owner: "admin@example.com",
         "Reference Number": "REF-001",
         Description: "Monthly sales income",
       },

@@ -2,6 +2,7 @@
 
 import { connectToDatabase } from "@/lib/database";
 import Expense from "@/lib/database/models/expense.model";
+import Category from "@/lib/database/models/category.model";
 import { revalidatePath } from "next/cache";
 import type { FilterQuery, Types } from "mongoose";
 import { logActivity } from "./activity-log.actions";
@@ -29,6 +30,39 @@ interface ExpenseDoc {
   updatedAt: Date;
 }
 
+export interface ImportExpenseRow {
+  categoryName: string;
+  amount: number;
+  date: string | Date;
+  paymentMethod: string;
+  referenceNumber?: string;
+  description?: string;
+  owner?: string;
+}
+
+async function resolveExpenseOwner(
+  fallbackOwner?: string,
+): Promise<string | undefined> {
+  if (fallbackOwner && fallbackOwner.trim()) {
+    return fallbackOwner.trim();
+  }
+
+  const user = await currentUser();
+  const userEmail = user?.emailAddresses[0]?.emailAddress;
+  if (!userEmail) {
+    return undefined;
+  }
+
+  const settings = await getSettings();
+  const match = (settings.owners as Owner[]).find(
+    (o) =>
+      o.email &&
+      o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
+  );
+
+  return match?.name;
+}
+
 export async function createExpense(data: {
   category: string;
   amount: number;
@@ -42,22 +76,7 @@ export async function createExpense(data: {
   await connectToDatabase();
   const user = await currentUser();
 
-  let finalOwner = data.owner;
-  if (!finalOwner) {
-    const userEmail = user?.emailAddresses[0]?.emailAddress;
-    if (userEmail) {
-      const settings = await getSettings();
-      const match = (settings.owners as Owner[]).find(
-        (o) =>
-          o.email &&
-          o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
-      );
-      if (match) {
-        finalOwner = match.name;
-      }
-    }
-  }
-
+  const finalOwner = data.owner || (await resolveExpenseOwner());
   const expense = await Expense.create({ ...data, owner: finalOwner });
 
   await logActivity({
@@ -72,6 +91,90 @@ export async function createExpense(data: {
   revalidatePath("/expenses");
   revalidatePath("/");
   return JSON.parse(JSON.stringify(expense));
+}
+
+export async function importExpensesFromExcel(rows: ImportExpenseRow[]) {
+  await checkWritePermissionServer("expenses");
+  await connectToDatabase();
+  const user = await currentUser();
+
+  if (!rows?.length) {
+    return { importedCount: 0 };
+  }
+
+  const createdExpenses = [];
+  const normalizedRows = rows.filter(
+    (row) =>
+      row &&
+      Object.values(row).some(
+        (value) => value !== "" && value !== undefined && value !== null,
+      ),
+  );
+
+  for (const [index, row] of normalizedRows.entries()) {
+    const categoryName = row.categoryName?.toString().trim();
+    const amount = Number(row.amount);
+    const paymentMethod = row.paymentMethod?.toString().trim();
+    const dateValue = row.date instanceof Date ? row.date : new Date(row.date);
+
+    if (!categoryName) {
+      throw new Error(`Row ${index + 2}: Category name is required`);
+    }
+
+    if (!paymentMethod) {
+      throw new Error(`Row ${index + 2}: Payment method is required`);
+    }
+
+    if (Number.isNaN(amount) || amount <= 0) {
+      throw new Error(
+        `Row ${index + 2}: Amount must be a valid positive number`,
+      );
+    }
+
+    if (Number.isNaN(dateValue.getTime())) {
+      throw new Error(`Row ${index + 2}: Date is invalid`);
+    }
+
+    const category = await Category.findOne({
+      name: {
+        $regex: `^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $options: "i",
+      },
+      type: "Expense",
+    });
+
+    if (!category) {
+      throw new Error(
+        `Row ${index + 2}: Category "${categoryName}" was not found`,
+      );
+    }
+
+    const owner = await resolveExpenseOwner(row.owner);
+    const expense = await Expense.create({
+      category: category._id,
+      amount,
+      date: dateValue,
+      paymentMethod,
+      referenceNumber: row.referenceNumber?.toString().trim() || undefined,
+      description: row.description?.toString().trim() || undefined,
+      owner,
+    });
+
+    createdExpenses.push(expense);
+  }
+
+  await logActivity({
+    adminEmail: user?.emailAddresses[0]?.emailAddress || "",
+    module: "Expense",
+    action: "Create",
+    description: `Imported ${createdExpenses.length} expenses from Excel`,
+    newData: JSON.parse(JSON.stringify(createdExpenses)),
+  });
+
+  revalidatePath("/expenses");
+  revalidatePath("/");
+
+  return { importedCount: createdExpenses.length };
 }
 
 export async function getExpenses(params?: {
