@@ -149,9 +149,14 @@ export async function importIncomesFromExcel(rows: ImportIncomeRow[]) {
       } else {
         parsedDate = rawDate ? new Date(rawDate) : new Date();
       }
-      const dateValue = Number.isNaN(parsedDate.getTime())
-        ? new Date()
-        : parsedDate;
+      // Normalize to UTC midnight (YYYY-MM-DD) to match manual form entry
+      let dateValue: Date;
+      if (Number.isNaN(parsedDate.getTime())) {
+        dateValue = new Date(new Date().toISOString().split("T")[0]);
+      } else {
+        const isoDate = parsedDate.toISOString().split("T")[0];
+        dateValue = new Date(isoDate);
+      }
 
       let category = await Category.findOne({
         name: {

@@ -253,7 +253,13 @@ export default function IncomeClient({
                 "categoryName",
               ]) ?? "",
             ).trim() || "Uncategorized",
-          amount: Number(getCellValue(row, ["Amount", "amount"]) ?? 0) || 1,
+          amount:
+            Number(
+              String(getCellValue(row, ["Amount", "amount"]) ?? "0").replace(
+                /,/g,
+                "",
+              ),
+            ) || 1,
           date: (() => {
             const rawDate = getCellValue(row, ["Date", "date"]);
             if (rawDate instanceof Date && !Number.isNaN(rawDate.getTime())) {
