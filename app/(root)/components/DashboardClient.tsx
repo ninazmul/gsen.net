@@ -46,6 +46,7 @@ import {
 import { getExpenses } from "@/lib/actions/expense.actions";
 import { getIncomes } from "@/lib/actions/income.actions";
 import { getSettings } from "@/lib/actions/settings.actions";
+import { getExpenseBreakdownByMonth } from "@/lib/actions/dashboard.actions";
 import IncomeForm from "../income/components/IncomeForm";
 import ExpenseForm from "../expenses/components/ExpenseForm";
 import { type Admin } from "@/lib/actions/admin.actions";
@@ -215,6 +216,42 @@ export default function DashboardClient({
   const [ownerEmailLookup, setOwnerEmailLookup] = useState<
     Record<string, string>
   >({});
+  const [selectedBreakdownMonth, setSelectedBreakdownMonth] = useState<string>(
+    (new Date().getMonth() + 1).toString(),
+  );
+  const [expenseBreakdown, setExpenseBreakdown] = useState<BreakdownItem[]>([]);
+  const [isBreakdownLoading, setIsBreakdownLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBreakdown() {
+      setIsBreakdownLoading(true);
+      try {
+        if (selectedBreakdownMonth === "all") {
+          if (isMounted) {
+            setExpenseBreakdown(data.expenseBreakdown);
+          }
+        } else {
+          const month = parseInt(selectedBreakdownMonth);
+          const breakdown = await getExpenseBreakdownByMonth(month);
+          if (isMounted) {
+            setExpenseBreakdown(breakdown);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading breakdown:", error);
+        toast.error("Failed to load expense breakdown");
+      } finally {
+        if (isMounted) {
+          setIsBreakdownLoading(false);
+        }
+      }
+    }
+    loadBreakdown();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBreakdownMonth, data.expenseBreakdown]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1384,189 +1421,221 @@ export default function DashboardClient({
 
       {/* Expense Category Details */}
       <div className="space-y-3">
-        <div className="border-b border-border/40 pb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
             5. Expense Category Details
           </h2>
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Select Month:
+            </span>
+            <Select
+              value={selectedBreakdownMonth}
+              onValueChange={setSelectedBreakdownMonth}
+            >
+              <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                {data.monthlyPerformance.map((item) => (
+                  <SelectItem key={item.month} value={item.month.toString()}>
+                    {item.monthName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <Card className="overflow-hidden shadow-md border border-border/80 bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
-          <div className="flex flex-col lg:flex-row">
-            {/* Donut Chart Area */}
-            <div className="lg:w-72 flex-shrink-0 p-4 lg:p-8 flex flex-col items-center justify-center bg-purple-50/20 dark:bg-purple-950/5 border-b lg:border-b-0 lg:border-r border-border/60 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-[#0F0A19]/10 rounded-bl-full -z-10" />
-              {(() => {
-                const totalExpense = data.expenseBreakdown.reduce(
-                  (s, e) => s + e.total,
-                  0,
-                );
-                return (
-                  <div className="relative">
-                    <ResponsiveContainer width={220} height={220}>
-                      <PieChart>
-                        <Pie
-                          data={
-                            data.expenseBreakdown.length > 0
-                              ? data.expenseBreakdown
-                              : [{ category: { name: "No Data" }, total: 1 }]
-                          }
-                          dataKey="total"
-                          nameKey="category.name"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={68}
-                          outerRadius={105}
-                          paddingAngle={2}
-                          startAngle={90}
-                          endAngle={-270}
-                        >
-                          {data.expenseBreakdown.length > 0 ? (
-                            data.expenseBreakdown.map((_, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={
-                                  COLOR_PALETTE[index % COLOR_PALETTE.length]
-                                }
-                                stroke="none"
-                              />
-                            ))
-                          ) : (
-                            <Cell fill="#e2e8f0" stroke="none" />
-                          )}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value, name) => [
-                            `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`,
-                            name,
-                          ]}
-                          contentStyle={{
-                            background: tooltipBg,
-                            border: `1px solid ${tooltipBorder}`,
-                            borderRadius: "12px",
-                            color: isDark ? "#e2e8f0" : "#1e293b",
-                            fontSize: "12px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    {/* Center label */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                        Total
-                      </p>
-                      <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
-                        {totalExpense.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
-                        </span>
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                        This Month
-                      </p>
-                    </div>
-                  </div>
-                );
-              })()}
+          {isBreakdownLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground w-full bg-purple-50/10 dark:bg-purple-950/5">
+              <Activity className="w-8 h-8 animate-spin text-purple-600 dark:text-purple-400" />
+              <span className="text-sm font-semibold tracking-wide">Loading breakdown...</span>
             </div>
-
-            {/* Category Cards List */}
-            <div className="flex-1 p-4 lg:p-4">
-              <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-border/40">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Category Breakdown
-                </span>
-                <span className="ml-auto text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-0.5 rounded-full">
-                  {data.expenseBreakdown.length} categories
-                </span>
-              </div>
-              <div className="space-y-3">
+          ) : (
+            <div className="flex flex-col lg:flex-row">
+              {/* Donut Chart Area */}
+              <div className="lg:w-72 flex-shrink-0 p-4 lg:p-8 flex flex-col items-center justify-center bg-purple-50/20 dark:bg-purple-950/5 border-b lg:border-b-0 lg:border-r border-border/60 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-[#0F0A19]/10 rounded-bl-full -z-10" />
                 {(() => {
-                  const totalExpense = data.expenseBreakdown.reduce(
+                  const totalExpense = expenseBreakdown.reduce(
                     (s, e) => s + e.total,
                     0,
                   );
-                  return data.expenseBreakdown
-                    .slice()
-                    .sort((a, b) => b.total - a.total)
-                    .map((entry, index) => {
-                      const pct =
-                        totalExpense > 0
-                          ? (entry.total / totalExpense) * 100
-                          : 0;
-                      const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
-                      return (
-                        <div
-                          key={index}
-                          className="relative overflow-hidden rounded-xl border border-border/50 bg-muted/20 dark:bg-muted/5 p-4 hover:bg-muted/40 dark:hover:bg-muted/10 hover:shadow-sm transition-all duration-200 group"
-                        >
-                          <div
-                            className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
-                            style={{ backgroundColor: color }}
+                  return (
+                    <div className="relative">
+                      <ResponsiveContainer width={220} height={220}>
+                        <PieChart>
+                          <Pie
+                            data={
+                              expenseBreakdown.length > 0
+                                ? expenseBreakdown
+                                : [{ category: { name: "No Data" }, total: 1 }]
+                            }
+                            dataKey="total"
+                            nameKey="category.name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={68}
+                            outerRadius={105}
+                            paddingAngle={2}
+                            startAngle={90}
+                            endAngle={-270}
+                          >
+                            {expenseBreakdown.length > 0 ? (
+                              expenseBreakdown.map((_, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={
+                                    COLOR_PALETTE[index % COLOR_PALETTE.length]
+                                  }
+                                  stroke="none"
+                                />
+                              ))
+                            ) : (
+                              <Cell fill="#e2e8f0" stroke="none" />
+                            )}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value, name) => [
+                              `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`,
+                              name,
+                            ]}
+                            contentStyle={{
+                              background: tooltipBg,
+                              border: `1px solid ${tooltipBorder}`,
+                              borderRadius: "12px",
+                              color: isDark ? "#e2e8f0" : "#1e293b",
+                              fontSize: "12px",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            }}
                           />
-                          <div className="flex items-center justify-between gap-2.5">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span
-                                className="inline-block w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-card"
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Center label */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                          Total
+                        </p>
+                        <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
+                          {totalExpense.toLocaleString(undefined, {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            SAR
+                          </span>
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                          {selectedBreakdownMonth === "all"
+                            ? "All Time"
+                            : data.monthlyPerformance.find(
+                                (m) => m.month.toString() === selectedBreakdownMonth,
+                              )?.monthName || "This Month"}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Category Cards List */}
+              <div className="flex-1 p-4 lg:p-4">
+                <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-border/40">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Category Breakdown
+                  </span>
+                  <span className="ml-auto text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-0.5 rounded-full">
+                    {expenseBreakdown.length} categories
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {(() => {
+                    const totalExpense = expenseBreakdown.reduce(
+                      (s, e) => s + e.total,
+                      0,
+                    );
+                    return expenseBreakdown
+                      .slice()
+                      .sort((a, b) => b.total - a.total)
+                      .map((entry, index) => {
+                        const pct =
+                          totalExpense > 0
+                            ? (entry.total / totalExpense) * 100
+                            : 0;
+                        const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+                        return (
+                          <div
+                            key={index}
+                            className="relative overflow-hidden rounded-xl border border-border/50 bg-muted/20 dark:bg-muted/5 p-4 hover:bg-muted/40 dark:hover:bg-muted/10 hover:shadow-sm transition-all duration-200 group"
+                          >
+                            <div
+                              className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
+                              style={{ backgroundColor: color }}
+                            />
+                            <div className="flex items-center justify-between gap-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-card"
+                                  style={{
+                                    backgroundColor: color,
+                                  }}
+                                />
+                                <span className="font-semibold text-sm text-card-foreground truncate">
+                                  {entry.category.name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2.5 flex-shrink-0">
+                                <span className="text-base font-bold text-card-foreground tabular-nums">
+                                  {entry.total.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}{" "}
+                                  <span className="text-xs text-muted-foreground">
+                                    SAR
+                                  </span>
+                                </span>
+                                <span className="text-xs font-bold text-muted-foreground tabular-nums bg-muted/50 px-2 py-0.5 rounded-full min-w-[52px] text-center">
+                                  {pct.toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                            {/* Progress bar */}
+                            <div className="mt-2 h-1.5 bg-muted/50 dark:bg-muted/20 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
                                 style={{
+                                  width: `${Math.min(pct, 100)}%`,
                                   backgroundColor: color,
                                 }}
                               />
-                              <span className="font-semibold text-sm text-card-foreground truncate">
-                                {entry.category.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2.5 flex-shrink-0">
-                              <span className="text-base font-bold text-card-foreground tabular-nums">
-                                {entry.total.toLocaleString(undefined, {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}{" "}
-                                <span className="text-xs text-muted-foreground">
-                                  SAR
-                                </span>
-                              </span>
-                              <span className="text-xs font-bold text-muted-foreground tabular-nums bg-muted/50 px-2 py-0.5 rounded-full min-w-[52px] text-center">
-                                {pct.toFixed(1)}%
-                              </span>
                             </div>
                           </div>
-                          {/* Progress bar */}
-                          <div className="mt-2 h-1.5 bg-muted/50 dark:bg-muted/20 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${Math.min(pct, 100)}%`,
-                                backgroundColor: color,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    });
-                })()}
-                {data.expenseBreakdown.length === 0 && (
-                  <div className="py-8 text-center text-muted-foreground text-sm">
-                    No expense data available
-                  </div>
-                )}
-              </div>
+                        );
+                      });
+                  })()}
+                  {expenseBreakdown.length === 0 && (
+                    <div className="py-8 text-center text-muted-foreground text-sm">
+                      No expense data available
+                    </div>
+                  )}
+                </div>
 
-              {/* Footer */}
-              <div className="mt-6 pt-4 border-t border-border/40">
-                <a
-                  href="/reports"
-                  className="inline-flex items-center gap-2.5 text-sm font-semibold text-[#3e0078] dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 px-4 py-2 rounded-xl transition-all duration-200"
-                >
-                  <Activity className="w-4 h-4" />
-                  View Detailed Report
-                </a>
+                {/* Footer */}
+                <div className="mt-6 pt-4 border-t border-border/40">
+                  <a
+                    href="/reports"
+                    className="inline-flex items-center gap-2.5 text-sm font-semibold text-[#3e0078] dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 px-4 py-2 rounded-xl transition-all duration-200"
+                  >
+                    <Activity className="w-4 h-4" />
+                    View Detailed Report
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </Card>
       </div>
 

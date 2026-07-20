@@ -201,15 +201,18 @@ export async function getDashboardData() {
 
     const monthlyBalances = Array.from({ length: 12 }, (_, idx) => {
       const m = idx + 1;
-      const mIncome = monthlyIncomeByOwner.find(
-        (i) => i._id?.owner === owner.name && i._id?.month === m
-      )?.total || 0;
-      const mExpense = monthlyExpensesByOwner.find(
-        (e) => e._id?.owner === owner.name && e._id?.month === m
-      )?.total || 0;
-      const mWithdrawn = monthlyWithdrawalsByOwner.find(
-        (w) => w._id?.owner === owner.name && w._id?.month === m
-      )?.total || 0;
+      const mIncome =
+        monthlyIncomeByOwner.find(
+          (i) => i._id?.owner === owner.name && i._id?.month === m,
+        )?.total || 0;
+      const mExpense =
+        monthlyExpensesByOwner.find(
+          (e) => e._id?.owner === owner.name && e._id?.month === m,
+        )?.total || 0;
+      const mWithdrawn =
+        monthlyWithdrawalsByOwner.find(
+          (w) => w._id?.owner === owner.name && w._id?.month === m,
+        )?.total || 0;
       const mBalance = mIncome - mExpense - mWithdrawn;
 
       return {
@@ -391,4 +394,50 @@ export async function getDashboardData() {
     },
     recentLogs: JSON.parse(JSON.stringify(recentLogs)),
   };
+}
+
+export async function getExpenseBreakdownByMonth(
+  month: number,
+  year: number = new Date().getFullYear(),
+) {
+  await connectToDatabase();
+
+  // Validate month is between 1-12
+  if (month < 1 || month > 12) {
+    return [];
+  }
+
+  // Calculate date range for the selected month
+  const startOfMonth = new Date(year, month - 1, 1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const endOfMonth = new Date(year, month, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
+  // Expense breakdown by category for the selected month
+  const expenseBreakdown = await Expense.aggregate([
+    {
+      $match: {
+        deletedAt: null,
+        date: { $gte: startOfMonth, $lte: endOfMonth },
+      },
+    },
+    {
+      $group: {
+        _id: "$category",
+        total: { $sum: "$amount" },
+      },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "_id",
+        foreignField: "_id",
+        as: "category",
+      },
+    },
+    { $unwind: "$category" },
+  ]);
+
+  return JSON.parse(JSON.stringify(expenseBreakdown));
 }
