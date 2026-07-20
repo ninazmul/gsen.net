@@ -229,13 +229,17 @@ export default function ExpensesClient({
     try {
       setIsImporting(true);
       const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const workbook = XLSX.read(arrayBuffer, {
+        type: "array",
+        cellDates: true,
+      });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
         worksheet,
         {
           defval: "",
+          raw: false,
         },
       );
 
@@ -255,9 +259,22 @@ export default function ExpensesClient({
               ]) ?? "",
             ).trim() || "Uncategorized",
           amount: Number(getCellValue(row, ["Amount", "amount"]) ?? 0) || 1,
-          date:
-            String(getCellValue(row, ["Date", "date"]) ?? "").trim() ||
-            new Date().toISOString().split("T")[0],
+          date: (() => {
+            const rawDate = getCellValue(row, ["Date", "date"]);
+            if (rawDate instanceof Date && !Number.isNaN(rawDate.getTime())) {
+              return rawDate.toISOString().split("T")[0];
+            }
+            const strDate = String(rawDate ?? "").trim();
+            if (strDate && /^\d+(\.\d+)?$/.test(strDate)) {
+              const num = Number(strDate);
+              if (num >= 10000 && num <= 100000) {
+                return new Date((num - 25569) * 86400 * 1000)
+                  .toISOString()
+                  .split("T")[0];
+              }
+            }
+            return strDate || new Date().toISOString().split("T")[0];
+          })(),
           paymentMethod:
             String(
               getCellValue(row, [
