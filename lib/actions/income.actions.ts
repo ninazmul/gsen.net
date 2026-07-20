@@ -41,19 +41,21 @@ export interface ImportIncomeRow {
 
 async function resolveIncomeOwner(
   fallbackOwner?: string,
+  user?: any,
+  settings?: any,
 ): Promise<string | undefined> {
   if (fallbackOwner && fallbackOwner.trim()) {
     return fallbackOwner.trim();
   }
 
-  const user = await currentUser();
-  const userEmail = user?.emailAddresses[0]?.emailAddress;
+  const currentUserObj = user !== undefined ? user : await currentUser();
+  const userEmail = currentUserObj?.emailAddresses[0]?.emailAddress;
   if (!userEmail) {
     return undefined;
   }
 
-  const settings = await getSettings();
-  const match = (settings.owners as Owner[]).find(
+  const settingsObj = settings !== undefined ? settings : await getSettings();
+  const match = (settingsObj.owners as Owner[]).find(
     (o) =>
       o.email &&
       o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
@@ -111,6 +113,7 @@ export async function importIncomesFromExcel(rows: ImportIncomeRow[]) {
   await checkWritePermissionServer("income");
   await connectToDatabase();
   const user = await currentUser();
+  const settings = await getSettings();
 
   if (!rows?.length) {
     return { importedCount: 0, failedCount: 0, errors: [] };
@@ -135,7 +138,17 @@ export async function importIncomesFromExcel(rows: ImportIncomeRow[]) {
         Number.isNaN(parsedAmount) || parsedAmount <= 0 ? 1 : parsedAmount;
       const paymentMethod = row.paymentMethod?.toString().trim() || "Cash";
       const rawDate = row.date?.toString().trim();
-      const parsedDate = rawDate ? new Date(rawDate) : new Date();
+      let parsedDate: Date;
+      if (rawDate && /^\d+(\.\d+)?$/.test(rawDate)) {
+        const num = Number(rawDate);
+        if (num >= 10000 && num <= 100000) {
+          parsedDate = new Date((num - 25569) * 86400 * 1000);
+        } else {
+          parsedDate = new Date(rawDate);
+        }
+      } else {
+        parsedDate = rawDate ? new Date(rawDate) : new Date();
+      }
       const dateValue = Number.isNaN(parsedDate.getTime())
         ? new Date()
         : parsedDate;
@@ -157,7 +170,7 @@ export async function importIncomesFromExcel(rows: ImportIncomeRow[]) {
         });
       }
 
-      const owner = await resolveIncomeOwner(row.owner);
+      const owner = await resolveIncomeOwner(row.owner, user, settings);
       const income = await Income.create({
         category: category._id,
         amount,
