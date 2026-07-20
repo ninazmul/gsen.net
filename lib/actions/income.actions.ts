@@ -6,7 +6,7 @@ import Category from "@/lib/database/models/category.model";
 import { revalidatePath } from "next/cache";
 import type { FilterQuery, Types } from "mongoose";
 import { logActivity } from "./activity-log.actions";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, type User } from "@clerk/nextjs/server";
 import { checkWritePermissionServer } from "./permission-actions";
 import { getSettings } from "./settings.actions";
 
@@ -39,10 +39,14 @@ export interface ImportIncomeRow {
   owner?: string;
 }
 
+interface SettingsType {
+  owners: Owner[];
+}
+
 async function resolveIncomeOwner(
   fallbackOwner?: string,
-  user?: any,
-  settings?: any,
+  user?: User | null,
+  settings?: SettingsType,
 ): Promise<string | undefined> {
   if (fallbackOwner && fallbackOwner.trim()) {
     return fallbackOwner.trim();
