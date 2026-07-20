@@ -190,7 +190,7 @@ export default function ExpensesClient({
         Amount: 250,
         Date: "2026-07-19",
         "Payment Method": "Cash",
-        Owner: "admin@example.com",
+        Owner: "sanaullah.samir@gmail.com",
         "Reference Number": "REF-001",
         Description: "Monthly electricity bill",
       },

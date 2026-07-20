@@ -48,8 +48,24 @@ async function resolveIncomeOwner(
   user?: User | null,
   settings?: SettingsType,
 ): Promise<string | undefined> {
+  const settingsObj = settings !== undefined ? settings : await getSettings();
+  const ownersList = (settingsObj?.owners || []) as Owner[];
+
   if (fallbackOwner && fallbackOwner.trim()) {
-    return fallbackOwner.trim();
+    const trimmed = fallbackOwner.trim();
+    // 1. Try matching by email
+    const emailMatch = ownersList.find(
+      (o) => o.email && o.email.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (emailMatch) return emailMatch.name;
+
+    // 2. Try matching by name
+    const nameMatch = ownersList.find(
+      (o) => o.name && o.name.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (nameMatch) return nameMatch.name;
+
+    return trimmed;
   }
 
   const currentUserObj = user !== undefined ? user : await currentUser();
@@ -58,8 +74,7 @@ async function resolveIncomeOwner(
     return undefined;
   }
 
-  const settingsObj = settings !== undefined ? settings : await getSettings();
-  const match = (settingsObj.owners as Owner[]).find(
+  const match = ownersList.find(
     (o) =>
       o.email &&
       o.email.trim().toLowerCase() === userEmail.trim().toLowerCase(),
