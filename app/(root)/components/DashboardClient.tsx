@@ -625,7 +625,7 @@ export default function DashboardClient({
               <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
               2. Daily & Monthly Partner Performance
             </h2>
-            <p className="mt-0.5 text-sm font-medium text-muted-foreground">
+            <p className="hidden lg:block mt-0.5 text-sm font-medium text-muted-foreground">
               Combined and partner-level sales, expenses, and net performance.
             </p>
           </div>
@@ -1057,7 +1057,7 @@ export default function DashboardClient({
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
             3. Owner Settlement Overview
           </h2>
-          <p className="text-sm text-muted-foreground mt-0.5 pl-4">
+          <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
             Profit share and withdrawal status at a glance.
           </p>
         </div>
@@ -1142,7 +1142,7 @@ export default function DashboardClient({
                     <div className="relative overflow-hidden rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-900/20 p-2.5 flex items-center justify-between">
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 dark:bg-amber-400 rounded-r-full" />
                       <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-                        Already Taken (Withdrawn)
+                        Withdrawn
                       </span>
                       <span className="text-base font-bold text-card-foreground tabular-nums">
                         {alreadyTaken.toLocaleString(undefined, {
@@ -1158,7 +1158,7 @@ export default function DashboardClient({
                     <div className="relative overflow-hidden rounded-xl bg-green-50/50 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/20 p-2.5 flex items-center justify-between">
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 dark:bg-green-400 rounded-r-full" />
                       <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                        Remaining Due (Can Take)
+                        Available
                       </span>
                       <span
                         className={`text-base font-bold tabular-nums ${
@@ -1181,7 +1181,7 @@ export default function DashboardClient({
                     <div className="relative overflow-hidden rounded-xl bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/50 dark:border-rose-900/20 p-2.5 flex items-center justify-between">
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
                       <span className="text-sm font-semibold text-rose-700 dark:text-rose-400">
-                        Overdrawn / Due to Company
+                        Overdrawn
                       </span>
                       <span
                         className={`text-base font-bold tabular-nums ${
@@ -1266,7 +1266,7 @@ export default function DashboardClient({
                     {/* Total available business balance note */}
                     {!isOverdrawn && totalBizBalance > 0 && (
                       <p className="mt-2 text-xs text-muted-foreground text-right">
-                        Total business balance:{" "}
+                        Total balance:{" "}
                         {totalBizBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 0,
                         })}{" "}
