@@ -70,17 +70,17 @@ export default function WithdrawalForm({
   const form = useForm<WithdrawalFormData>({
     defaultValues: withdrawal
       ? {
-          owner: withdrawal.owner,
-          amount: withdrawal.amount,
-          date: new Date(withdrawal.date).toISOString().split("T")[0],
-          description: withdrawal.description ?? "",
-        }
+        owner: withdrawal.owner,
+        amount: withdrawal.amount,
+        date: new Date(withdrawal.date).toISOString().split("T")[0],
+        description: withdrawal.description ?? "",
+      }
       : {
-          owner: "",
-          amount: 0,
-          date: new Date().toISOString().split("T")[0],
-          description: "",
-        },
+        owner: "",
+        amount: 0,
+        date: new Date().toISOString().split("T")[0],
+        description: "",
+      },
   });
 
   // Watch the owner field to update styles or track selected
@@ -93,7 +93,7 @@ export default function WithdrawalForm({
         (o) =>
           o.email &&
           o.email.trim().toLowerCase() ===
-            currentAdmin.email.trim().toLowerCase(),
+          currentAdmin.email.trim().toLowerCase(),
       );
       if (match) {
         form.setValue("owner", match.name);
@@ -134,28 +134,8 @@ export default function WithdrawalForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="owner"
-          rules={{ required: "Owner is required" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Owner</FormLabel>
-              <FormControl>
-                <Input
-                  disabled
-                  placeholder="Auto-detected owner"
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <p className="text-xs text-muted-foreground">
-                The owner is detected automatically from your account.
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Owner is auto-set from logged-in user — hidden from UI */}
+        <input type="hidden" {...form.register("owner", { required: "Owner is required" })} />
 
         {ownerBalances.length > 0 && (
           <div className="p-4 bg-gray-50 dark:bg-zinc-900 rounded-lg space-y-2 border border-gray-100 dark:border-zinc-800">
@@ -168,11 +148,10 @@ export default function WithdrawalForm({
                 return (
                   <div
                     key={ob.name}
-                    className={`flex justify-between p-2 rounded-md border transition-all ${
-                      isSelected
+                    className={`flex justify-between p-2 rounded-md border transition-all ${isSelected
                         ? "bg-primary/5 border-primary dark:border-primary/50"
                         : "bg-white dark:bg-zinc-950 border-gray-100 dark:border-zinc-900"
-                    }`}
+                      }`}
                   >
                     <span
                       className={`font-medium ${isSelected ? "text-primary font-semibold" : "text-gray-600 dark:text-gray-400"}`}
