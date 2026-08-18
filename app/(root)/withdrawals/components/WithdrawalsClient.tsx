@@ -52,6 +52,7 @@ interface Withdrawal {
 
 interface Owner {
   name: string;
+  email?: string;
 }
 
 export default function WithdrawalsClient({
@@ -78,6 +79,15 @@ export default function WithdrawalsClient({
   const [editingWithdrawal, setEditingWithdrawal] = useState<Withdrawal | null>(
     null,
   );
+
+  // Check if the current admin is an owner (email matches a settings owner)
+  const isOwner = owners.some(
+    (o) =>
+      o.email &&
+      currentAdmin?.email &&
+      o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase(),
+  );
+  const canWithdraw = hasWriteAccess && isOwner;
 
   useEffect(() => {
     async function loadSettings() {
@@ -171,7 +181,7 @@ export default function WithdrawalsClient({
           <Button variant="secondary" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> CSV
           </Button>
-          {hasWriteAccess && (
+          {canWithdraw && (
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full md:w-auto">
@@ -278,7 +288,7 @@ export default function WithdrawalsClient({
                   {withdrawal.description}
                 </TableCell>
                 <TableCell className="flex gap-2">
-                  {hasWriteAccess && (
+                  {canWithdraw && (
                     <Dialog
                       open={
                         isEditOpen && editingWithdrawal?._id === withdrawal._id
@@ -314,7 +324,7 @@ export default function WithdrawalsClient({
                       </DialogContent>
                     </Dialog>
                   )}
-                  {hasWriteAccess && (
+                  {canWithdraw && (
                     <Button
                       variant="destructive"
                       size="sm"
