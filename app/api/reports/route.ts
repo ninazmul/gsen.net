@@ -39,6 +39,7 @@ export async function OPTIONS() {
  *  - category: string (Category ID)
  *  - year: number (for monthly performance, defaults to current year)
  *  - type: "all" | "summary" | "income" | "expense" | "profit" | "category" | "monthly"
+ *  - owner: optional (must match the authenticated API owner)
  */
 export async function GET(req: Request) {
   try {
@@ -57,8 +58,35 @@ export async function GET(req: Request) {
       );
     }
 
+    const targetOwner = auth.owner!;
+    const ownerAliases =
+      auth.matchingAliases && auth.matchingAliases.length > 0
+        ? auth.matchingAliases
+        : [targetOwner];
+
     // 2. Parse query filters
     const url = new URL(req.url);
+
+    // If caller explicitly specifies an owner query parameter, verify they are not requesting another owner's data
+    const requestedOwnerParam = url.searchParams.get("owner");
+    if (requestedOwnerParam) {
+      const isAllowed = ownerAliases.some(
+        (alias) => alias.toLowerCase() === requestedOwnerParam.trim().toLowerCase()
+      );
+      if (!isAllowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Forbidden: Your API credentials only grant access to reports for owner '${targetOwner}'.`,
+          },
+          {
+            status: 403,
+            headers: corsHeaders,
+          }
+        );
+      }
+    }
+
     const periodParam = url.searchParams.get("period");
     const startDateParam = url.searchParams.get("startDate");
     const endDateParam = url.searchParams.get("endDate");
@@ -86,9 +114,17 @@ export async function GET(req: Request) {
       appliedPeriod = periodParam;
     }
 
-    const dateFilter = { startDate, endDate };
+    // Strict owner filter to guarantee data isolation: export ONLY matching owner data
+    const ownerRegexes = ownerAliases.map(
+      (alias) => new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+    );
+    const ownerFilter = {
+      $in: [...ownerAliases, ...ownerRegexes],
+    };
 
-    // 3. Fetch reports according to type filter
+    const dateFilter = { startDate, endDate, owner: ownerFilter };
+
+    // 3. Fetch reports according to type filter, strictly scoped to matching owner
     let reportData: Record<string, unknown> = {};
 
     if (typeParam === "income") {
@@ -104,7 +140,7 @@ export async function GET(req: Request) {
       const categoryReport = await getCategoryReport(dateFilter);
       reportData = { categories: categoryReport };
     } else if (typeParam === "monthly") {
-      const monthlyReport = await getMonthlyPerformanceReport(yearParam);
+      const monthlyReport = await getMonthlyPerformanceReport(yearParam, ownerFilter);
       reportData = { monthly: monthlyReport };
     } else if (typeParam === "summary") {
       const profitReport = await getProfitReport(dateFilter);
@@ -124,14 +160,14 @@ export async function GET(req: Request) {
         },
       };
     } else {
-      // "all" - Return comprehensive reports bundle in parallel
+      // "all" - Return comprehensive reports bundle in parallel for matching owner
       const [incomeReport, expenseReport, profitReport, categoryReport, monthlyReport] =
         await Promise.all([
           getIncomeReport({ ...dateFilter, category: categoryParam }),
           getExpenseReport({ ...dateFilter, category: categoryParam }),
           getProfitReport(dateFilter),
           getCategoryReport(dateFilter),
-          getMonthlyPerformanceReport(yearParam),
+          getMonthlyPerformanceReport(yearParam, ownerFilter),
         ]);
 
       const profitMargin =
@@ -175,8 +211,9 @@ export async function GET(req: Request) {
       {
         success: true,
         timestamp: new Date().toISOString(),
-        owner: auth.owner,
+        owner: auth.matchedOwnerName || targetOwner,
         filters: {
+          owner: auth.matchedOwnerName || targetOwner,
           period: appliedPeriod,
           startDate: startDate ? startDate.toISOString() : null,
           endDate: endDate ? endDate.toISOString() : null,

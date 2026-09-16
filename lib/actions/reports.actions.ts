@@ -11,9 +11,10 @@ export async function getIncomeReport(params?: {
   startDate?: Date;
   endDate?: Date;
   category?: string;
+  owner?: string | Record<string, unknown>;
 }) {
   await connectToDatabase();
-  const { startDate, endDate, category } = params || {};
+  const { startDate, endDate, category, owner } = params || {};
 
   const match: Record<string, unknown> = { deletedAt: null };
   if (startDate && endDate) {
@@ -21,6 +22,9 @@ export async function getIncomeReport(params?: {
   }
   if (category) {
     match.category = category;
+  }
+  if (owner) {
+    match.owner = owner;
   }
 
   const incomes = await Income.find(match)
@@ -40,9 +44,10 @@ export async function getExpenseReport(params?: {
   startDate?: Date;
   endDate?: Date;
   category?: string;
+  owner?: string | Record<string, unknown>;
 }) {
   await connectToDatabase();
-  const { startDate, endDate, category } = params || {};
+  const { startDate, endDate, category, owner } = params || {};
 
   const match: Record<string, unknown> = { deletedAt: null };
   if (startDate && endDate) {
@@ -50,6 +55,9 @@ export async function getExpenseReport(params?: {
   }
   if (category) {
     match.category = category;
+  }
+  if (owner) {
+    match.owner = owner;
   }
 
   const expenses = await Expense.find(match)
@@ -68,9 +76,10 @@ export async function getExpenseReport(params?: {
 export async function getProfitReport(params?: {
   startDate?: Date;
   endDate?: Date;
+  owner?: string | Record<string, unknown>;
 }) {
   await connectToDatabase();
-  const { startDate, endDate } = params || {};
+  const { startDate, endDate, owner } = params || {};
 
   const incomeMatch: Record<string, unknown> = { deletedAt: null };
   const expenseMatch: Record<string, unknown> = { deletedAt: null };
@@ -78,6 +87,10 @@ export async function getProfitReport(params?: {
   if (startDate && endDate) {
     incomeMatch.date = { $gte: startDate, $lte: endDate };
     expenseMatch.date = { $gte: startDate, $lte: endDate };
+  }
+  if (owner) {
+    incomeMatch.owner = owner;
+    expenseMatch.owner = owner;
   }
 
   const incomes = await Income.find(incomeMatch).populate("category").lean();
@@ -100,9 +113,10 @@ export async function getCategoryReport(params?: {
   startDate?: Date;
   endDate?: Date;
   type?: "Income" | "Expense";
+  owner?: string | Record<string, unknown>;
 }) {
   await connectToDatabase();
-  const { startDate, endDate, type } = params || {};
+  const { startDate, endDate, type, owner } = params || {};
 
   const categories = await Category.find(type ? { type } : {}).lean() as unknown as Array<{
     _id: { toString(): string };
@@ -115,6 +129,9 @@ export async function getCategoryReport(params?: {
   const match: Record<string, unknown> = { deletedAt: null };
   if (startDate && endDate) {
     match.date = { $gte: startDate, $lte: endDate };
+  }
+  if (owner) {
+    match.owner = owner;
   }
 
   const [incomeAgg, expenseAgg] = await Promise.all([
@@ -168,19 +185,27 @@ export async function getCategoryReport(params?: {
   return report;
 }
 
-export async function getMonthlyPerformanceReport(year?: number) {
+export async function getMonthlyPerformanceReport(
+  year?: number,
+  owner?: string | Record<string, unknown>,
+) {
   await connectToDatabase();
   const y = year || new Date().getFullYear();
   const startOfYear = new Date(y, 0, 1);
   const endOfYear = new Date(y, 12, 0, 23, 59, 59, 999);
 
+  const matchCondition: Record<string, unknown> = {
+    deletedAt: null,
+    date: { $gte: startOfYear, $lte: endOfYear },
+  };
+  if (owner) {
+    matchCondition.owner = owner;
+  }
+
   const [incomeMonthly, expenseMonthly] = await Promise.all([
     Income.aggregate([
       {
-        $match: {
-          deletedAt: null,
-          date: { $gte: startOfYear, $lte: endOfYear },
-        },
+        $match: matchCondition,
       },
       {
         $group: {
@@ -191,10 +216,7 @@ export async function getMonthlyPerformanceReport(year?: number) {
     ]),
     Expense.aggregate([
       {
-        $match: {
-          deletedAt: null,
-          date: { $gte: startOfYear, $lte: endOfYear },
-        },
+        $match: matchCondition,
       },
       {
         $group: {

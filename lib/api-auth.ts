@@ -7,6 +7,8 @@ export interface ApiAuthResult {
   error?: string;
   status?: number;
   owner?: string;
+  matchedOwnerName?: string;
+  matchingAliases?: string[];
 }
 
 /**
@@ -64,6 +66,7 @@ export async function validateApiCredentials(req: Request): Promise<ApiAuthResul
   const settings = await Settings.findOne().lean() as {
     apiOwner?: string;
     apiSecretKey?: string;
+    owners?: Array<{ name: string; email: string }>;
   } | null;
 
   const configuredOwner = settings?.apiOwner?.trim();
@@ -88,8 +91,28 @@ export async function validateApiCredentials(req: Request): Promise<ApiAuthResul
     };
   }
 
+  const aliases = new Set<string>();
+  aliases.add(configuredOwner);
+
+  let matchedOwnerName: string | undefined;
+
+  if (settings?.owners && Array.isArray(settings.owners)) {
+    const matched = settings.owners.find(
+      (o) =>
+        (o.name && o.name.trim().toLowerCase() === configuredOwner.toLowerCase()) ||
+        (o.email && o.email.trim().toLowerCase() === configuredOwner.toLowerCase())
+    );
+    if (matched) {
+      matchedOwnerName = matched.name;
+      if (matched.name) aliases.add(matched.name.trim());
+      if (matched.email) aliases.add(matched.email.trim());
+    }
+  }
+
   return {
     isValid: true,
     owner: configuredOwner,
+    matchedOwnerName: matchedOwnerName || configuredOwner,
+    matchingAliases: Array.from(aliases),
   };
 }

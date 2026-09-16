@@ -28,6 +28,13 @@ Every request to the API must include your API Owner and Secret Key, configured 
 > Alternatively, you can pass the secret key as a standard bearer token:  
 > `Authorization: Bearer <YOUR_API_SECRET_KEY>`
 
+### Strict Owner Isolation & Data Privacy
+
+> [!IMPORTANT]
+> **Data Scoping**: Every API request is **strictly filtered** by the authenticated `x-api-owner`. 
+> - All totals, transaction items (income and expense), category breakdowns, and monthly performance figures contain **ONLY data matching this owner**.
+> - Financial records belonging to other owners or unassigned accounts are completely excluded from exported responses.
+
 ---
 
 ## 3. Query Parameters
@@ -36,6 +43,7 @@ All parameters are optional.
 
 | Parameter | Type | Default | Options / Description |
 | :--- | :--- | :--- | :--- |
+| `owner` | `string` | Authenticated Owner | Optional. Must match your authenticated owner identifier. Requesting another owner's data returns `403 Forbidden`. |
 | `period` | `string` | `all` | `today`, `yesterday`, `last7days`, `last30days`, `thisMonth`, `lastMonth`, `thisYear`, `all` |
 | `startDate` | `string` | — | Custom start date in ISO format (`YYYY-MM-DD` or `YYYY-MM-DDTHH:mm:ssZ`) |
 | `endDate` | `string` | — | Custom end date in ISO format (`YYYY-MM-DD` or `YYYY-MM-DDTHH:mm:ssZ`) |
@@ -176,6 +184,14 @@ All parameters are optional.
 {
   "success": false,
   "error": "API access is not configured. Please set API Owner and API Secret Key in Settings first."
+}
+```
+
+#### Forbidden Cross-Owner Query (`403 Forbidden`)
+```json
+{
+  "success": false,
+  "error": "Forbidden: Your API credentials only grant access to reports for owner 'Owner 1'."
 }
 ```
 
