@@ -5,16 +5,18 @@ import Settings from "@/lib/database/models/settings.model";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
-import { checkWritePermissionServer } from "./permission-actions";
+import { checkWritePermissionServer, requireSuperAdmin } from "./permission-actions";
 
 interface Owner {
   name: string;
   email: string;
 }
 
-interface SettingsDoc {
+export interface SettingsDoc {
   _id: string;
   owners: Owner[];
+  apiOwner?: string;
+  apiSecretKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,14 +32,27 @@ export async function getSettings() {
         { name: "Owner 1", email: "owner1@example.com" },
         { name: "Owner 2", email: "owner2@example.com" },
       ],
+      apiOwner: "",
+      apiSecretKey: "",
     });
   }
 
-  return JSON.parse(JSON.stringify(settings));
+  const parsed = JSON.parse(JSON.stringify(settings));
+  return {
+    ...parsed,
+    apiOwner: parsed.apiOwner || "",
+    apiSecretKey: parsed.apiSecretKey || "",
+  };
 }
 
 export async function updateSettings(data: Partial<SettingsDoc>) {
   await checkWritePermissionServer("settings");
+
+  // If modifying API credentials, require Super Admin privilege
+  if (data.apiOwner !== undefined || data.apiSecretKey !== undefined) {
+    await requireSuperAdmin();
+  }
+
   await connectToDatabase();
   const user = await currentUser();
 

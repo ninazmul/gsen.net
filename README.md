@@ -14,7 +14,7 @@
 
 *A full-featured, enterprise-grade ERP application for Internet Service Providers (ISPs) to manage customers, automate monthly billing, generate PDF invoices, track operational expenses, and analyze real-time financial metrics.*
 
-[Explore Documentation](docs/APP_DOCUMENTATION.md) · [Report Bug](https://github.com/ninazmul/gsen.net/issues) · [Request Feature](https://github.com/ninazmul/gsen.net/issues)
+[Explore Documentation](docs/APP_DOCUMENTATION.md) · [Reports API Guide](docs/REPORTS_API_DOCUMENTATION.md) · [Report Bug](https://github.com/ninazmul/gsen.net/issues) · [Request Feature](https://github.com/ninazmul/gsen.net/issues)
 
 </div>
 

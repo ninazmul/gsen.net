@@ -14,5 +14,10 @@ export default async function SettingsPage() {
   if (!hasAccess) redirect("/access-denied");
 
   const settings = await getSettings();
-  return <SettingsClient initialSettings={settings} />;
+  return (
+    <SettingsClient
+      initialSettings={settings}
+      isSuperAdmin={admin.role === "superadmin"}
+    />
+  );
 }
