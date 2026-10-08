@@ -244,6 +244,7 @@ export default function DashboardClient({
   const [settlementMethod, setSettlementMethod] = useState<"Cash" | "Bank Transfer">("Cash");
   const [customSettlementAmount, setCustomSettlementAmount] = useState<string>("");
   const [isSettlementSubmitting, setIsSettlementSubmitting] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -1475,9 +1476,9 @@ export default function DashboardClient({
           };
 
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+            <div>
               {/* Card 1: Settlement Summary */}
-              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs flex flex-col justify-between space-y-4">
+              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs space-y-4">
                 <div className="space-y-4">
                   {/* Header */}
                   <div className="flex items-center gap-2.5">
@@ -1529,18 +1530,28 @@ export default function DashboardClient({
 
                 {/* Settlement Needed Box */}
                 {transfers.length > 0 ? (
-                  <div className="rounded-2xl bg-[#fffbeb] dark:bg-amber-950/25 border-l-[3px] border-[#f59e0b] p-4 space-y-1">
-                    <p className="text-xs font-black text-[#b45309] dark:text-amber-400">
-                      Settlement Needed
-                    </p>
-                    <p className="text-sm font-black text-[#78350f] dark:text-amber-200">
-                      {transfers[0].from} will pay {transfers[0].to}{" "}
-                      {transfers[0].amount.toLocaleString(undefined, {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}{" "}
-                      SAR.
-                    </p>
+                  <div className="rounded-2xl bg-[#fffbeb] dark:bg-amber-950/25 border-l-[3px] border-[#f59e0b] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-black text-[#b45309] dark:text-amber-400">
+                        Settlement Needed
+                      </p>
+                      <p className="text-sm font-black text-[#78350f] dark:text-amber-200">
+                        {transfers[0].from} will pay {transfers[0].to}{" "}
+                        {transfers[0].amount.toLocaleString(undefined, {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}{" "}
+                        SAR.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setIsPaymentModalOpen(true)}
+                      className="bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap self-start sm:self-center"
+                    >
+                      <Send className="w-3.5 h-3.5 -rotate-12" />
+                      Make Settlement Payment
+                    </Button>
                   </div>
                 ) : (
                   <div className="rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/25 border-l-[3px] border-emerald-500 p-4 space-y-1">
@@ -1554,21 +1565,24 @@ export default function DashboardClient({
                 )}
               </Card>
 
-              {/* Card 2: Make Settlement Payment */}
-              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs flex flex-col justify-between space-y-4">
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
-                      <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+              {/* Settlement Payment Modal */}
+              <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+                <DialogContent className="max-w-md p-6 bg-card border-border/80 shadow-2xl rounded-2xl">
+                  <DialogHeader className="space-y-1">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
+                        <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                      </div>
+                      <DialogTitle className="font-black text-lg md:text-xl text-[#1e0a3c] dark:text-purple-100">
+                        Make Settlement Payment
+                      </DialogTitle>
                     </div>
-                    <h3 className="font-black text-base md:text-lg text-[#1e0a3c] dark:text-purple-100">
-                      Make Settlement Payment
-                    </h3>
-                  </div>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Record cash or bank settlement transfer to balance partner profit share.
+                    </DialogDescription>
+                  </DialogHeader>
 
-                  {/* Form */}
-                  <div className="space-y-3">
+                  <div className="space-y-3.5 pt-2">
                     {/* Transfer From */}
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
@@ -1641,33 +1655,33 @@ export default function DashboardClient({
                         </button>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Submit & Note */}
-                <div className="space-y-2.5 pt-2">
-                  <Button
-                    type="button"
-                    onClick={handleMakePayment}
-                    disabled={isSettlementSubmitting || transfers.length === 0}
-                    className="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
-                  >
-                    <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
-                    {isSettlementSubmitting
-                      ? "Processing Payment..."
-                      : transfers.length === 0
-                        ? "Accounts Settled"
-                        : "Make Payment"}
-                  </Button>
+                    {/* Submit & Note */}
+                    <div className="space-y-2.5 pt-2">
+                      <Button
+                        type="button"
+                        onClick={handleMakePayment}
+                        disabled={isSettlementSubmitting || transfers.length === 0}
+                        className="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
+                      >
+                        <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                        {isSettlementSubmitting
+                          ? "Processing Payment..."
+                          : transfers.length === 0
+                            ? "Accounts Settled"
+                            : "Make Payment"}
+                      </Button>
 
-                  <div className="flex items-start gap-2 rounded-xl bg-[#eff6ff] dark:bg-blue-950/25 p-3 text-xs text-[#1d4ed8] dark:text-blue-300">
-                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#3b82f6]" />
-                    <span className="leading-relaxed">
-                      After payment, the withdrawn balance and settlement record will update automatically.
-                    </span>
+                      <div className="flex items-start gap-2 rounded-xl bg-[#eff6ff] dark:bg-blue-950/25 p-3 text-xs text-[#1d4ed8] dark:text-blue-300">
+                        <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#3b82f6]" />
+                        <span className="leading-relaxed">
+                          After payment, the withdrawn balance and settlement record will update automatically.
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </DialogContent>
+              </Dialog>
             </div>
           );
         })()}
