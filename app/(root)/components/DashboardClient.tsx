@@ -1309,25 +1309,25 @@ export default function DashboardClient({
 
       {/* 3A. Cash Settlement Section */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2">
           <div>
-            <h2 className="text-xl md:text-2xl font-black text-[#1e0a3c] dark:text-purple-200 tracking-tight flex items-center gap-2.5">
-              <span className="w-1.5 h-6 bg-[#3e0078] dark:bg-[#7c3aed] rounded-full" />
+            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2">
+              <span className="w-1.5 h-5 sm:h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
               3A. Cash Settlement
             </h2>
-            <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
+            <p className="hidden lg:block text-xs sm:text-sm text-muted-foreground mt-0.5 pl-3.5">
               Equalizes net profit (sales − expenses) between partners for the selected month.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Month:
             </span>
             <Select
               value={selectedSettlementMonth}
               onValueChange={setSelectedSettlementMonth}
             >
-              <SelectTrigger className="w-[170px] bg-card border-border text-card-foreground shadow-xs text-xs font-semibold">
+              <SelectTrigger className="w-[140px] sm:w-[170px] bg-card border-border text-card-foreground shadow-xs text-[11px] sm:text-xs font-semibold h-8 sm:h-9">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -1487,53 +1487,55 @@ export default function DashboardClient({
           return (
             <div>
               {/* Card 1: Settlement Summary */}
-              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs space-y-4">
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
-                      <Coins className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-black text-base md:text-lg text-[#1e0a3c] dark:text-purple-100">
-                      Settlement Summary
-                    </h3>
+              <Card className="overflow-hidden border border-border/80 shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
+                {/* Card Header */}
+                <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-b bg-gradient-to-r from-purple-50 to-violet-100/50 dark:from-purple-950/20 dark:to-violet-900/10 border-purple-200/60 dark:border-purple-900/30">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-700 to-violet-600 flex items-center justify-center text-white shadow-md">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
+                  <h3 className="font-bold text-sm sm:text-base text-card-foreground">
+                    Settlement Summary
+                  </h3>
+                </div>
 
+                <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
                   {/* Partner Profit Share */}
-                  <div className="flex items-center justify-between py-2 border-l-[3px] border-[#3b82f6] pl-3.5 bg-card">
-                    <span className="text-sm font-bold text-[#1e0a3c] dark:text-card-foreground">
+                  <div className="relative overflow-hidden rounded-xl bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/50 dark:border-indigo-900/20 p-2 sm:p-2.5 flex items-center justify-between">
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-r-full" />
+                    <span className="text-xs sm:text-sm font-semibold text-indigo-700 dark:text-indigo-400">
                       Partner Profit Share (50%)
                     </span>
-                    <span className="text-base font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
+                    <span className="text-sm sm:text-base font-bold text-card-foreground tabular-nums">
                       {fairShare.toLocaleString(undefined, {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })}{" "}
-                      SAR
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">SAR</span>
                     </span>
                   </div>
 
-                  {/* Current Cash Held Box */}
-                  <div className="rounded-2xl bg-[#f8fafc] dark:bg-zinc-900/60 p-4 space-y-3 border border-border/40">
-                    <p className="text-xs font-bold text-muted-foreground">
+                  {/* Current Cash Held */}
+                  <div className="relative overflow-hidden rounded-xl bg-violet-50/50 dark:bg-violet-950/10 border border-violet-200/50 dark:border-violet-900/20 p-2.5 sm:p-3 space-y-2 sm:space-y-3">
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-violet-500 dark:bg-violet-400 rounded-r-full" />
+                    <p className="text-[11px] sm:text-xs font-semibold text-violet-700 dark:text-violet-400">
                       Current Cash Held
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-2.5">
                       {ownerData.map((owner, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-bold text-[#1e0a3c] dark:text-card-foreground">
+                        <div key={idx} className="space-y-0.5 sm:space-y-1">
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="font-bold text-card-foreground">
                               {owner.name}
                             </span>
-                            <span className="font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
+                            <span className="font-bold text-card-foreground tabular-nums">
                               {owner.currentCashHeld.toLocaleString(undefined, {
                                 minimumFractionDigits: 0,
                                 maximumFractionDigits: 0,
                               })}{" "}
-                              SAR
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">SAR</span>
                             </span>
                           </div>
-                          <div className="text-[11px] text-muted-foreground pl-0.5 space-y-0.5">
+                          <div className="text-[10px] sm:text-[11px] text-muted-foreground pl-0.5 space-y-0.5">
                             <p>
                               Sales: <span className="font-semibold tabular-nums">{owner.sales.toLocaleString()}</span> SAR
                               {" − "}
@@ -1542,15 +1544,15 @@ export default function DashboardClient({
                               Net: <span className="font-bold tabular-nums">{owner.netProfit.toLocaleString()}</span> SAR
                             </p>
                             {(owner.paid > 0 || owner.received > 0) && (
-                              <p className="text-[10.5px]">
+                              <p className="text-[9.5px] sm:text-[10.5px]">
                                 {owner.paid > 0 && (
-                                  <span className="text-red-500 dark:text-red-400">
+                                  <span className="text-rose-600 dark:text-rose-400">
                                     Paid: −{owner.paid.toLocaleString()} SAR
                                   </span>
                                 )}
                                 {owner.paid > 0 && owner.received > 0 && " · "}
                                 {owner.received > 0 && (
-                                  <span className="text-emerald-600 dark:text-emerald-400">
+                                  <span className="text-green-600 dark:text-green-400">
                                     Received: +{owner.received.toLocaleString()} SAR
                                   </span>
                                 )}
@@ -1563,84 +1565,105 @@ export default function DashboardClient({
                   </div>
                 </div>
 
-                {/* Settlement Needed Box */}
-                {transfers.length > 0 ? (
-                  <div className="rounded-2xl bg-[#fffbeb] dark:bg-amber-950/25 border-l-[3px] border-[#f59e0b] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-xs font-black text-[#b45309] dark:text-amber-400">
-                        Settlement Needed
-                      </p>
-                      <p className="text-sm font-black text-[#78350f] dark:text-amber-200">
-                        {transfers[0].from} will pay {transfers[0].to}{" "}
-                        {transfers[0].amount.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}{" "}
-                        SAR.
-                      </p>
+                {/* Settlement Status Footer */}
+                <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+                  {transfers.length > 0 ? (
+                    <div className="flex items-center justify-between gap-2 rounded-xl p-2 sm:p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <div className="flex-shrink-0 mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-amber-500 text-amber-500">
+                          <span className="text-[10px] sm:text-xs font-black leading-none">!</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 leading-tight">
+                            Settlement Needed
+                          </p>
+                          <div className="space-y-0.5 mt-0.5">
+                            {transfers.map((t, idx) => (
+                              <p key={idx} className="text-[11px] sm:text-xs text-amber-600 dark:text-amber-500 font-medium leading-snug">
+                                <span className="font-bold text-amber-800 dark:text-amber-300">{t.from}</span> will pay{" "}
+                                <span className="font-bold text-amber-800 dark:text-amber-300">{t.to}</span>{" "}
+                                <span className="font-bold tabular-nums">
+                                  {t.amount.toLocaleString(undefined, {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  })}{" "}
+                                  SAR.
+                                </span>
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => setIsPaymentModalOpen(true)}
+                        className="flex-shrink-0 bg-purple-700 hover:bg-purple-800 text-white font-bold py-1 px-2.5 sm:py-1.5 sm:px-3.5 rounded-lg flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all whitespace-nowrap text-[11px] sm:text-xs"
+                      >
+                        <Send className="w-2.5 h-2.5 sm:w-3 sm:h-3 -rotate-12" />
+                        Settle
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => setIsPaymentModalOpen(true)}
-                      className="bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all whitespace-nowrap self-start sm:self-center"
-                    >
-                      <Send className="w-3.5 h-3.5 -rotate-12" />
-                      Make Settlement Payment
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/25 border-l-[3px] border-emerald-500 p-4 space-y-1">
-                    <p className="text-xs font-black text-emerald-800 dark:text-emerald-400">
-                      Accounts Settled
-                    </p>
-                    <p className="text-sm font-black text-emerald-950 dark:text-emerald-200">
-                      All partners hold equal cash. No settlement needed.
-                    </p>
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex items-start gap-2 rounded-xl p-2 sm:p-2.5 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                      <div className="flex-shrink-0 mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-green-500 text-green-500">
+                        <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current">
+                          <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400 leading-tight">
+                          Accounts Settled
+                        </p>
+                        <p className="text-[11px] sm:text-xs mt-0.5 text-green-600 dark:text-green-500">
+                          All partners hold equal cash. No settlement needed.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </Card>
 
               {/* Settlement Payment Modal */}
               <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-                <DialogContent className="max-w-md p-6 bg-card border-border/80 shadow-2xl rounded-2xl">
-                  <DialogHeader className="space-y-1">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
-                        <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                <DialogContent className="max-w-md p-0 bg-card border-border/80 shadow-2xl rounded-2xl overflow-hidden">
+                  <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-2.5 sm:pb-3 space-y-1 bg-gradient-to-r from-purple-50 to-violet-100/50 dark:from-purple-950/20 dark:to-violet-900/10 border-b border-purple-200/60 dark:border-purple-900/30">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-purple-700 to-violet-600 flex items-center justify-center text-white shadow-md">
+                        <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 -rotate-12 translate-x-0.5" />
                       </div>
-                      <DialogTitle className="font-black text-lg md:text-xl text-[#1e0a3c] dark:text-purple-100">
+                      <DialogTitle className="font-bold text-base sm:text-lg text-card-foreground">
                         Make Settlement Payment
                       </DialogTitle>
                     </div>
-                    <DialogDescription className="text-xs text-muted-foreground">
+                    <DialogDescription className="text-[11px] sm:text-xs text-muted-foreground pl-10 sm:pl-[46px]">
                       Record cash or bank settlement transfer to balance partner profit share.
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-3.5 pt-2">
+                  <div className="space-y-3 sm:space-y-3.5 px-4 sm:px-5 pt-3 pb-4 sm:pb-5">
                     {/* Transfer From */}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                    <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                      <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[95px] sm:min-w-[110px]">
                         Transfer From
                       </span>
-                      <div className="w-full bg-[#f8fafc] dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3.5 py-2 font-bold text-sm text-card-foreground">
+                      <div className="w-full bg-muted/50 dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3 sm:px-3.5 py-1.5 sm:py-2 font-bold text-xs sm:text-sm text-card-foreground">
                         {transferFrom || "None"}
                       </div>
                     </div>
 
                     {/* Transfer To */}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                    <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                      <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[95px] sm:min-w-[110px]">
                         Transfer To
                       </span>
-                      <div className="w-full bg-[#f8fafc] dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3.5 py-2 font-bold text-sm text-card-foreground">
+                      <div className="w-full bg-muted/50 dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3 sm:px-3.5 py-1.5 sm:py-2 font-bold text-xs sm:text-sm text-card-foreground">
                         {transferTo || "None"}
                       </div>
                     </div>
 
                     {/* Amount */}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                    <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                      <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap min-w-[95px] sm:min-w-[110px]">
                         Amount
                       </span>
                       <div className="relative w-full">
@@ -1650,9 +1673,9 @@ export default function DashboardClient({
                           onChange={(e) => setCustomSettlementAmount(e.target.value)}
                           placeholder="Amount"
                           disabled={transfers.length === 0}
-                          className="bg-[#f8fafc] dark:bg-zinc-900/60 border-border/60 font-black text-sm pr-14 rounded-xl text-card-foreground"
+                          className="bg-muted/50 dark:bg-zinc-900/60 border-border/60 font-bold text-xs sm:text-sm pr-14 rounded-xl text-card-foreground h-9 sm:h-10"
                         />
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-bold text-muted-foreground">
                           SAR
                         </span>
                       </div>
@@ -1660,46 +1683,46 @@ export default function DashboardClient({
 
                     {/* Payment Method */}
                     <div className="space-y-1.5 pt-1">
-                      <span className="text-xs font-bold text-muted-foreground block">
+                      <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground block">
                         Payment Method
                       </span>
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                         <button
                           type="button"
                           onClick={() => setSettlementMethod("Cash")}
-                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all ${
+                          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
                             settlementMethod === "Cash"
-                              ? "bg-[#6d28d9] text-white shadow-sm"
-                              : "bg-[#f8fafc] dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
+                              ? "bg-purple-700 text-white shadow-sm"
+                              : "bg-muted/50 dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
                           }`}
                         >
-                          <Banknote className="w-4 h-4" />
+                          <Banknote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           Cash
                         </button>
                         <button
                           type="button"
                           onClick={() => setSettlementMethod("Bank Transfer")}
-                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all ${
+                          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
                             settlementMethod === "Bank Transfer"
-                              ? "bg-[#6d28d9] text-white shadow-sm"
-                              : "bg-[#f8fafc] dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
+                              ? "bg-purple-700 text-white shadow-sm"
+                              : "bg-muted/50 dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
                           }`}
                         >
-                          <Landmark className="w-4 h-4" />
+                          <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           Bank Transfer
                         </button>
                       </div>
                     </div>
 
                     {/* Submit & Note */}
-                    <div className="space-y-2.5 pt-2">
+                    <div className="space-y-2 pt-1.5 sm:pt-2">
                       <Button
                         type="button"
                         onClick={handleMakePayment}
                         disabled={isSettlementSubmitting || transfers.length === 0}
-                        className="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
+                        className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all text-xs sm:text-sm"
                       >
-                        <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                        <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 -rotate-12 translate-x-0.5" />
                         {isSettlementSubmitting
                           ? "Processing Payment..."
                           : transfers.length === 0
@@ -1707,10 +1730,10 @@ export default function DashboardClient({
                             : "Make Payment"}
                       </Button>
 
-                      <div className="flex items-start gap-2 rounded-xl bg-[#eff6ff] dark:bg-blue-950/25 p-3 text-xs text-[#1d4ed8] dark:text-blue-300">
-                        <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#3b82f6]" />
+                      <div className="flex items-start gap-1.5 sm:gap-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/20 p-2.5 sm:p-3 text-[11px] sm:text-xs text-indigo-700 dark:text-indigo-400">
+                        <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5 text-indigo-500 dark:text-indigo-400" />
                         <span className="leading-relaxed">
-                          After payment, the withdrawn balance and settlement record will update automatically.
+                          After payment, the settlement record will update automatically.
                         </span>
                       </div>
                     </div>
