@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,14 @@ import {
   ReceiptText,
   History,
   CalendarDays,
+  ArrowRightLeft,
+  CheckCircle2,
+  AlertCircle,
+  Copy,
+  Check,
+  Scale,
+  ArrowRight,
+  Info,
 } from "lucide-react";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useTheme } from "next-themes";
@@ -221,6 +229,9 @@ export default function DashboardClient({
   );
   const [expenseBreakdown, setExpenseBreakdown] = useState<BreakdownItem[]>([]);
   const [isBreakdownLoading, setIsBreakdownLoading] = useState(true);
+  const [selectedSettlementMonth, setSelectedSettlementMonth] = useState<string>(
+    (new Date().getMonth() + 1).toString(),
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -1283,11 +1294,407 @@ export default function DashboardClient({
         </div>
       </div>
 
+      {/* Cash Settlement Section */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
+          <div>
+            <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
+              <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
+              4. Cash Settlement
+            </h2>
+            <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
+              Adjusts profit sharing based on what each owner already earned and holds.
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Select Month:
+            </span>
+            <Select
+              value={selectedSettlementMonth}
+              onValueChange={setSelectedSettlementMonth}
+            >
+              <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                {data.monthlyPerformance.map((item) => (
+                  <SelectItem key={item.month} value={item.month.toString()}>
+                    {item.monthName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {(() => {
+          const numOwners = data.summary.ownerBalances.length || 1;
+          const isAllTime = selectedSettlementMonth === "all";
+          const selectedMonthNum = isAllTime ? 0 : parseInt(selectedSettlementMonth);
+
+          // Calculate totals based on selected filter
+          let totalNetProfit: number;
+          if (isAllTime) {
+            totalNetProfit = data.summary.netProfit;
+          } else {
+            totalNetProfit = data.summary.ownerBalances.reduce((sum, owner) => {
+              const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
+              return sum + (monthly ? monthly.income - monthly.expenses : 0);
+            }, 0);
+          }
+          const fairShare = totalNetProfit / numOwners;
+
+          // Each owner's individual earned profit (income - expenses tagged to them)
+          const ownerData = data.summary.ownerBalances.map((owner) => {
+            let ownProfit: number;
+            let withdrawn: number;
+            if (isAllTime) {
+              ownProfit = owner.totalIncome - owner.totalExpenses;
+              withdrawn = owner.withdrawn;
+            } else {
+              const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
+              ownProfit = monthly ? monthly.income - monthly.expenses : 0;
+              withdrawn = monthly?.withdrawn || 0;
+            }
+            const totalInHand = ownProfit + withdrawn;
+            const netSettlement = totalInHand - fairShare;
+            // positive = owner has MORE than fair share → owes
+            // negative = owner has LESS → is owed
+            return {
+              name: owner.name,
+              ownProfit,
+              withdrawn,
+              totalInHand,
+              fairShare,
+              netSettlement,
+            };
+          });
+
+          // Determine settlement transfers (for 2 owners)
+          const payers = ownerData.filter((o) => o.netSettlement > 0);
+          const receivers = ownerData.filter((o) => o.netSettlement < 0);
+
+          // Build settlement transfers
+          const transfers: { from: string; to: string; amount: number }[] = [];
+          if (payers.length > 0 && receivers.length > 0) {
+            // Simple case: pair up payers and receivers
+            let payerIdx = 0;
+            let receiverIdx = 0;
+            const payerRemaining = payers.map((p) => p.netSettlement);
+            const receiverRemaining = receivers.map((r) => Math.abs(r.netSettlement));
+
+            while (payerIdx < payers.length && receiverIdx < receivers.length) {
+              const transferAmount = Math.min(
+                payerRemaining[payerIdx],
+                receiverRemaining[receiverIdx],
+              );
+              if (transferAmount > 0.01) {
+                transfers.push({
+                  from: payers[payerIdx].name,
+                  to: receivers[receiverIdx].name,
+                  amount: transferAmount,
+                });
+              }
+              payerRemaining[payerIdx] -= transferAmount;
+              receiverRemaining[receiverIdx] -= transferAmount;
+              if (payerRemaining[payerIdx] < 0.01) payerIdx++;
+              if (receiverRemaining[receiverIdx] < 0.01) receiverIdx++;
+            }
+          }
+
+          const isSettled = transfers.length === 0;
+
+          return (
+            <Card className="overflow-hidden border border-border/80 shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
+              {/* Summary Header */}
+              <div className="bg-gradient-to-r from-teal-50 to-cyan-50/50 dark:from-teal-950/20 dark:to-cyan-950/10 border-b border-teal-200/60 dark:border-teal-900/30 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-md">
+                      <Scale className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                        Settlement Summary
+                        <span className="text-xs font-bold text-teal-500 dark:text-teal-500 ml-1.5">
+                          ({isAllTime
+                            ? "All Time"
+                            : data.monthlyPerformance.find((m) => m.month === selectedMonthNum)?.monthName || "Selected"
+                          })
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Total Net Profit:{" "}
+                        <span className="font-bold text-card-foreground">
+                          {totalNetProfit.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}{" "}
+                          SAR
+                        </span>
+                        {" · "}
+                        Fair Share ({Math.round(100 / numOwners)}% each):{" "}
+                        <span className="font-bold text-card-foreground">
+                          {fairShare.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}{" "}
+                          SAR
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={`text-xs font-bold uppercase tracking-widest px-3 py-1 ${
+                      isSettled
+                        ? "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
+                        : "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
+                    }`}
+                  >
+                    {isSettled ? "Settled" : "Needs Settlement"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Owner Breakdown */}
+              <div className="p-4 space-y-4">
+                {/* Info Banner */}
+                <div className="flex items-start gap-2.5 rounded-xl p-3 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/20">
+                  <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                    Each owner&apos;s <strong>Total In Hand</strong> = earned profit (sales − expenses) + withdrawals.
+                    This is compared against their fair {Math.round(100 / numOwners)}% share to determine
+                    who needs to pay whom for an equal split.
+                  </p>
+                </div>
+
+                {/* Owner Cards Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {ownerData.map((owner, index) => {
+                    const isOwing = owner.netSettlement > 0.01;
+                    const isReceiving = owner.netSettlement < -0.01;
+                    const isEven = Math.abs(owner.netSettlement) <= 0.01;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`relative overflow-hidden rounded-xl border p-4 space-y-3 transition-all duration-300 hover:shadow-lg ${
+                          isOwing
+                            ? "border-amber-200/70 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/30 to-card dark:from-amber-950/10"
+                            : isReceiving
+                              ? "border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/30 to-card dark:from-emerald-950/10"
+                              : "border-border/60 bg-card"
+                        }`}
+                      >
+                        {/* Owner Name */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white shadow-md">
+                              <User className="w-4 h-4" />
+                            </div>
+                            <span className="font-bold text-sm uppercase tracking-wide text-card-foreground">
+                              {owner.name}
+                            </span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest ${
+                              isOwing
+                                ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
+                                : isReceiving
+                                  ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
+                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                            }`}
+                          >
+                            {isOwing ? "Owes" : isReceiving ? "Receives" : "Even"}
+                          </span>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="space-y-2">
+                          {/* Own Earned Profit */}
+                          <div className="relative overflow-hidden rounded-lg bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/40 dark:border-purple-900/20 p-2.5 flex items-center justify-between">
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 rounded-r-full" />
+                            <span className="text-xs font-semibold text-purple-700 dark:text-purple-400 pl-1">
+                              Own Earned Profit
+                            </span>
+                            <span className="text-sm font-bold text-card-foreground tabular-nums">
+                              {owner.ownProfit.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                              })}{" "}
+                              <span className="text-xs text-muted-foreground">SAR</span>
+                            </span>
+                          </div>
+
+                          {/* Withdrawn */}
+                          <div className="relative overflow-hidden rounded-lg bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/40 dark:border-amber-900/20 p-2.5 flex items-center justify-between">
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 rounded-r-full" />
+                            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 pl-1">
+                              Withdrawn
+                            </span>
+                            <span className="text-sm font-bold text-card-foreground tabular-nums">
+                              {owner.withdrawn.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                              })}{" "}
+                              <span className="text-xs text-muted-foreground">SAR</span>
+                            </span>
+                          </div>
+
+                          {/* Total In Hand */}
+                          <div className="relative overflow-hidden rounded-lg bg-sky-50/50 dark:bg-sky-950/10 border border-sky-200/40 dark:border-sky-900/20 p-2.5 flex items-center justify-between">
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-sky-500 rounded-r-full" />
+                            <span className="text-xs font-semibold text-sky-700 dark:text-sky-400 pl-1">
+                              Total In Hand
+                            </span>
+                            <span className="text-sm font-black text-card-foreground tabular-nums">
+                              {owner.totalInHand.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                              })}{" "}
+                              <span className="text-xs text-muted-foreground">SAR</span>
+                            </span>
+                          </div>
+
+                          {/* Divider */}
+                          <div className="border-t border-dashed border-border/60 my-1" />
+
+                          {/* Fair Share */}
+                          <div className="relative overflow-hidden rounded-lg bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/40 dark:border-indigo-900/20 p-2.5 flex items-center justify-between">
+                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 rounded-r-full" />
+                            <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 pl-1">
+                              Fair Share ({Math.round(100 / numOwners)}%)
+                            </span>
+                            <span className="text-sm font-bold text-card-foreground tabular-nums">
+                              {owner.fairShare.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                              })}{" "}
+                              <span className="text-xs text-muted-foreground">SAR</span>
+                            </span>
+                          </div>
+
+                          {/* Difference */}
+                          <div
+                            className={`relative overflow-hidden rounded-lg p-2.5 flex items-center justify-between border ${
+                              isOwing
+                                ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/40 dark:border-amber-900/20"
+                                : isReceiving
+                                  ? "bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-200/40 dark:border-emerald-900/20"
+                                  : "bg-gray-50/50 dark:bg-gray-950/10 border-gray-200/40 dark:border-gray-900/20"
+                            }`}
+                          >
+                            <div
+                              className={`absolute left-0 top-0 bottom-0 w-0.5 rounded-r-full ${
+                                isOwing
+                                  ? "bg-amber-500"
+                                  : isReceiving
+                                    ? "bg-emerald-500"
+                                    : "bg-gray-400"
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-semibold pl-1 ${
+                                isOwing
+                                  ? "text-amber-700 dark:text-amber-400"
+                                  : isReceiving
+                                    ? "text-emerald-700 dark:text-emerald-400"
+                                    : "text-gray-600 dark:text-gray-400"
+                              }`}
+                            >
+                              {isOwing ? "Excess (Owes)" : isReceiving ? "Shortfall (Due)" : "Balanced"}
+                            </span>
+                            <span
+                              className={`text-sm font-bold tabular-nums ${
+                                isOwing
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : isReceiving
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-muted-foreground"
+                              }`}
+                            >
+                              {isOwing ? "+" : isReceiving ? "-" : ""}
+                              {Math.abs(owner.netSettlement).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                              })}{" "}
+                              <span className="text-xs text-muted-foreground">SAR</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Settlement Transfers */}
+                {transfers.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+                      Required Transfers
+                    </p>
+                    {transfers.map((transfer, idx) => (
+                      <div
+                        key={idx}
+                        className="relative overflow-hidden rounded-xl border border-teal-200/60 dark:border-teal-900/30 bg-gradient-to-r from-teal-50/50 via-cyan-50/30 to-teal-50/50 dark:from-teal-950/20 dark:via-cyan-950/10 dark:to-teal-950/20 p-4"
+                      >
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                          {/* Payer */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm">
+                              <User className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="font-bold text-sm uppercase text-card-foreground">
+                              {transfer.from}
+                            </span>
+                          </div>
+
+                          {/* Arrow with Amount */}
+                          <div className="flex items-center gap-2">
+                            <div className="h-px w-6 bg-teal-400 dark:bg-teal-600 hidden sm:block" />
+                            <div className="flex items-center gap-1.5 bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 px-3 py-1.5 rounded-full shadow-sm">
+                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                              <span className="text-sm font-black tabular-nums">
+                                {transfer.amount.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                })}{" "}
+                                SAR
+                              </span>
+                            </div>
+                            <div className="h-px w-6 bg-teal-400 dark:bg-teal-600 hidden sm:block" />
+                            <ArrowRight className="w-4 h-4 text-teal-500 hidden sm:block" />
+                          </div>
+
+                          {/* Receiver */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm">
+                              <User className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="font-bold text-sm uppercase text-card-foreground">
+                              {transfer.to}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* All Settled State */}
+                {isSettled && (
+                  <div className="flex items-center justify-center gap-2.5 rounded-xl p-4 bg-green-50 dark:bg-green-950/20 border border-green-200/60 dark:border-green-900/30">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <p className="text-sm font-bold text-green-700 dark:text-green-400">
+                      All owners have earned their fair share. No settlement needed.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })()}
+      </div>
+
       {/* Lifetime Metrics - Unified Financial Overview */}
       <div className="space-y-3">
         <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5 border-b border-border/40 pb-2">
           <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          4. Company Lifetime Metrics
+          5. Company Lifetime Metrics
         </h2>
         <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
           {/* Main layout: responsive grid split */}
@@ -1424,7 +1831,7 @@ export default function DashboardClient({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            5. Expense Category Details
+            6. Expense Category Details
           </h2>
           <div className="flex items-center gap-2.5">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
