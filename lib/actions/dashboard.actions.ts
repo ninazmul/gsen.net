@@ -5,6 +5,7 @@ import Income from "@/lib/database/models/income.model";
 import Expense from "@/lib/database/models/expense.model";
 import "@/lib/database/models/category.model";
 import Withdrawal from "@/lib/database/models/withdrawal.model";
+import Settlement from "@/lib/database/models/settlement.model";
 import { getSettings } from "./settings.actions";
 import { getRecentActivityLogs } from "./activity-log.actions";
 
@@ -358,6 +359,11 @@ export async function getDashboardData() {
     .limit(5)
     .lean();
 
+  const settlements = await Settlement.find()
+    .sort({ date: -1 })
+    .limit(20)
+    .lean();
+
   return {
     summary: {
       totalIncome: income,
@@ -393,6 +399,7 @@ export async function getDashboardData() {
       expenses: JSON.parse(JSON.stringify(recentExpenses)),
     },
     recentLogs: JSON.parse(JSON.stringify(recentLogs)),
+    settlements: JSON.parse(JSON.stringify(settlements)),
   };
 }
 

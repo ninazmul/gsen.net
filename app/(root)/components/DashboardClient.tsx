@@ -18,14 +18,13 @@ import {
   ReceiptText,
   History,
   CalendarDays,
-  ArrowRightLeft,
-  CheckCircle2,
-
-  Scale,
-  ArrowRight,
   Info,
-  ShoppingBag,
+  Coins,
+  Send,
+  Banknote,
+  Landmark,
 } from "lucide-react";
+import { createSettlementPayment } from "@/lib/actions/settlement.actions";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useTheme } from "next-themes";
 import { toast } from "react-hot-toast";
@@ -167,6 +166,17 @@ type DashboardClientProps = {
       expenses: Expense[];
     };
     recentLogs: ActivityLog[];
+    settlements?: Array<{
+      _id: string;
+      fromOwner: string;
+      toOwner: string;
+      amount: number;
+      paymentMethod: "Cash" | "Bank Transfer";
+      date: Date;
+      month?: number;
+      year?: number;
+      notes?: string;
+    }>;
   };
   currentAdmin: Admin | null;
 };
@@ -231,6 +241,9 @@ export default function DashboardClient({
   const [selectedSettlementMonth, setSelectedSettlementMonth] = useState<string>(
     (new Date().getMonth() + 1).toString(),
   );
+  const [settlementMethod, setSettlementMethod] = useState<"Cash" | "Bank Transfer">("Cash");
+  const [customSettlementAmount, setCustomSettlementAmount] = useState<string>("");
+  const [isSettlementSubmitting, setIsSettlementSubmitting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -1293,27 +1306,27 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* Cash Settlement Section */}
+      {/* 3A. Cash Settlement Section */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
           <div>
-            <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
-              <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-              4. Cash Settlement
+            <h2 className="text-xl md:text-2xl font-black text-[#1e0a3c] dark:text-purple-200 tracking-tight flex items-center gap-2.5">
+              <span className="w-1.5 h-6 bg-[#3e0078] dark:bg-[#7c3aed] rounded-full" />
+              3A. Cash Settlement
             </h2>
             <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
-              Adjusts profit sharing based on what each owner already earned and holds.
+              Equalizes cash held from sales and withdrawals between partners.
             </p>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Select Month:
+              Month:
             </span>
             <Select
               value={selectedSettlementMonth}
               onValueChange={setSelectedSettlementMonth}
             >
-              <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
+              <SelectTrigger className="w-[170px] bg-card border-border text-card-foreground shadow-xs text-xs font-semibold">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -1333,62 +1346,60 @@ export default function DashboardClient({
           const isAllTime = selectedSettlementMonth === "all";
           const selectedMonthNum = isAllTime ? 0 : parseInt(selectedSettlementMonth);
 
-          // Calculate totals based on selected filter
-          let totalSales: number;
-          let totalExpenses: number;
+          // Calculate total profit based on selected filter
           let totalNetProfit: number;
           if (isAllTime) {
-            totalSales = data.summary.totalIncome;
-            totalExpenses = data.summary.totalExpenses;
             totalNetProfit = data.summary.netProfit;
           } else {
-            totalSales = data.summary.ownerBalances.reduce((sum, owner) => {
+            const totalSales = data.summary.ownerBalances.reduce((sum, owner) => {
               const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
               return sum + (monthly?.income || 0);
             }, 0);
-            totalExpenses = data.summary.ownerBalances.reduce((sum, owner) => {
+            const totalExpenses = data.summary.ownerBalances.reduce((sum, owner) => {
               const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
               return sum + (monthly?.expenses || 0);
             }, 0);
             totalNetProfit = totalSales - totalExpenses;
           }
           const fairShare = totalNetProfit / numOwners;
-          const sharePercent = Math.round(100 / numOwners);
 
-          // Each owner's sales, expenses, earned profit, withdrawals, and in-hand cash
-          // Each owner's sell amount is collected directly and already with them
+          // Relevant settlements for this period
+          const relevantSettlements = (data.settlements || []).filter((s) => {
+            if (isAllTime) return true;
+            const sDate = new Date(s.date);
+            const sMonth = s.month || sDate.getMonth() + 1;
+            return sMonth === selectedMonthNum;
+          });
+
+          // Each owner's current cash held
           const ownerData = data.summary.ownerBalances.map((owner) => {
-            let sales: number;
-            let expenses: number;
             let ownProfit: number;
             let withdrawn: number;
             if (isAllTime) {
-              sales = owner.totalIncome;
-              expenses = owner.totalExpenses;
-              ownProfit = sales - expenses;
+              ownProfit = owner.totalIncome - owner.totalExpenses;
               withdrawn = owner.withdrawn;
             } else {
               const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
-              sales = monthly?.income || 0;
-              expenses = monthly?.expenses || 0;
-              ownProfit = sales - expenses;
+              ownProfit = (monthly?.income || 0) - (monthly?.expenses || 0);
               withdrawn = monthly?.withdrawn || 0;
             }
-            // Total In Hand = sales collected (already with owner) minus expenses paid plus company withdrawals
-            const totalInHand = ownProfit + withdrawn;
-            const netSettlement = totalInHand - fairShare;
-            const salesSharePercent = totalSales > 0 ? (sales / totalSales) * 100 : 0;
+
+            // Settlements paid by this owner reduce their cash held
+            const paid = relevantSettlements
+              .filter((s) => s.fromOwner === owner.name)
+              .reduce((sum, s) => sum + s.amount, 0);
+
+            // Current Cash Held
+            const currentCashHeld = Math.max(0, ownProfit + withdrawn - paid);
+            const netSettlement = currentCashHeld - fairShare;
 
             return {
               name: owner.name,
-              sales,
-              expenses,
               ownProfit,
               withdrawn,
-              totalInHand,
+              currentCashHeld,
               fairShare,
               netSettlement,
-              salesSharePercent,
             };
           });
 
@@ -1396,7 +1407,6 @@ export default function DashboardClient({
           const payers = ownerData.filter((o) => o.netSettlement > 0.01);
           const receivers = ownerData.filter((o) => o.netSettlement < -0.01);
 
-          // Build settlement transfers
           const transfers: { from: string; to: string; amount: number }[] = [];
           if (payers.length > 0 && receivers.length > 0) {
             let payerIdx = 0;
@@ -1423,442 +1433,242 @@ export default function DashboardClient({
             }
           }
 
-          const isSettled = transfers.length === 0;
+          const transferFrom = transfers.length > 0 ? transfers[0].from : "";
+          const transferTo = transfers.length > 0 ? transfers[0].to : "";
+          const calculatedAmount = transfers.length > 0 ? Math.round(transfers[0].amount) : 0;
+          const displayAmount =
+            customSettlementAmount !== ""
+              ? customSettlementAmount
+              : calculatedAmount > 0
+                ? calculatedAmount.toString()
+                : "";
+
+          const handleMakePayment = async () => {
+            if (transfers.length === 0) {
+              toast.error("No settlement needed at this time.");
+              return;
+            }
+            const amount = parseFloat(displayAmount);
+            if (!amount || amount <= 0) {
+              toast.error("Please enter a valid transfer amount.");
+              return;
+            }
+            setIsSettlementSubmitting(true);
+            try {
+              await createSettlementPayment({
+                fromOwner: transferFrom,
+                toOwner: transferTo,
+                amount,
+                paymentMethod: settlementMethod,
+                month: isAllTime ? undefined : selectedMonthNum,
+                year: new Date().getFullYear(),
+              });
+              toast.success(`Payment of ${amount.toLocaleString()} SAR from ${transferFrom} to ${transferTo} recorded!`);
+              setCustomSettlementAmount("");
+              router.refresh();
+            } catch (error: unknown) {
+              const err = error as Error;
+              toast.error(err?.message || "Failed to process settlement payment.");
+            } finally {
+              setIsSettlementSubmitting(false);
+            }
+          };
 
           return (
-            <Card className="overflow-hidden border border-border/80 shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
-              {/* Summary Header */}
-              <div className="bg-gradient-to-r from-teal-50 to-cyan-50/50 dark:from-teal-950/20 dark:to-cyan-950/10 border-b border-teal-200/60 dark:border-teal-900/30 px-4 py-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+              {/* Card 1: Settlement Summary */}
+              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs flex flex-col justify-between space-y-4">
+                <div className="space-y-4">
+                  {/* Header */}
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
-                      <Scale className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
+                      <Coins className="w-5 h-5" />
                     </div>
-                    <div>
-                      <p className="text-sm font-black uppercase tracking-wider text-teal-700 dark:text-teal-400">
-                        Settlement Summary
-                        <span className="text-xs font-bold text-teal-500 dark:text-teal-500 ml-1.5">
-                          ({isAllTime
-                            ? "All Time"
-                            : data.monthlyPerformance.find((m) => m.month === selectedMonthNum)?.monthName || "Selected"
-                          })
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span>
-                          Total Sold:{" "}
-                          <strong className="text-card-foreground">
-                            {totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR
-                          </strong>
-                        </span>
-                        <span>·</span>
-                        <span>
-                          Net Profit:{" "}
-                          <strong className="text-card-foreground">
-                            {totalNetProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR
-                          </strong>
-                        </span>
-                        <span>·</span>
-                        <span>
-                          Fair Share ({sharePercent}%):{" "}
-                          <strong className="text-card-foreground">
-                            {fairShare.toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR
-                          </strong>
-                        </span>
-                      </p>
-                    </div>
+                    <h3 className="font-black text-base md:text-lg text-[#1e0a3c] dark:text-purple-100">
+                      Settlement Summary
+                    </h3>
                   </div>
-                  <Badge
-                    className={`text-xs font-bold uppercase tracking-widest px-3 py-1 self-start sm:self-center ${
-                      isSettled
-                        ? "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
-                        : "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
-                    }`}
-                  >
-                    {isSettled ? "Settled" : "Needs Settlement"}
-                  </Badge>
-                </div>
-              </div>
 
-              {/* Owner Breakdown */}
-              <div className="p-4 space-y-4">
-                {/* Partner Sales Comparison Banner */}
-                <div className="rounded-xl border border-border/70 bg-gradient-to-r from-emerald-50/40 via-teal-50/20 to-cyan-50/40 dark:from-emerald-950/10 dark:via-teal-950/10 dark:to-cyan-950/10 p-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      Partner Sales (Sell Amount Already With Each Owner)
+                  {/* Partner Profit Share */}
+                  <div className="flex items-center justify-between py-2 border-l-[3px] border-[#3b82f6] pl-3.5 bg-card">
+                    <span className="text-sm font-bold text-[#1e0a3c] dark:text-card-foreground">
+                      Partner Profit Share (50%)
                     </span>
-                    <span className="text-xs text-muted-foreground font-semibold">
-                      Total Sales: <strong className="text-card-foreground">{totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR</strong>
+                    <span className="text-base font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
+                      {fairShare.toLocaleString(undefined, {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}{" "}
+                      SAR
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {ownerData.map((owner, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between bg-card/80 dark:bg-card/50 backdrop-blur-sm p-2.5 rounded-lg border border-border/60 shadow-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-2.5 h-2.5 rounded-full ${
-                              idx === 0 ? "bg-emerald-500" : "bg-teal-500"
-                            }`}
-                          />
-                          <span className="font-bold text-xs uppercase tracking-wide text-card-foreground">
+                  {/* Current Cash Held Box */}
+                  <div className="rounded-2xl bg-[#f8fafc] dark:bg-zinc-900/60 p-4 space-y-2.5 border border-border/40">
+                    <p className="text-xs font-bold text-muted-foreground">
+                      Current Cash Held
+                    </p>
+                    <div className="space-y-2">
+                      {ownerData.map((owner, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                          <span className="font-bold text-[#1e0a3c] dark:text-card-foreground">
                             {owner.name}
                           </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-black text-sm text-card-foreground tabular-nums">
-                            {owner.sales.toLocaleString(undefined, { minimumFractionDigits: 2 })}{" "}
-                            <span className="text-[10px] text-muted-foreground font-normal">SAR</span>
-                          </span>
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 ml-1.5 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-full">
-                            {owner.salesSharePercent.toFixed(1)}% of sales
+                          <span className="font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
+                            {owner.currentCashHeld.toLocaleString(undefined, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}{" "}
+                            SAR
                           </span>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Settlement Needed Box */}
+                {transfers.length > 0 ? (
+                  <div className="rounded-2xl bg-[#fffbeb] dark:bg-amber-950/25 border-l-[3px] border-[#f59e0b] p-4 space-y-1">
+                    <p className="text-xs font-black text-[#b45309] dark:text-amber-400">
+                      Settlement Needed
+                    </p>
+                    <p className="text-sm font-black text-[#78350f] dark:text-amber-200">
+                      {transfers[0].from} will pay {transfers[0].to}{" "}
+                      {transfers[0].amount.toLocaleString(undefined, {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}{" "}
+                      SAR.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/25 border-l-[3px] border-emerald-500 p-4 space-y-1">
+                    <p className="text-xs font-black text-emerald-800 dark:text-emerald-400">
+                      Accounts Settled
+                    </p>
+                    <p className="text-sm font-black text-emerald-950 dark:text-emerald-200">
+                      All partners hold equal cash. No settlement needed.
+                    </p>
+                  </div>
+                )}
+              </Card>
+
+              {/* Card 2: Make Settlement Payment */}
+              <Card className="rounded-2xl border border-border/70 bg-card p-5 shadow-xs flex flex-col justify-between space-y-4">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#f3e8ff] dark:bg-purple-950/60 text-[#6d28d9] dark:text-purple-300 flex items-center justify-center shadow-xs">
+                      <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                    </div>
+                    <h3 className="font-black text-base md:text-lg text-[#1e0a3c] dark:text-purple-100">
+                      Make Settlement Payment
+                    </h3>
                   </div>
 
-                  {/* Dual progress bar */}
-                  {totalSales > 0 && ownerData.length === 2 && (
-                    <div className="space-y-1">
-                      <div className="w-full h-2 rounded-full bg-border/60 overflow-hidden flex shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500"
-                          style={{ width: `${ownerData[0].salesSharePercent}%` }}
-                          title={`${ownerData[0].name}: ${ownerData[0].salesSharePercent.toFixed(1)}%`}
-                        />
-                        <div
-                          className="h-full bg-gradient-to-r from-teal-500 to-cyan-600 transition-all duration-500"
-                          style={{ width: `${ownerData[1].salesSharePercent}%` }}
-                          title={`${ownerData[1].name}: ${ownerData[1].salesSharePercent.toFixed(1)}%`}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] font-semibold text-muted-foreground px-0.5">
-                        <span>{ownerData[0].name} ({ownerData[0].salesSharePercent.toFixed(1)}%)</span>
-                        <span>{ownerData[1].name} ({ownerData[1].salesSharePercent.toFixed(1)}%)</span>
+                  {/* Form */}
+                  <div className="space-y-3">
+                    {/* Transfer From */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                        Transfer From
+                      </span>
+                      <div className="w-full bg-[#f8fafc] dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3.5 py-2 font-bold text-sm text-card-foreground">
+                        {transferFrom || "None"}
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Info Banner */}
-                <div className="flex items-start gap-2.5 rounded-xl p-3 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/20">
-                  <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                    Each owner collects customer payments directly for their own sales, so their <strong>Sell Amount is already in their hands</strong>.
-                    After subtracting expenses paid and adding withdrawals, each owner&apos;s <strong>Total In Hand</strong> is compared to the equal {sharePercent}% fair share to calculate the final cash settlement.
-                  </p>
-                </div>
-
-                {/* Owner Cards Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {ownerData.map((owner, index) => {
-                    const isOwing = owner.netSettlement > 0.01;
-                    const isReceiving = owner.netSettlement < -0.01;
-
-                    return (
-                      <div
-                        key={index}
-                        className={`relative overflow-hidden rounded-xl border p-4 space-y-3 transition-all duration-300 hover:shadow-lg ${
-                          isOwing
-                            ? "border-amber-200/70 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/30 to-card dark:from-amber-950/10"
-                            : isReceiving
-                              ? "border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/30 to-card dark:from-emerald-950/10"
-                              : "border-border/60 bg-card"
-                        }`}
-                      >
-                        {/* Owner Header */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white shadow-md">
-                              <User className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <span className="font-bold text-sm uppercase tracking-wide text-card-foreground">
-                                {owner.name}
-                              </span>
-                              <p className="text-[10px] text-muted-foreground font-semibold">
-                                Sold {owner.salesSharePercent.toFixed(1)}% of total business sales
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest ${
-                              isOwing
-                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
-                                : isReceiving
-                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
-                                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                            }`}
-                          >
-                            {isOwing
-                              ? `Owes ${Math.abs(owner.netSettlement).toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR`
-                              : isReceiving
-                                ? `Receives ${Math.abs(owner.netSettlement).toLocaleString(undefined, { minimumFractionDigits: 2 })} SAR`
-                                : "Balanced"}
-                          </span>
-                        </div>
-
-                        {/* Calculation Steps */}
-                        <div className="space-y-2">
-                          {/* 1. Total Sold (Sell Amount) */}
-                          <div className="relative overflow-hidden rounded-lg bg-emerald-50/60 dark:bg-emerald-950/15 border border-emerald-200/50 dark:border-emerald-900/30 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-emerald-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">
-                                1. Total Sold (Sales Collected)
-                              </span>
-                              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80 font-medium">
-                                Cash already with {owner.name}
-                              </span>
-                            </div>
-                            <span className="text-sm font-black text-emerald-700 dark:text-emerald-300 tabular-nums">
-                              {owner.sales.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs font-semibold text-emerald-600/70">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* 2. Expenses Paid */}
-                          <div className="relative overflow-hidden rounded-lg bg-rose-50/40 dark:bg-rose-950/10 border border-rose-200/40 dark:border-rose-900/20 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-rose-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 block">
-                                2. Business Expenses Paid
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                Deducted from sales cash
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                              −{" "}
-                              {owner.expenses.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* 3. Net from Sales */}
-                          <div className="relative overflow-hidden rounded-lg bg-purple-50/50 dark:bg-purple-950/10 border border-purple-200/40 dark:border-purple-900/20 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-semibold text-purple-700 dark:text-purple-400 block">
-                                3. Net Profit from Sales
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                Sold − Expenses
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-card-foreground tabular-nums">
-                              = {owner.ownProfit.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* 4. Withdrawn */}
-                          <div className="relative overflow-hidden rounded-lg bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/40 dark:border-amber-900/20 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 block">
-                                4. Cash Withdrawn
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                Withdrawn from company
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-card-foreground tabular-nums">
-                              + {owner.withdrawn.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* 5. Total In Hand */}
-                          <div className="relative overflow-hidden rounded-lg bg-sky-50/60 dark:bg-sky-950/15 border border-sky-200/50 dark:border-sky-900/30 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-sky-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-black text-sky-800 dark:text-sky-300 block">
-                                5. Total Cash In Hand
-                              </span>
-                              <span className="text-[10px] text-sky-700/80 dark:text-sky-400/80 font-medium">
-                                Net Profit + Withdrawn
-                              </span>
-                            </div>
-                            <span className="text-sm font-black text-sky-800 dark:text-sky-300 tabular-nums">
-                              = {owner.totalInHand.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="border-t border-dashed border-border/60 my-1" />
-
-                          {/* 6. Fair Share */}
-                          <div className="relative overflow-hidden rounded-lg bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/40 dark:border-indigo-900/20 p-2.5 flex items-center justify-between">
-                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 rounded-r-full" />
-                            <div className="pl-1">
-                              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 block">
-                                6. Fair Share ({sharePercent}%)
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                Equal share of business profit
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-card-foreground tabular-nums">
-                              {owner.fairShare.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-
-                          {/* 7. Settlement Position */}
-                          <div
-                            className={`relative overflow-hidden rounded-lg p-2.5 flex items-center justify-between border ${
-                              isOwing
-                                ? "bg-amber-50/70 dark:bg-amber-950/20 border-amber-300/60 dark:border-amber-900/40"
-                                : isReceiving
-                                  ? "bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-300/60 dark:border-emerald-900/40"
-                                  : "bg-gray-50/50 dark:bg-gray-950/10 border-gray-200/40 dark:border-gray-900/20"
-                            }`}
-                          >
-                            <div
-                              className={`absolute left-0 top-0 bottom-0 w-0.5 rounded-r-full ${
-                                isOwing
-                                  ? "bg-amber-500"
-                                  : isReceiving
-                                    ? "bg-emerald-500"
-                                    : "bg-gray-400"
-                              }`}
-                            />
-                            <div className="pl-1">
-                              <span
-                                className={`text-xs font-bold block ${
-                                  isOwing
-                                    ? "text-amber-800 dark:text-amber-300"
-                                    : isReceiving
-                                      ? "text-emerald-800 dark:text-emerald-300"
-                                      : "text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                {isOwing
-                                  ? "Excess in Hand (Owes)"
-                                  : isReceiving
-                                    ? "Shortfall (Receives)"
-                                    : "Balanced"}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground font-medium">
-                                Total In Hand − Fair Share
-                              </span>
-                            </div>
-                            <span
-                              className={`text-sm font-black tabular-nums ${
-                                isOwing
-                                  ? "text-amber-700 dark:text-amber-300"
-                                  : isReceiving
-                                    ? "text-emerald-700 dark:text-emerald-300"
-                                    : "text-muted-foreground"
-                              }`}
-                            >
-                              {isOwing ? "+" : isReceiving ? "−" : ""}
-                              {Math.abs(owner.netSettlement).toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                              })}{" "}
-                              <span className="text-xs text-muted-foreground">SAR</span>
-                            </span>
-                          </div>
-                        </div>
+                    {/* Transfer To */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                        Transfer To
+                      </span>
+                      <div className="w-full bg-[#f8fafc] dark:bg-zinc-900/60 border border-border/60 rounded-xl px-3.5 py-2 font-bold text-sm text-card-foreground">
+                        {transferTo || "None"}
                       </div>
-                    );
-                  })}
+                    </div>
+
+                    {/* Amount */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-muted-foreground whitespace-nowrap min-w-[110px]">
+                        Amount
+                      </span>
+                      <div className="relative w-full">
+                        <Input
+                          type="number"
+                          value={displayAmount}
+                          onChange={(e) => setCustomSettlementAmount(e.target.value)}
+                          placeholder="Amount"
+                          disabled={transfers.length === 0}
+                          className="bg-[#f8fafc] dark:bg-zinc-900/60 border-border/60 font-black text-sm pr-14 rounded-xl text-card-foreground"
+                        />
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">
+                          SAR
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-xs font-bold text-muted-foreground block">
+                        Payment Method
+                      </span>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setSettlementMethod("Cash")}
+                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all ${
+                            settlementMethod === "Cash"
+                              ? "bg-[#6d28d9] text-white shadow-sm"
+                              : "bg-[#f8fafc] dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
+                          }`}
+                        >
+                          <Banknote className="w-4 h-4" />
+                          Cash
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSettlementMethod("Bank Transfer")}
+                          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all ${
+                            settlementMethod === "Bank Transfer"
+                              ? "bg-[#6d28d9] text-white shadow-sm"
+                              : "bg-[#f8fafc] dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
+                          }`}
+                        >
+                          <Landmark className="w-4 h-4" />
+                          Bank Transfer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Settlement Transfers */}
-                {transfers.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Required Transfers
-                    </p>
-                    {transfers.map((transfer, idx) => (
-                      <div
-                        key={idx}
-                        className="relative overflow-hidden rounded-xl border border-teal-200/60 dark:border-teal-900/30 bg-gradient-to-r from-teal-50/50 via-cyan-50/30 to-teal-50/50 dark:from-teal-950/20 dark:via-cyan-950/10 dark:to-teal-950/20 p-4"
-                      >
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                          {/* Payer */}
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm">
-                              <User className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <span className="font-bold text-sm uppercase text-card-foreground block">
-                                {transfer.from}
-                              </span>
-                              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-                                Holds excess cash
-                              </span>
-                            </div>
-                          </div>
+                {/* Submit & Note */}
+                <div className="space-y-2.5 pt-2">
+                  <Button
+                    type="button"
+                    onClick={handleMakePayment}
+                    disabled={isSettlementSubmitting || transfers.length === 0}
+                    className="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
+                  >
+                    <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />
+                    {isSettlementSubmitting
+                      ? "Processing Payment..."
+                      : transfers.length === 0
+                        ? "Accounts Settled"
+                        : "Make Payment"}
+                  </Button>
 
-                          {/* Arrow with Amount */}
-                          <div className="flex items-center gap-2">
-                            <div className="h-px w-6 bg-teal-400 dark:bg-teal-600 hidden sm:block" />
-                            <div className="flex items-center gap-1.5 bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 px-3.5 py-1.5 rounded-full shadow-sm">
-                              <ArrowRightLeft className="w-3.5 h-3.5" />
-                              <span className="text-sm font-black tabular-nums">
-                                {transfer.amount.toLocaleString(undefined, {
-                                  minimumFractionDigits: 2,
-                                })}{" "}
-                                SAR
-                              </span>
-                            </div>
-                            <div className="h-px w-6 bg-teal-400 dark:bg-teal-600 hidden sm:block" />
-                            <ArrowRight className="w-4 h-4 text-teal-500 hidden sm:block" />
-                          </div>
-
-                          {/* Receiver */}
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-sm">
-                              <User className="w-3.5 h-3.5" />
-                            </div>
-                            <div>
-                              <span className="font-bold text-sm uppercase text-card-foreground block">
-                                {transfer.to}
-                              </span>
-                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                Receives to reach 50%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-start gap-2 rounded-xl bg-[#eff6ff] dark:bg-blue-950/25 p-3 text-xs text-[#1d4ed8] dark:text-blue-300">
+                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#3b82f6]" />
+                    <span className="leading-relaxed">
+                      After payment, the withdrawn balance and settlement record will update automatically.
+                    </span>
                   </div>
-                )}
-
-                {/* All Settled State */}
-                {isSettled && (
-                  <div className="flex items-center justify-center gap-2.5 rounded-xl p-4 bg-green-50 dark:bg-green-950/20 border border-green-200/60 dark:border-green-900/30">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <p className="text-sm font-bold text-green-700 dark:text-green-400">
-                      All owners have earned their fair share. No settlement needed.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </Card>
+                </div>
+              </Card>
+            </div>
           );
         })()}
       </div>
@@ -1867,7 +1677,7 @@ export default function DashboardClient({
       <div className="space-y-3">
         <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5 border-b border-border/40 pb-2">
           <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          5. Company Lifetime Metrics
+          4. Company Lifetime Metrics
         </h2>
         <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
           {/* Main layout: responsive grid split */}
@@ -2004,7 +1814,7 @@ export default function DashboardClient({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
           <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
             <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            6. Expense Category Details
+            5. Expense Category Details
           </h2>
           <div className="flex items-center gap-2.5">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
