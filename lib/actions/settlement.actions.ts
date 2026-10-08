@@ -2,7 +2,6 @@
 
 import { connectToDatabase } from "@/lib/database";
 import Settlement from "@/lib/database/models/settlement.model";
-import Withdrawal from "@/lib/database/models/withdrawal.model";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "./activity-log.actions";
 import { currentUser } from "@clerk/nextjs/server";
@@ -22,7 +21,7 @@ export async function createSettlementPayment(data: {
   const user = await currentUser();
   const adminEmail = user?.emailAddresses[0]?.emailAddress || "";
 
-  // 1. Create settlement record
+  // Create settlement record only — no withdrawal side-effects
   const settlement = await Settlement.create({
     fromOwner: data.fromOwner,
     toOwner: data.toOwner,
@@ -35,18 +34,10 @@ export async function createSettlementPayment(data: {
     createdAdminEmail: adminEmail,
   });
 
-  // 2. Also record withdrawal for the recipient so withdrawn balance reflects in Section 3
-  await Withdrawal.create({
-    owner: data.toOwner,
-    amount: data.amount,
-    date: new Date(),
-    description: `Settlement payment received from ${data.fromOwner} (${data.paymentMethod})`,
-  });
-
-  // 3. Log activity
+  // Log activity
   await logActivity({
     adminEmail,
-    module: "Withdrawal",
+    module: "Settlement",
     action: "Create",
     description: `Settlement Payment: ${data.fromOwner} paid ${data.toOwner} ${data.amount} SAR via ${data.paymentMethod}`,
     recordId: settlement._id,
@@ -54,7 +45,6 @@ export async function createSettlementPayment(data: {
   });
 
   revalidatePath("/");
-  revalidatePath("/withdrawals");
 
   return JSON.parse(JSON.stringify(settlement));
 }

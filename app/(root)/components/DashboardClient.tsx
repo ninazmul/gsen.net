@@ -1316,7 +1316,7 @@ export default function DashboardClient({
               3A. Cash Settlement
             </h2>
             <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
-              Equalizes cash held from sales and withdrawals between partners.
+              Equalizes net profit (sales − expenses) between partners for the selected month.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1372,32 +1372,41 @@ export default function DashboardClient({
             return sMonth === selectedMonthNum;
           });
 
-          // Each owner's current cash held
+          // Each owner's current cash held (based on net profit only — no withdrawals)
           const ownerData = data.summary.ownerBalances.map((owner) => {
-            let ownProfit: number;
-            let withdrawn: number;
+            let sales: number;
+            let expenses: number;
             if (isAllTime) {
-              ownProfit = owner.totalIncome - owner.totalExpenses;
-              withdrawn = owner.withdrawn;
+              sales = owner.totalIncome;
+              expenses = owner.totalExpenses;
             } else {
               const monthly = owner.monthlyBalances?.find((m) => m.month === selectedMonthNum);
-              ownProfit = (monthly?.income || 0) - (monthly?.expenses || 0);
-              withdrawn = monthly?.withdrawn || 0;
+              sales = monthly?.income || 0;
+              expenses = monthly?.expenses || 0;
             }
+            const netProfit = sales - expenses;
 
             // Settlements paid by this owner reduce their cash held
             const paid = relevantSettlements
               .filter((s) => s.fromOwner === owner.name)
               .reduce((sum, s) => sum + s.amount, 0);
 
-            // Current Cash Held
-            const currentCashHeld = Math.max(0, ownProfit + withdrawn - paid);
+            // Settlements received by this owner increase their cash held
+            const received = relevantSettlements
+              .filter((s) => s.toOwner === owner.name)
+              .reduce((sum, s) => sum + s.amount, 0);
+
+            // Current Cash Held = Net Profit - paid + received
+            const currentCashHeld = netProfit - paid + received;
             const netSettlement = currentCashHeld - fairShare;
 
             return {
               name: owner.name,
-              ownProfit,
-              withdrawn,
+              sales,
+              expenses,
+              netProfit,
+              paid,
+              received,
               currentCashHeld,
               fairShare,
               netSettlement,
@@ -1505,23 +1514,49 @@ export default function DashboardClient({
                   </div>
 
                   {/* Current Cash Held Box */}
-                  <div className="rounded-2xl bg-[#f8fafc] dark:bg-zinc-900/60 p-4 space-y-2.5 border border-border/40">
+                  <div className="rounded-2xl bg-[#f8fafc] dark:bg-zinc-900/60 p-4 space-y-3 border border-border/40">
                     <p className="text-xs font-bold text-muted-foreground">
                       Current Cash Held
                     </p>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {ownerData.map((owner, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-sm">
-                          <span className="font-bold text-[#1e0a3c] dark:text-card-foreground">
-                            {owner.name}
-                          </span>
-                          <span className="font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
-                            {owner.currentCashHeld.toLocaleString(undefined, {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            })}{" "}
-                            SAR
-                          </span>
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-bold text-[#1e0a3c] dark:text-card-foreground">
+                              {owner.name}
+                            </span>
+                            <span className="font-black text-[#1e0a3c] dark:text-card-foreground tabular-nums">
+                              {owner.currentCashHeld.toLocaleString(undefined, {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              })}{" "}
+                              SAR
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground pl-0.5 space-y-0.5">
+                            <p>
+                              Sales: <span className="font-semibold tabular-nums">{owner.sales.toLocaleString()}</span> SAR
+                              {" − "}
+                              Exp: <span className="font-semibold tabular-nums">{owner.expenses.toLocaleString()}</span> SAR
+                              {" = "}
+                              Net: <span className="font-bold tabular-nums">{owner.netProfit.toLocaleString()}</span> SAR
+                            </p>
+                            {(owner.paid > 0 || owner.received > 0) && (
+                              <p className="text-[10.5px]">
+                                {owner.paid > 0 && (
+                                  <span className="text-red-500 dark:text-red-400">
+                                    Paid: −{owner.paid.toLocaleString()} SAR
+                                  </span>
+                                )}
+                                {owner.paid > 0 && owner.received > 0 && " · "}
+                                {owner.received > 0 && (
+                                  <span className="text-emerald-600 dark:text-emerald-400">
+                                    Received: +{owner.received.toLocaleString()} SAR
+                                  </span>
+                                )}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
