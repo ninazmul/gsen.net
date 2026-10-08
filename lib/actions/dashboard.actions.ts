@@ -360,8 +360,8 @@ export async function getDashboardData() {
     .lean();
 
   const settlements = await Settlement.find()
-    .sort({ date: -1 })
-    .limit(20)
+    .sort({ date: -1, createdAt: -1 })
+    .limit(100)
     .lean();
 
   return {
