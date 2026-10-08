@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,7 @@ import {
   CalendarDays,
   ArrowRightLeft,
   CheckCircle2,
-  AlertCircle,
-  Copy,
-  Check,
+
   Scale,
   ArrowRight,
   Info,
@@ -1473,7 +1471,7 @@ export default function DashboardClient({
                   {ownerData.map((owner, index) => {
                     const isOwing = owner.netSettlement > 0.01;
                     const isReceiving = owner.netSettlement < -0.01;
-                    const isEven = Math.abs(owner.netSettlement) <= 0.01;
+
 
                     return (
                       <div
