@@ -81,12 +81,13 @@ export default function WithdrawalsClient({
   );
 
   // Check if the current admin is an owner (email matches a settings owner)
-  const isOwner = owners.some(
+  const currentOwner = owners.find(
     (o) =>
       o.email &&
       currentAdmin?.email &&
       o.email.trim().toLowerCase() === currentAdmin.email.trim().toLowerCase(),
   );
+  const isOwner = Boolean(currentOwner);
   const canWithdraw = hasWriteAccess && isOwner;
 
   useEffect(() => {
@@ -276,66 +277,73 @@ export default function WithdrawalsClient({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {withdrawals.map((withdrawal) => (
-              <TableRow key={withdrawal._id}>
-                <TableCell>{withdrawal.owner}</TableCell>
-                <TableCell>
-                  {withdrawal.amount.toFixed(2)}{" "}
-                  <span className="text-xs text-muted-foreground">SAR</span>
-                </TableCell>
-                <TableCell>{formatDate(withdrawal.date)}</TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {withdrawal.description}
-                </TableCell>
-                <TableCell className="flex gap-2">
-                  {canWithdraw && (
-                    <Dialog
-                      open={
-                        isEditOpen && editingWithdrawal?._id === withdrawal._id
-                      }
-                      onOpenChange={(open) => {
-                        setIsEditOpen(open);
-                        if (!open) setEditingWithdrawal(null);
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setEditingWithdrawal(withdrawal)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl bg-white dark:bg-[#0F0A19]">
-                        <DialogHeader>
-                          <DialogTitle>Edit Withdrawal</DialogTitle>
-                        </DialogHeader>
-                        <WithdrawalForm
-                          withdrawal={editingWithdrawal ?? undefined}
-                          currentAdmin={currentAdmin}
-                          onSuccess={() => {
-                            setIsEditOpen(false);
-                            setEditingWithdrawal(null);
-                            loadWithdrawals();
-                            toast.success("Withdrawal updated successfully");
-                          }}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  {canWithdraw && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(withdrawal._id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+            {withdrawals.map((withdrawal) => {
+              const canManageThis =
+                canWithdraw &&
+                (withdrawal.owner === currentOwner?.name ||
+                  currentAdmin?.role === "superadmin");
+
+              return (
+                <TableRow key={withdrawal._id}>
+                  <TableCell>{withdrawal.owner}</TableCell>
+                  <TableCell>
+                    {withdrawal.amount.toFixed(2)}{" "}
+                    <span className="text-xs text-muted-foreground">SAR</span>
+                  </TableCell>
+                  <TableCell>{formatDate(withdrawal.date)}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {withdrawal.description}
+                  </TableCell>
+                  <TableCell className="flex gap-2">
+                    {canManageThis && (
+                      <Dialog
+                        open={
+                          isEditOpen && editingWithdrawal?._id === withdrawal._id
+                        }
+                        onOpenChange={(open) => {
+                          setIsEditOpen(open);
+                          if (!open) setEditingWithdrawal(null);
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setEditingWithdrawal(withdrawal)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl bg-white dark:bg-[#0F0A19]">
+                          <DialogHeader>
+                            <DialogTitle>Edit Withdrawal</DialogTitle>
+                          </DialogHeader>
+                          <WithdrawalForm
+                            withdrawal={editingWithdrawal ?? undefined}
+                            currentAdmin={currentAdmin}
+                            onSuccess={() => {
+                              setIsEditOpen(false);
+                              setEditingWithdrawal(null);
+                              loadWithdrawals();
+                              toast.success("Withdrawal updated successfully");
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    {canManageThis && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(withdrawal._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
         {totalPages > 1 && (
