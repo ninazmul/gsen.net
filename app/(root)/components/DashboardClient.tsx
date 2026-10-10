@@ -17,7 +17,7 @@ import {
   History,
   CalendarDays,
   Info,
-  Coins,
+
   Send,
   Banknote,
   Landmark,
@@ -579,7 +579,7 @@ export default function DashboardClient({
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
                       Monthly Income
                     </p>
                     <p className="mt-0.5 text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
@@ -598,7 +598,7 @@ export default function DashboardClient({
                     <TrendingDown className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
                       Monthly Expenses
                     </p>
                     <p className="mt-0.5 text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
@@ -617,12 +617,11 @@ export default function DashboardClient({
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
                       Monthly Net Profit
                     </p>
-                    <p className={`mt-0.5 text-lg sm:text-xl font-black tracking-tight tabular-nums ${
-                      monthlyNetProfit >= 0 ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400"
-                    }`}>
+                    <p className={`mt-0.5 text-lg sm:text-xl font-black tracking-tight tabular-nums ${monthlyNetProfit >= 0 ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400"
+                      }`}>
                       {monthlyNetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
                       <span className="text-xs font-bold text-slate-400">SAR</span>
                     </p>
@@ -683,7 +682,7 @@ export default function DashboardClient({
               currentAdmin?.email &&
               ownerEmail &&
               currentAdmin.email.trim().toLowerCase() ===
-                ownerEmail.trim().toLowerCase(),
+              ownerEmail.trim().toLowerCase(),
             );
             const activeMonthName =
               data.monthlyPerformance.find((m) => m.month === selectedDailyMonth)?.monthName ||
@@ -705,7 +704,7 @@ export default function DashboardClient({
                         <span className="font-black text-base sm:text-lg uppercase tracking-wide text-slate-900 dark:text-white block">
                           {owner.name}
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
                           Partner Performance
                         </span>
                       </div>
@@ -721,10 +720,10 @@ export default function DashboardClient({
                       {/* Today Stats */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between px-1">
-                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
                             Today
                           </span>
-                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             Daily Activity
                           </span>
                         </div>
@@ -760,9 +759,8 @@ export default function DashboardClient({
                           <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                             Net Profit
                           </span>
-                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${
-                            todayNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
-                          }`}>
+                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${todayNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
+                            }`}>
                             {formatCurrency(todayNet)}
                           </span>
                         </div>
@@ -771,10 +769,10 @@ export default function DashboardClient({
                       {/* Month Stats */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between px-1">
-                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 truncate">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 truncate">
                             {activeMonthName}
                           </span>
-                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             Monthly Total
                           </span>
                         </div>
@@ -810,9 +808,8 @@ export default function DashboardClient({
                           <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                             Net Profit
                           </span>
-                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${
-                            monthNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
-                          }`}>
+                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${monthNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
+                            }`}>
                             {formatCurrency(monthNet)}
                           </span>
                         </div>
@@ -978,11 +975,10 @@ export default function DashboardClient({
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="min-w-0">
                         <Badge
-                          className={`mb-2 ${
-                            item.type === "sale"
+                          className={`mb-2 ${item.type === "sale"
                               ? "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-950/30 dark:text-green-400"
                               : "bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-400"
-                          }`}
+                            }`}
                         >
                           {item.type === "sale" ? "Sale" : "Expense"}
                         </Badge>
@@ -1003,11 +999,10 @@ export default function DashboardClient({
                         )}
                       </div>
                       <p
-                        className={`shrink-0 text-base font-black ${
-                          item.type === "sale"
+                        className={`shrink-0 text-base font-black ${item.type === "sale"
                             ? "text-green-600 dark:text-green-400"
                             : "text-rose-600 dark:text-rose-400"
-                        }`}
+                          }`}
                       >
                         {formatCurrency(item.amount)}
                       </p>
@@ -1203,21 +1198,14 @@ export default function DashboardClient({
 
             {/* Header: Title & Month Selector */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                {/* Vertical emerald accent bar */}
-                <div className="w-1.5 h-9 bg-emerald-600 dark:bg-emerald-500 rounded-full flex-shrink-0" />
-                {/* Coins icon in rounded container */}
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-400 flex-shrink-0 shadow-2xs">
-                  <Coins className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                    3. Cash Settlement
-                  </h2>
-                  <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    Partner cash position and monthly settlement
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                  <span className="w-1 h-7 bg-emerald-600 dark:bg-emerald-500 rounded-full" />
+                  3. Cash Settlement
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+                  Partner cash position and monthly settlement
+                </p>
               </div>
 
               {/* Month selector & History Button */}
@@ -1262,12 +1250,12 @@ export default function DashboardClient({
 
             {/* Compact Owner Settlement Overview */}
             <div className="space-y-1.5 sm:space-y-2">
-              <div className="flex items-center justify-between px-1">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 px-1">
                 <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   Owner Settlement Overview
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 pl-5 sm:pl-0">
                   Lifetime profit share & withdrawal status
                 </span>
               </div>
@@ -1294,17 +1282,16 @@ export default function DashboardClient({
                             <span className="font-black text-xs sm:text-sm uppercase tracking-wide text-slate-900 dark:text-white block leading-tight">
                               {owner.name}
                             </span>
-                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                               Profit Share ({sharePercent}%)
                             </span>
                           </div>
                         </div>
                         <span
-                          className={`text-[10px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase ${
-                            isOverdrawn
+                          className={`text-[10px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase ${isOverdrawn
                               ? "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
                               : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-                          }`}
+                            }`}
                         >
                           {isOverdrawn ? "Overdrawn" : "Available"}
                         </span>
@@ -1314,7 +1301,7 @@ export default function DashboardClient({
                       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-100 dark:border-zinc-800/80">
                         {/* Profit Share */}
                         <div className="bg-slate-50 dark:bg-zinc-800/40 rounded-lg p-2 text-center border border-slate-100 dark:border-zinc-800/60">
-                          <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block truncate">
+                          <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block truncate">
                             Share
                           </span>
                           <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tabular-nums block mt-0.5">
@@ -1337,9 +1324,8 @@ export default function DashboardClient({
                           <span className="text-[9.5px] sm:text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block truncate">
                             Available
                           </span>
-                          <span className={`text-xs sm:text-sm font-black tabular-nums block mt-0.5 ${
-                            remainingDue > 0 ? "text-emerald-800 dark:text-emerald-300" : "text-slate-400 dark:text-slate-500"
-                          }`}>
+                          <span className={`text-xs sm:text-sm font-black tabular-nums block mt-0.5 ${remainingDue > 0 ? "text-emerald-800 dark:text-emerald-300" : "text-slate-500 dark:text-slate-400"
+                            }`}>
                             {remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })} <span className="text-[9px] text-emerald-600/70 font-semibold">SAR</span>
                           </span>
                         </div>
@@ -1639,11 +1625,10 @@ export default function DashboardClient({
                       <button
                         type="button"
                         onClick={() => setSettlementMethod("Cash")}
-                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${
-                          settlementMethod === "Cash"
+                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${settlementMethod === "Cash"
                             ? "bg-teal-700 text-white shadow-sm"
                             : "bg-muted/50 dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
-                        }`}
+                          }`}
                       >
                         <Banknote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Cash
@@ -1651,11 +1636,10 @@ export default function DashboardClient({
                       <button
                         type="button"
                         onClick={() => setSettlementMethod("Bank Transfer")}
-                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${
-                          settlementMethod === "Bank Transfer"
+                        className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${settlementMethod === "Bank Transfer"
                             ? "bg-teal-700 text-white shadow-sm"
                             : "bg-muted/50 dark:bg-zinc-900/60 hover:bg-muted text-card-foreground border border-border/60"
-                        }`}
+                          }`}
                       >
                         <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Bank Transfer
@@ -1663,19 +1647,19 @@ export default function DashboardClient({
                     </div>
                   </div>
 
-                    {/* Note Field */}
-                    <div className="space-y-1.5 pt-1">
-                      <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground block">
-                        Note
-                      </span>
-                      <Input
-                        type="text"
-                        value={settlementNote}
-                        onChange={(e) => setSettlementNote(e.target.value)}
-                        placeholder="Add a note or reference (optional)..."
-                        className="bg-muted/50 dark:bg-zinc-900/60 border-border/60 font-medium text-xs sm:text-sm rounded-lg text-card-foreground h-9 sm:h-10"
-                      />
-                    </div>
+                  {/* Note Field */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground block">
+                      Note
+                    </span>
+                    <Input
+                      type="text"
+                      value={settlementNote}
+                      onChange={(e) => setSettlementNote(e.target.value)}
+                      placeholder="Add a note or reference (optional)..."
+                      className="bg-muted/50 dark:bg-zinc-900/60 border-border/60 font-medium text-xs sm:text-sm rounded-lg text-card-foreground h-9 sm:h-10"
+                    />
+                  </div>
 
                   {/* Submit & Note */}
                   <div className="space-y-2 pt-1.5 sm:pt-2">
@@ -1727,11 +1711,10 @@ export default function DashboardClient({
                     <button
                       type="button"
                       onClick={() => setSettlementHistoryFilter("selected")}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                        settlementHistoryFilter === "selected"
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${settlementHistoryFilter === "selected"
                           ? "bg-teal-700 text-white shadow-xs"
                           : "bg-white/80 dark:bg-zinc-800 text-muted-foreground hover:text-card-foreground border border-border/60"
-                      }`}
+                        }`}
                     >
                       {isAllTime
                         ? "All Time View"
@@ -1740,11 +1723,10 @@ export default function DashboardClient({
                     <button
                       type="button"
                       onClick={() => setSettlementHistoryFilter("all")}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                        settlementHistoryFilter === "all"
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${settlementHistoryFilter === "all"
                           ? "bg-teal-700 text-white shadow-xs"
                           : "bg-white/80 dark:bg-zinc-800 text-muted-foreground hover:text-card-foreground border border-border/60"
-                      }`}
+                        }`}
                     >
                       All Records ({(data.settlements || []).length})
                     </button>
@@ -1799,12 +1781,12 @@ export default function DashboardClient({
                             const dateObj = new Date(s.date);
                             const formattedDate = !isNaN(dateObj.getTime())
                               ? dateObj.toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
                               : "N/A";
 
                             return (
@@ -1972,7 +1954,7 @@ export default function DashboardClient({
                       {stat.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
                         {stat.label}
                       </p>
                       {stat.sublabel && (
@@ -2097,7 +2079,7 @@ export default function DashboardClient({
             {/* Category list */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
                   Category Breakdown
                 </span>
                 <span className="text-[11px] font-bold text-slate-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full">
@@ -2150,7 +2132,7 @@ export default function DashboardClient({
                     });
                 })()}
                 {expenseBreakdown.length === 0 && (
-                  <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                     No expense data available
                   </div>
                 )}
