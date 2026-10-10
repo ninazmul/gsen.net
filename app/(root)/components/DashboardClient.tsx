@@ -1040,10 +1040,6 @@ export default function DashboardClient({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {(() => {
-            const totalBalance = data.summary.ownerBalances.reduce(
-              (s, o) => s + o.balance,
-              0,
-            );
             const totalNetProfit = data.summary.netProfit;
             const numOwners = data.summary.ownerBalances.length || 1;
             const equalShare = totalNetProfit / numOwners;
@@ -1052,9 +1048,7 @@ export default function DashboardClient({
               const alreadyTaken = owner.withdrawn;
               const profitShare = equalShare;
               const remainingDue = Math.max(0, profitShare - alreadyTaken);
-              const overdrawAmount = Math.max(0, alreadyTaken - profitShare);
               const isOverdrawn = alreadyTaken > profitShare;
-              const totalBizBalance = totalBalance;
               const sharePercent = numOwners > 0 ? Math.round(100 / numOwners) : 0;
 
               const statRows = [
@@ -1078,13 +1072,6 @@ export default function DashboardClient({
                   label: "Available",
                   value: remainingDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                   valueColor: remainingDue > 0 ? "text-green-600 dark:text-green-400" : "text-slate-400 dark:text-slate-500",
-                },
-                {
-                  icon: <TrendingDown className="w-4 h-4" />,
-                  iconBg: "bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400",
-                  label: "Overdrawn",
-                  value: overdrawAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                  valueColor: overdrawAmount > 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-400 dark:text-slate-500",
                 },
               ];
 
@@ -1133,56 +1120,6 @@ export default function DashboardClient({
                         </span>
                       </div>
                     ))}
-                  </div>
-
-                  {/* Status banner */}
-                  <div className="px-3 sm:px-4 pb-3 sm:pb-4">
-                    <div
-                      className={`flex items-center gap-3 p-3 rounded-lg ${
-                        isOverdrawn
-                          ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40"
-                          : "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/40"
-                      }`}
-                    >
-                      <div className={`w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center ${
-                        isOverdrawn
-                          ? "bg-rose-500 text-white"
-                          : "bg-emerald-500 text-white"
-                      }`}>
-                        {isOverdrawn ? (
-                          <span className="text-xs font-black leading-none">!</span>
-                        ) : (
-                          <svg viewBox="0 0 12 12" className="w-3.5 h-3.5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M10 3L5 8.5 2 5.5" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className={`text-sm font-bold leading-tight ${
-                          isOverdrawn ? "text-rose-700 dark:text-rose-400" : "text-emerald-800 dark:text-emerald-300"
-                        }`}>
-                          {isOverdrawn
-                            ? "You are overdrawn."
-                            : `You can withdraw up to ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })} SAR.`}
-                        </p>
-                        <p className={`text-xs mt-0.5 ${
-                          isOverdrawn ? "text-rose-500 dark:text-rose-500" : "text-emerald-600 dark:text-emerald-500"
-                        }`}>
-                          {isOverdrawn
-                            ? "Company will recover this amount from future profits."
-                            : "based on your profit share."}
-                        </p>
-                      </div>
-                    </div>
-
-                    {!isOverdrawn && totalBizBalance > 0 && (
-                      <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 text-right">
-                        Total balance:{" "}
-                        <span className="font-semibold text-slate-600 dark:text-slate-300">
-                          {totalBizBalance.toLocaleString(undefined, { minimumFractionDigits: 0 })} SAR
-                        </span>
-                      </p>
-                    )}
                   </div>
                 </div>
               );
