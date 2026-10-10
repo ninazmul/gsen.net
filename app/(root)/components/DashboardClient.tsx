@@ -636,27 +636,28 @@ export default function DashboardClient({
         })()}
       </div>
 
-      {/* Daily & Monthly Partner Performance */}
-      <div className="space-y-3 rounded-2xl border border-[#8B5CF6]/20 p-4 shadow-xl shadow-[#8B5CF6]/10 dark:from-[#8B5CF6]/15 dark:via-card dark:to-background sm:p-4">
-        <div className="flex flex-col gap-2.5 border-b border-[#8B5CF6]/20 pb-5 sm:flex-row sm:items-center sm:justify-between">
+      {/* 2. Daily & Monthly Partner Performance */}
+      <div className="rounded-xl border border-purple-200/60 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/70 to-white dark:from-purple-950/20 dark:to-background p-4 sm:p-5 shadow-sm">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
           <div>
-            <h2 className="flex items-center gap-2.5 text-xl font-black tracking-tight text-purple-950 dark:text-purple-300 md:text-2xl">
-              <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <span className="w-1 h-7 bg-purple-600 dark:bg-purple-500 rounded-full" />
               2. Daily & Monthly Partner Performance
             </h2>
-            <p className="hidden lg:block mt-0.5 text-sm font-medium text-muted-foreground">
-              Combined and partner-level sales, expenses, and net performance.
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+              Partner-level daily and monthly sales, expenses, and net profit
             </p>
           </div>
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Select Month
+          <div className="flex items-center gap-2 pl-3.5 sm:pl-0">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              SELECT MONTH:
             </span>
             <Select
               value={selectedDailyMonth.toString()}
               onValueChange={(val) => setSelectedDailyMonth(parseInt(val))}
             >
-              <SelectTrigger className="w-full border-[#8B5CF6]/30 bg-card text-card-foreground shadow-sm sm:w-[180px]">
+              <SelectTrigger className="w-[145px] sm:w-[165px] bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 font-semibold text-sm rounded-lg shadow-xs h-9">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -670,7 +671,7 @@ export default function DashboardClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2">
           {data.summary.ownerBalances.map((owner, index) => {
             const monthly = owner.monthlyBalances?.find(
               (m) => m.month === selectedDailyMonth,
@@ -686,218 +687,175 @@ export default function DashboardClient({
               currentAdmin.email.trim().toLowerCase() ===
                 ownerEmail.trim().toLowerCase(),
             );
+            const activeMonthName =
+              data.monthlyPerformance.find((m) => m.month === selectedDailyMonth)?.monthName ||
+              selectedPerformanceMonth;
 
             return (
-              <Card
+              <div
                 key={`${owner.name}-${index}`}
-                className="overflow-hidden border border-[#8B5CF6]/35 bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[#8B5CF6]/40 hover:shadow-2xl"
+                className="bg-white dark:bg-zinc-900/80 rounded-xl border border-slate-200/70 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between gap-2.5 border-b border-border/70 bg-gradient-to-r from-[#8B5CF6]/35 to-transparent px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#8B5CF6] text-white shadow-md">
-                      <Users className="h-5 w-5" />
+                <div>
+                  {/* Partner Header Row */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/40 dark:bg-zinc-800/20">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#3e0078] to-[#7c3aed] flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="font-black text-base sm:text-lg uppercase tracking-wide text-slate-900 dark:text-white block">
+                          {owner.name}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                          Partner Performance
+                        </span>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-black uppercase tracking-wide text-card-foreground">
-                        {owner.name}
-                      </p>
-                      <p className="text-xs font-semibold text-muted-foreground">
-                        Partner performance
-                      </p>
+                    <span className="text-[11px] font-black px-3 py-1 rounded-full tracking-widest uppercase bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                      {activeMonthName}
+                    </span>
+                  </div>
+
+                  {/* Partner Stats Body */}
+                  <div className="p-3.5 sm:p-4 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                      {/* Today Stats */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                            Today
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                            Daily Activity
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            Sales
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {formatCurrency(owner.todayIncome)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-rose-50/70 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
+                            <TrendingDown className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            Expenses
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm tabular-nums text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                            {formatCurrency(owner.todayExpenses)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-purple-50/70 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
+                            <DollarSign className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            Net Profit
+                          </span>
+                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${
+                            todayNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
+                          }`}>
+                            {formatCurrency(todayNet)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Month Stats */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 truncate">
+                            {activeMonthName}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                            Monthly Total
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            Sales
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {formatCurrency(monthSales)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-rose-50/70 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
+                            <TrendingDown className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+                            Expenses
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm tabular-nums text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                            {formatCurrency(monthExpenses)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-purple-50/70 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                          <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
+                            <DollarSign className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            Net Profit
+                          </span>
+                          <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${
+                            monthNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
+                          }`}>
+                            {formatCurrency(monthNet)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <Badge className="border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/10">
-                    {selectedPerformanceMonth}
-                  </Badge>
                 </div>
 
-                <div className="space-y-3 p-4">
-                  <div>
-                    <p className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Today
-                    </p>
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                      <div className="rounded-xl border border-green-200/60 bg-green-50/70 p-2.5 dark:border-green-900/30 dark:bg-green-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Sales
-                        </p>
-                        <p className="mt-0.5 text-base font-black text-green-600 dark:text-green-400">
-                          {formatCurrency(owner.todayIncome)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-rose-200/60 bg-rose-50/70 p-2.5 dark:border-rose-900/30 dark:bg-rose-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Expenses
-                        </p>
-                        <p className="mt-0.5 text-base font-black text-rose-600 dark:text-rose-400">
-                          {formatCurrency(owner.todayExpenses)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-purple-200/60 bg-purple-50/70 p-2.5 dark:border-purple-900/30 dark:bg-purple-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Net
-                        </p>
-                        <p
-                          className={`mt-0.5 text-base font-black ${
-                            todayNet >= 0
-                              ? "text-[#8B5CF6]"
-                              : "text-rose-600 dark:text-rose-400"
-                          }`}
-                        >
-                          {formatCurrency(todayNet)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-3 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      This Month
-                    </p>
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                      <div className="rounded-xl border border-green-200/60 bg-green-50/70 p-2.5 dark:border-green-900/30 dark:bg-green-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Sales
-                        </p>
-                        <p className="mt-0.5 text-base font-black text-green-600 dark:text-green-400">
-                          {formatCurrency(monthSales)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-rose-200/60 bg-rose-50/70 p-2.5 dark:border-rose-900/30 dark:bg-rose-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Expenses
-                        </p>
-                        <p className="mt-0.5 text-base font-black text-rose-600 dark:text-rose-400">
-                          {formatCurrency(monthExpenses)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-purple-200/60 bg-purple-50/70 p-2.5 dark:border-purple-900/30 dark:bg-purple-950/20">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Net
-                        </p>
-                        <p
-                          className={`mt-0.5 text-base font-black ${
-                            monthNet >= 0
-                              ? "text-[#8B5CF6]"
-                              : "text-rose-600 dark:text-rose-400"
-                          }`}
-                        >
-                          {formatCurrency(monthNet)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2.5 border-t border-border/70 bg-muted/20 p-4 sm:grid-cols-3">
+                {/* Card Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 sm:p-4 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30">
                   <Button
                     type="button"
                     onClick={() => openEntryModal("sale", owner.name)}
                     disabled={!canManageOwner}
-                    className="h-10 rounded-xl bg-[#22C55E] font-bold text-white shadow-lg shadow-green-500/20 hover:bg-[#16A34A] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                    className="h-9 sm:h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-1.5" />
                     Add Sale
                   </Button>
                   <Button
                     type="button"
                     onClick={() => openEntryModal("expense", owner.name)}
                     disabled={!canManageOwner}
-                    className="h-10 rounded-xl bg-[#F43F5E] font-bold text-white shadow-lg shadow-rose-500/20 hover:bg-[#E11D48] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                    className="h-9 sm:h-10 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm shadow-xs disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <ReceiptText className="h-4 w-4" />
+                    <ReceiptText className="h-4 w-4 mr-1.5" />
                     Add Expense
                   </Button>
                   <Button
                     type="button"
                     onClick={() => openHistorySheet(owner.name)}
-                    className="h-10 rounded-xl bg-[#3B82F6] font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-[#2563EB] hover:shadow-xl"
+                    className="h-9 sm:h-10 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs"
                   >
-                    <History className="h-4 w-4" />
+                    <History className="h-4 w-4 mr-1.5" />
                     View History
                   </Button>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
-
-        {/* <Card className="overflow-hidden border-[#8B5CF6]/25 bg-card/95 shadow-lg">
-          <div className="border-b border-border/60 bg-[#8B5CF6]/10 px-4 py-3 dark:bg-[#8B5CF6]/15">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#8B5CF6] text-white shadow-md">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Combined Business Summary
-                </p>
-                <h3 className="text-lg font-black text-card-foreground">
-                  Today and {selectedPerformanceMonth}
-                </h3>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-2.5 p-4 lg:grid-cols-2">
-            {[
-              {
-                label: "Today",
-                sales: combinedPartnerSummary.todaySales,
-                expenses: combinedPartnerSummary.todayExpenses,
-              },
-              {
-                label: selectedPerformanceMonth,
-                sales: combinedPartnerSummary.monthSales,
-                expenses: combinedPartnerSummary.monthExpenses,
-              },
-            ].map((summary) => {
-              const net = summary.sales - summary.expenses;
-
-              return (
-                <div
-                  key={summary.label}
-                  className="rounded-xl border border-border/70 bg-background/70 p-4 shadow-sm dark:bg-background/30"
-                >
-                  <p className="mb-4 text-sm font-black uppercase tracking-wider text-[#8B5CF6]">
-                    {summary.label}
-                  </p>
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                    <div className="rounded-xl border border-green-200/70 bg-green-50/70 p-2.5 dark:border-green-900/30 dark:bg-green-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Sales
-                      </p>
-                      <p className="mt-0.5 text-xl font-black text-green-600 dark:text-green-400">
-                        {formatCurrency(summary.sales)}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-rose-200/70 bg-rose-50/70 p-2.5 dark:border-rose-900/30 dark:bg-rose-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Expenses
-                      </p>
-                      <p className="mt-0.5 text-xl font-black text-rose-600 dark:text-rose-400">
-                        {formatCurrency(summary.expenses)}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-purple-200/70 bg-purple-50/70 p-2.5 dark:border-purple-900/30 dark:bg-purple-950/20">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Net
-                      </p>
-                      <p
-                        className={`mt-0.5 text-xl font-black ${
-                          net >= 0
-                            ? "text-[#8B5CF6]"
-                            : "text-rose-600 dark:text-rose-400"
-                        }`}
-                      >
-                        {formatCurrency(net)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card> */}
       </div>
 
       <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
