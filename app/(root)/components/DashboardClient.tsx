@@ -524,136 +524,117 @@ export default function DashboardClient({
 
   return (
     <div className="py-4 px-3 sm:px-4 lg:px-5 max-w-8xl mx-auto flex flex-col gap-4 bg-background min-h-screen">
-      {/* Monthly Business Summary */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
-        <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
-          <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          1. Monthly Business Summary
-        </h2>
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Select Month:
-          </span>
-          <Select
-            value={selectedMonth.toString()}
-            onValueChange={(val) => setSelectedMonth(parseInt(val))}
-          >
-            <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent>
-              {data.monthlyPerformance.map((item) => (
-                <SelectItem key={item.month} value={item.month.toString()}>
-                  {item.monthName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      {(() => {
-        const monthData = data.monthlyPerformance.find(
-          (m) => m.month === selectedMonth,
-        );
-        const monthlyIncome = monthData
-          ? monthData.income
-          : data.summary.currentMonthIncome || 0;
-        const monthlyExpenses = monthData
-          ? monthData.expenses
-          : data.summary.currentMonthExpenses || 0;
-        const monthlyNetProfit = monthlyIncome - monthlyExpenses;
-
-        return (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Monthly Income */}
-            <div className="group relative overflow-hidden rounded-xl border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-              <div className="absolute left-0 top-0 h-full w-1 bg-green-500" />
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600 transition-all duration-300 group-hover:bg-green-500 group-hover:text-white dark:bg-green-900/40">
-                  <TrendingUp className="h-6 w-6" />
-                </div>
-
-                <div className="flex-1">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Monthly Income
-                  </p>
-
-                  <h2 className="mt-0.5 md:text-xl lg:text-2xl font-black tracking-tight">
-                    {monthlyIncome.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">
-                      SAR
-                    </span>
-                  </h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Monthly Expenses */}
-            <div className="group relative overflow-hidden rounded-xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-              <div className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white dark:bg-rose-900/40">
-                  <TrendingDown className="h-6 w-6" />
-                </div>
-
-                <div className="flex-1">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Monthly Expenses
-                  </p>
-
-                  <h2 className="mt-0.5 md:text-xl lg:text-2xl font-black tracking-tight">
-                    {monthlyExpenses.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">
-                      SAR
-                    </span>
-                  </h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Monthly Net Profit */}
-            <div className="group relative overflow-hidden rounded-xl border border-purple-200/60 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-              <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-[#0F0A19]/40">
-                  <DollarSign className="h-6 w-6" />
-                </div>
-
-                <div className="flex-1">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Monthly Net Profit
-                  </p>
-
-                  <h2
-                    className={`mt-0.5 md:text-xl lg:text-2xl font-black tracking-tight ${
-                      monthlyNetProfit >= 0
-                        ? "text-card-foreground"
-                        : "text-rose-600 dark:text-rose-400"
-                    }`}
-                  >
-                    {monthlyNetProfit.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    <span className="text-xs lg:text-lg text-muted-foreground">
-                      SAR
-                    </span>
-                  </h2>
-                </div>
-              </div>
-            </div>
+      {/* 1. Monthly Business Summary */}
+      <div className="rounded-xl border border-purple-200/60 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/70 to-white dark:from-purple-950/20 dark:to-background p-4 sm:p-5 shadow-sm">
+        {/* Section header */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <span className="w-1 h-7 bg-purple-600 dark:bg-purple-500 rounded-full" />
+              1. Monthly Business Summary
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+              Key financial overview for the selected month
+            </p>
           </div>
-        );
-      })()}
+          <div className="flex items-center gap-2 pl-3.5 sm:pl-0">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              SELECT MONTH:
+            </span>
+            <Select
+              value={selectedMonth.toString()}
+              onValueChange={(val) => setSelectedMonth(parseInt(val))}
+            >
+              <SelectTrigger className="w-[145px] sm:w-[165px] bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 font-semibold text-sm rounded-lg shadow-xs h-9">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {data.monthlyPerformance.map((item) => (
+                  <SelectItem key={item.month} value={item.month.toString()}>
+                    {item.monthName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {(() => {
+          const monthData = data.monthlyPerformance.find(
+            (m) => m.month === selectedMonth,
+          );
+          const monthlyIncome = monthData
+            ? monthData.income
+            : data.summary.currentMonthIncome || 0;
+          const monthlyExpenses = monthData
+            ? monthData.expenses
+            : data.summary.currentMonthExpenses || 0;
+          const monthlyNetProfit = monthlyIncome - monthlyExpenses;
+
+          return (
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Monthly Income */}
+              <div className="relative overflow-hidden rounded-xl bg-white dark:bg-zinc-900/80 border border-green-200/70 dark:border-green-900/30 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all duration-200">
+                <div className="absolute left-0 top-0 h-full w-1 bg-green-500 rounded-r-sm" />
+                <div className="flex items-center gap-3 pl-1">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-400">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      Monthly Income
+                    </p>
+                    <p className="mt-0.5 text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+                      {monthlyIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                      <span className="text-xs font-bold text-slate-400">SAR</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Expenses */}
+              <div className="relative overflow-hidden rounded-xl bg-white dark:bg-zinc-900/80 border border-rose-200/70 dark:border-rose-900/30 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all duration-200">
+                <div className="absolute left-0 top-0 h-full w-1 bg-rose-500 rounded-r-sm" />
+                <div className="flex items-center gap-3 pl-1">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                    <TrendingDown className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      Monthly Expenses
+                    </p>
+                    <p className="mt-0.5 text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+                      {monthlyExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                      <span className="text-xs font-bold text-slate-400">SAR</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Net Profit */}
+              <div className="relative overflow-hidden rounded-xl bg-white dark:bg-zinc-900/80 border border-purple-200/70 dark:border-purple-900/30 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all duration-200">
+                <div className="absolute left-0 top-0 h-full w-1 bg-purple-500 rounded-r-sm" />
+                <div className="flex items-center gap-3 pl-1">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                      Monthly Net Profit
+                    </p>
+                    <p className={`mt-0.5 text-lg sm:text-xl font-black tracking-tight tabular-nums ${
+                      monthlyNetProfit >= 0 ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400"
+                    }`}>
+                      {monthlyNetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                      <span className="text-xs font-bold text-slate-400">SAR</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
 
       {/* Daily & Monthly Partner Performance */}
       <div className="space-y-3 rounded-2xl border border-[#8B5CF6]/20 p-4 shadow-xl shadow-[#8B5CF6]/10 dark:from-[#8B5CF6]/15 dark:via-card dark:to-background sm:p-4">
@@ -1088,18 +1069,20 @@ export default function DashboardClient({
         </SheetContent>
       </Sheet>
 
-      {/* Partner Settlement Overview */}
-      <div className="space-y-3">
-        <div className="border-b border-border/40 pb-2">
-          <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
-            <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
+      {/* 3. Owner Settlement Overview */}
+      <div className="rounded-xl border border-purple-200/60 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/70 to-white dark:from-purple-950/20 dark:to-background p-4 sm:p-5 shadow-sm">
+        {/* Section Header */}
+        <div className="mb-4">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <span className="w-1 h-7 bg-purple-600 dark:bg-purple-500 rounded-full" />
             3. Owner Settlement Overview
           </h2>
-          <p className="hidden lg:block text-sm text-muted-foreground mt-0.5 pl-4">
-            Profit share and withdrawal status at a glance.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+            Current partner balance and withdrawal status
           </p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {(() => {
             const totalBalance = data.summary.ownerBalances.reduce(
               (s, o) => s + o.balance,
@@ -1112,188 +1095,123 @@ export default function DashboardClient({
             return data.summary.ownerBalances.map((owner, index) => {
               const alreadyTaken = owner.withdrawn;
               const profitShare = equalShare;
-              // Remaining the owner can still take from their share
               const remainingDue = Math.max(0, profitShare - alreadyTaken);
-              // How much they've gone over their share
               const overdrawAmount = Math.max(0, alreadyTaken - profitShare);
               const isOverdrawn = alreadyTaken > profitShare;
               const totalBizBalance = totalBalance;
+              const sharePercent = numOwners > 0 ? Math.round(100 / numOwners) : 0;
 
-              const sharePercent =
-                numOwners > 0 ? Math.round(100 / numOwners) : 0;
+              const statRows = [
+                {
+                  icon: <DollarSign className="w-4 h-4" />,
+                  iconBg: "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400",
+                  label: `Profit Share (${sharePercent}%)`,
+                  value: profitShare.toLocaleString(undefined, { minimumFractionDigits: 0 }),
+                  valueColor: "text-slate-900 dark:text-white",
+                },
+                {
+                  icon: <Wallet className="w-4 h-4" />,
+                  iconBg: "bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400",
+                  label: "Withdrawn",
+                  value: alreadyTaken.toLocaleString(undefined, { minimumFractionDigits: 0 }),
+                  valueColor: "text-slate-900 dark:text-white",
+                },
+                {
+                  icon: <TrendingUp className="w-4 h-4" />,
+                  iconBg: "bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-400",
+                  label: "Available",
+                  value: remainingDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  valueColor: remainingDue > 0 ? "text-green-600 dark:text-green-400" : "text-slate-400 dark:text-slate-500",
+                },
+                {
+                  icon: <TrendingDown className="w-4 h-4" />,
+                  iconBg: "bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400",
+                  label: "Overdrawn",
+                  value: overdrawAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  valueColor: overdrawAmount > 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-400 dark:text-slate-500",
+                },
+              ];
 
               return (
-                <Card
+                <div
                   key={index}
-                  className={`overflow-hidden border shadow-md bg-gradient-to-br from-card to-card/95 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group ${
-                    isOverdrawn
-                      ? "border-rose-300/60 dark:border-rose-900/40"
-                      : "border-border/80"
-                  }`}
+                  className="bg-white dark:bg-zinc-900/80 rounded-xl border border-slate-200/70 dark:border-zinc-800 shadow-xs overflow-hidden"
                 >
-                  {/* Owner Header */}
-                  <div
-                    className={`px-4 py-3 flex items-center justify-between border-b ${
-                      isOverdrawn
-                        ? "bg-gradient-to-r from-rose-50 to-rose-100/50 dark:from-rose-950/20 dark:to-rose-900/10 border-rose-200/60 dark:border-rose-900/30"
-                        : "bg-gradient-to-r from-purple-50 to-violet-100/50 dark:from-purple-950/20 dark:to-violet-900/10 border-purple-200/60 dark:border-purple-900/30"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3e0078] to-[#6d28d9] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
-                        <User />
+                  {/* Owner header row */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-zinc-800">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#3e0078] to-[#7c3aed] flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                        <User className="w-5 h-5" />
                       </div>
-                      <span className="font-bold text-base uppercase tracking-wide text-card-foreground">
+                      <span className="font-black text-base sm:text-lg uppercase tracking-wide text-slate-900 dark:text-white">
                         {owner.name}
                       </span>
                     </div>
                     <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full tracking-widest uppercase ${
+                      className={`text-[11px] font-black px-3 py-1 rounded-full tracking-widest uppercase ${
                         isOverdrawn
-                          ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
-                          : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
+                          ? "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                       }`}
                     >
                       {isOverdrawn ? "Overdrawn" : "Available"}
                     </span>
                   </div>
 
-                  {/* Settlement Stats */}
-                  <div className="p-4 space-y-3">
-                    {/* Profit Share */}
-                    <div className="relative overflow-hidden rounded-xl bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/50 dark:border-indigo-900/20 p-2.5 flex items-center justify-between">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-r-full" />
-                      <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">
-                        Profit Share ({sharePercent}%)
-                      </span>
-                      <span className="text-base font-bold text-card-foreground tabular-nums">
-                        {profitShare.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
-                        </span>
-                      </span>
-                    </div>
-
-                    {/* Already Taken */}
-                    <div className="relative overflow-hidden rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-900/20 p-2.5 flex items-center justify-between">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 dark:bg-amber-400 rounded-r-full" />
-                      <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-                        Withdrawn
-                      </span>
-                      <span className="text-base font-bold text-card-foreground tabular-nums">
-                        {alreadyTaken.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
-                        </span>
-                      </span>
-                    </div>
-
-                    {/* Remaining Due */}
-                    <div className="relative overflow-hidden rounded-xl bg-green-50/50 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/20 p-2.5 flex items-center justify-between">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 dark:bg-green-400 rounded-r-full" />
-                      <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                        Available
-                      </span>
-                      <span
-                        className={`text-base font-bold tabular-nums ${
-                          remainingDue > 0
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-muted-foreground"
-                        }`}
+                  {/* Stat rows */}
+                  <div className="p-3 sm:p-4 space-y-2">
+                    {statRows.map((row, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-50/80 dark:bg-zinc-800/60 border border-slate-100/80 dark:border-zinc-700/50"
                       >
-                        {remainingDue.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
+                        <div className={`w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center ${row.iconBg}`}>
+                          {row.icon}
+                        </div>
+                        <span className="flex-1 text-sm font-medium text-slate-600 dark:text-slate-300 truncate">
+                          {row.label}
                         </span>
-                      </span>
-                    </div>
-
-                    {/* Overdrawn / Due to Company */}
-                    <div className="relative overflow-hidden rounded-xl bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/50 dark:border-rose-900/20 p-2.5 flex items-center justify-between">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-rose-500 dark:bg-rose-400 rounded-r-full" />
-                      <span className="text-sm font-semibold text-rose-700 dark:text-rose-400">
-                        Overdrawn
-                      </span>
-                      <span
-                        className={`text-base font-bold tabular-nums ${
-                          overdrawAmount > 0
-                            ? "text-rose-600 dark:text-rose-400"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {overdrawAmount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
+                        <span className={`font-bold text-sm sm:text-base tabular-nums whitespace-nowrap ${row.valueColor}`}>
+                          {row.value}{" "}
+                          <span className="text-xs font-semibold text-slate-400">SAR</span>
                         </span>
-                      </span>
-                    </div>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Status Message */}
-                  <div className="px-5 pb-5">
+                  {/* Status banner */}
+                  <div className="px-3 sm:px-4 pb-3 sm:pb-4">
                     <div
-                      className={`flex items-start gap-2.5 rounded-xl p-2.5 ${
+                      className={`flex items-center gap-3 p-3 rounded-lg ${
                         isOverdrawn
-                          ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900"
-                          : "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"
+                          ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40"
+                          : "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/40"
                       }`}
                     >
-                      <div
-                        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 ${
-                          isOverdrawn
-                            ? "border-rose-500 text-rose-500"
-                            : "border-green-500 text-green-500"
-                        }`}
-                      >
+                      <div className={`w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center ${
+                        isOverdrawn
+                          ? "bg-rose-500 text-white"
+                          : "bg-emerald-500 text-white"
+                      }`}>
                         {isOverdrawn ? (
-                          <span className="text-xs font-black leading-none">
-                            !
-                          </span>
+                          <span className="text-xs font-black leading-none">!</span>
                         ) : (
-                          <svg
-                            viewBox="0 0 12 12"
-                            className="w-3 h-3 fill-current"
-                          >
-                            <path
-                              d="M10 3L5 8.5 2 5.5"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              fill="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
+                          <svg viewBox="0 0 12 12" className="w-3.5 h-3.5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 3L5 8.5 2 5.5" />
                           </svg>
                         )}
                       </div>
-                      <div>
-                        <p
-                          className={`text-sm font-bold ${
-                            isOverdrawn
-                              ? "text-rose-600 dark:text-rose-400"
-                              : "text-green-700 dark:text-green-400"
-                          }`}
-                        >
+                      <div className="min-w-0">
+                        <p className={`text-sm font-bold leading-tight ${
+                          isOverdrawn ? "text-rose-700 dark:text-rose-400" : "text-emerald-800 dark:text-emerald-300"
+                        }`}>
                           {isOverdrawn
                             ? "You are overdrawn."
                             : `You can withdraw up to ${remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })} SAR.`}
                         </p>
-                        <p
-                          className={`text-xs mt-0.5 ${
-                            isOverdrawn
-                              ? "text-rose-500 dark:text-rose-500"
-                              : "text-green-600 dark:text-green-500"
-                          }`}
-                        >
+                        <p className={`text-xs mt-0.5 ${
+                          isOverdrawn ? "text-rose-500 dark:text-rose-500" : "text-emerald-600 dark:text-emerald-500"
+                        }`}>
                           {isOverdrawn
                             ? "Company will recover this amount from future profits."
                             : "based on your profit share."}
@@ -1301,20 +1219,16 @@ export default function DashboardClient({
                       </div>
                     </div>
 
-                    {/* Total available business balance note */}
                     {!isOverdrawn && totalBizBalance > 0 && (
-                      <p className="mt-2 text-xs text-muted-foreground text-right">
+                      <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 text-right">
                         Total balance:{" "}
-                        {totalBizBalance.toLocaleString(undefined, {
-                          minimumFractionDigits: 0,
-                        })}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          SAR
+                        <span className="font-semibold text-slate-600 dark:text-slate-300">
+                          {totalBizBalance.toLocaleString(undefined, { minimumFractionDigits: 0 })} SAR
                         </span>
                       </p>
                     )}
                   </div>
-                </Card>
+                </div>
               );
             });
           })()}
@@ -2103,158 +2017,120 @@ export default function DashboardClient({
         );
       })()}
 
-      {/* Lifetime Metrics - Unified Financial Overview */}
-      <div className="space-y-3">
-        <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5 border-b border-border/40 pb-2">
-          <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-          4. Company Lifetime Metrics
-        </h2>
-        <Card className="overflow-hidden bg-gradient-to-br from-card to-card/90 shadow-md border border-border/80 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
-          {/* Main layout: responsive grid split */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border/60">
-            {/* Left Hero Area: Available Balance (Active Treasury) */}
-            <div className="lg:col-span-5 p-5 flex flex-col justify-between bg-purple-50/20 dark:bg-purple-950/5 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-[#0F0A19]/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-300" />
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2.5 bg-purple-100 dark:bg-[#0F0A19]/40 text-purple-700 dark:text-purple-300 rounded-xl">
-                    <Wallet className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Treasury Balance
-                    </span>
-                    <h3 className="text-sm font-bold text-purple-950 dark:text-purple-300">
-                      Available Balance
-                    </h3>
-                  </div>
-                </div>
+      {/* 4. Company Lifetime Metrics */}
+      <div className="rounded-xl border border-purple-200/60 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/70 to-white dark:from-purple-950/20 dark:to-background p-4 sm:p-5 shadow-sm">
+        {/* Section Header */}
+        <div className="mb-4">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <span className="w-1 h-7 bg-blue-600 dark:bg-blue-500 rounded-full" />
+            4. Company Lifetime Metrics
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+            Overall long-term financial performance
+          </p>
+        </div>
 
-                {(() => {
-                  const totalBalance = data.summary.ownerBalances.reduce(
-                    (sum, o) => sum + o.balance,
-                    0,
-                  );
-                  return (
-                    <div className="space-y-2">
-                      <h1 className="text-xl md:text-2xl lg:text-4xl font-black text-card-foreground tracking-tight">
-                        {totalBalance.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        <span className="text-xs lg:text-lg text-muted-foreground">
-                          SAR
-                        </span>
-                      </h1>
+        {(() => {
+          const totalBalance = data.summary.ownerBalances.reduce(
+            (sum, o) => sum + o.balance,
+            0,
+          );
+          const lifetimeStats = [
+            {
+              icon: <Wallet className="h-5 w-5" />,
+              iconBg: "bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400",
+              borderColor: "border-purple-200/70 dark:border-purple-900/30",
+              accentColor: "bg-purple-500",
+              label: "Treasury Balance",
+              sublabel: "Available Balance",
+              value: totalBalance,
+              valueColor: "text-slate-900 dark:text-white",
+            },
+            {
+              icon: <TrendingUp className="h-5 w-5" />,
+              iconBg: "bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-400",
+              borderColor: "border-green-200/70 dark:border-green-900/30",
+              accentColor: "bg-green-500",
+              label: "Total Income",
+              sublabel: null,
+              value: data.summary.totalIncome,
+              valueColor: "text-slate-900 dark:text-white",
+            },
+            {
+              icon: <TrendingDown className="h-5 w-5" />,
+              iconBg: "bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400",
+              borderColor: "border-rose-200/70 dark:border-rose-900/30",
+              accentColor: "bg-rose-500",
+              label: "Total Expenses",
+              sublabel: null,
+              value: data.summary.totalExpenses,
+              valueColor: "text-slate-900 dark:text-white",
+            },
+            {
+              icon: <DollarSign className="h-5 w-5" />,
+              iconBg: "bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400",
+              borderColor: "border-purple-200/70 dark:border-purple-900/30",
+              accentColor: "bg-purple-500",
+              label: "Net Profit",
+              sublabel: null,
+              value: data.summary.netProfit,
+              valueColor: data.summary.netProfit >= 0 ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-rose-400",
+            },
+          ];
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {lifetimeStats.map((stat, i) => (
+                <div
+                  key={i}
+                  className={`relative overflow-hidden rounded-xl bg-white dark:bg-zinc-900/80 border ${stat.borderColor} p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all duration-200`}
+                >
+                  <div className={`absolute left-0 top-0 h-full w-1 ${stat.accentColor} rounded-r-sm`} />
+                  <div className="flex items-center gap-3 pl-1">
+                    <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${stat.iconBg}`}>
+                      {stat.icon}
                     </div>
-                  );
-                })()}
-              </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                        {stat.label}
+                      </p>
+                      {stat.sublabel && (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{stat.sublabel}</p>
+                      )}
+                      <p className={`mt-0.5 text-lg sm:text-xl font-black tracking-tight tabular-nums ${stat.valueColor}`}>
+                        {stat.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                        <span className="text-xs font-bold text-slate-400">SAR</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Right Side: Lifetime breakdown grid */}
-            <div className="lg:col-span-7 p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 items-stretch">
-              {/* Stat 1: Total Income */}
-              <div className="group relative overflow-hidden rounded-xl border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="absolute left-0 top-0 h-full w-1 bg-green-500" />
-
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600 transition-all duration-300 group-hover:bg-green-500 group-hover:text-white dark:bg-green-900/40">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Total Income
-                    </p>
-
-                    <h2 className="mt-0.5 md:text-xl font-black tracking-tight">
-                      {data.summary.totalIncome.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                      <span className="text-xs text-muted-foreground">SAR</span>
-                    </h2>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stat 2: Total Expenses */}
-              <div className="group relative overflow-hidden rounded-xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
-
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white dark:bg-rose-900/40">
-                    <TrendingDown className="h-5 w-5" />
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Total Expenses
-                    </p>
-
-                    <h2 className="mt-0.5 md:text-xl font-black tracking-tight">
-                      {data.summary.totalExpenses.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                      <span className="text-xs text-muted-foreground">SAR</span>
-                    </h2>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stat 3: Net Profit */}
-              <div className="group relative overflow-hidden rounded-xl border border-purple-200/60 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="absolute left-0 top-0 h-full w-1 bg-purple-500" />
-
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-600 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white dark:bg-[#0F0A19]/40">
-                    <DollarSign className="h-5 w-5" />
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Net Profit
-                    </p>
-
-                    <h2
-                      className={`mt-0.5 md:text-xl font-black tracking-tight ${
-                        data.summary.netProfit >= 0
-                          ? "text-card-foreground"
-                          : "text-rose-600 dark:text-rose-400"
-                      }`}
-                    >
-                      {data.summary.netProfit.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                      <span className="text-xs text-muted-foreground">SAR</span>
-                    </h2>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+          );
+        })()}
       </div>
 
-      {/* Expense Category Details */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/40 pb-2">
-          <h2 className="text-xl md:text-2xl font-black text-purple-950 dark:text-purple-300 tracking-tight flex items-center gap-2.5">
-            <span className="w-1.5 h-6 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            5. Expense Category Details
-          </h2>
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Select Month:
+      {/* 5. Expense Category Details */}
+      <div className="rounded-xl border border-orange-200/60 dark:border-orange-900/40 bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-950/10 dark:to-background p-4 sm:p-5 shadow-sm">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <span className="w-1 h-7 bg-orange-500 dark:bg-orange-400 rounded-full" />
+              5. Expense Category Details
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
+              Monthly expense distribution by category
+            </p>
+          </div>
+          <div className="flex items-center gap-2 pl-3.5 sm:pl-0">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              SELECT MONTH:
             </span>
             <Select
               value={selectedBreakdownMonth}
               onValueChange={setSelectedBreakdownMonth}
             >
-              <SelectTrigger className="w-[180px] bg-card border-border text-card-foreground shadow-sm">
+              <SelectTrigger className="w-[145px] sm:w-[165px] bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-100 font-semibold text-sm rounded-lg shadow-xs h-9">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -2268,195 +2144,149 @@ export default function DashboardClient({
             </Select>
           </div>
         </div>
-        <Card className="overflow-hidden shadow-md border border-border/80 bg-gradient-to-br from-card to-card/95 hover:shadow-2xl transition-all duration-300">
-          {isBreakdownLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground w-full bg-purple-50/10 dark:bg-purple-950/5">
-              <Activity className="w-8 h-8 animate-spin text-purple-600 dark:text-purple-400" />
-              <span className="text-sm font-semibold tracking-wide">Loading breakdown...</span>
-            </div>
-          ) : (
-            <div className="flex flex-col lg:flex-row">
-              {/* Donut Chart Area */}
-              <div className="lg:w-72 flex-shrink-0 p-4 lg:p-8 flex flex-col items-center justify-center bg-purple-50/20 dark:bg-purple-950/5 border-b lg:border-b-0 lg:border-r border-border/60 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/30 dark:bg-[#0F0A19]/10 rounded-bl-full -z-10" />
-                {(() => {
-                  const totalExpense = expenseBreakdown.reduce(
-                    (s, e) => s + e.total,
-                    0,
-                  );
-                  return (
-                    <div className="relative">
-                      <ResponsiveContainer width={220} height={220}>
-                        <PieChart>
-                          <Pie
-                            data={
-                              expenseBreakdown.length > 0
-                                ? expenseBreakdown
-                                : [{ category: { name: "No Data" }, total: 1 }]
-                            }
-                            dataKey="total"
-                            nameKey="category.name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={68}
-                            outerRadius={105}
-                            paddingAngle={2}
-                            startAngle={90}
-                            endAngle={-270}
-                          >
-                            {expenseBreakdown.length > 0 ? (
-                              expenseBreakdown.map((_, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={
-                                    COLOR_PALETTE[index % COLOR_PALETTE.length]
-                                  }
-                                  stroke="none"
-                                />
-                              ))
-                            ) : (
-                              <Cell fill="#e2e8f0" stroke="none" />
-                            )}
-                          </Pie>
-                          <Tooltip
-                            formatter={(value, name) => [
-                              `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`,
-                              name,
-                            ]}
-                            contentStyle={{
-                              background: tooltipBg,
-                              border: `1px solid ${tooltipBorder}`,
-                              borderRadius: "12px",
-                              color: isDark ? "#e2e8f0" : "#1e293b",
-                              fontSize: "12px",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      {/* Center label */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                          Total
-                        </p>
-                        <p className="md:text-xl lg:text-2xl font-black text-card-foreground leading-tight tracking-tight">
-                          {totalExpense.toLocaleString(undefined, {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}{" "}
-                          <span className="text-xs text-muted-foreground">
-                            SAR
-                          </span>
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                          {selectedBreakdownMonth === "all"
-                            ? "All Time"
-                            : data.monthlyPerformance.find(
-                                (m) => m.month.toString() === selectedBreakdownMonth,
-                              )?.monthName || "This Month"}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
 
-              {/* Category Cards List */}
-              <div className="flex-1 p-4 lg:p-4">
-                <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-border/40">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Category Breakdown
-                  </span>
-                  <span className="ml-auto text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-0.5 rounded-full">
-                    {expenseBreakdown.length} categories
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {(() => {
-                    const totalExpense = expenseBreakdown.reduce(
-                      (s, e) => s + e.total,
-                      0,
-                    );
-                    return expenseBreakdown
-                      .slice()
-                      .sort((a, b) => b.total - a.total)
-                      .map((entry, index) => {
-                        const pct =
-                          totalExpense > 0
-                            ? (entry.total / totalExpense) * 100
-                            : 0;
-                        const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
-                        return (
-                          <div
-                            key={index}
-                            className="relative overflow-hidden rounded-xl border border-border/50 bg-muted/20 dark:bg-muted/5 p-4 hover:bg-muted/40 dark:hover:bg-muted/10 hover:shadow-sm transition-all duration-200 group"
-                          >
-                            <div
-                              className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
-                              style={{ backgroundColor: color }}
-                            />
-                            <div className="flex items-center justify-between gap-2.5">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <span
-                                  className="inline-block w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-card"
-                                  style={{
-                                    backgroundColor: color,
-                                  }}
-                                />
-                                <span className="font-semibold text-sm text-card-foreground truncate">
-                                  {entry.category.name}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2.5 flex-shrink-0">
-                                <span className="text-base font-bold text-card-foreground tabular-nums">
-                                  {entry.total.toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  })}{" "}
-                                  <span className="text-xs text-muted-foreground">
-                                    SAR
-                                  </span>
-                                </span>
-                                <span className="text-xs font-bold text-muted-foreground tabular-nums bg-muted/50 px-2 py-0.5 rounded-full min-w-[52px] text-center">
-                                  {pct.toFixed(1)}%
-                                </span>
-                              </div>
-                            </div>
-                            {/* Progress bar */}
-                            <div className="mt-2 h-1.5 bg-muted/50 dark:bg-muted/20 rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${Math.min(pct, 100)}%`,
-                                  backgroundColor: color,
-                                }}
+        {isBreakdownLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
+            <Activity className="w-8 h-8 animate-spin text-orange-500 dark:text-orange-400" />
+            <span className="text-sm font-semibold tracking-wide">Loading breakdown...</span>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Donut Chart */}
+            <div className="flex-shrink-0 flex flex-col items-center justify-center bg-white dark:bg-zinc-900/80 rounded-xl border border-slate-200/70 dark:border-zinc-800 p-4 shadow-xs lg:w-64">
+              {(() => {
+                const totalExpense = expenseBreakdown.reduce((s, e) => s + e.total, 0);
+                const monthLabel = selectedBreakdownMonth === "all"
+                  ? "All Time"
+                  : data.monthlyPerformance.find((m) => m.month.toString() === selectedBreakdownMonth)?.monthName || "This Month";
+                return (
+                  <div className="relative">
+                    <ResponsiveContainer width={200} height={200}>
+                      <PieChart>
+                        <Pie
+                          data={expenseBreakdown.length > 0 ? expenseBreakdown : [{ category: { name: "No Data" }, total: 1 }]}
+                          dataKey="total"
+                          nameKey="category.name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={62}
+                          outerRadius={95}
+                          paddingAngle={2}
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {expenseBreakdown.length > 0 ? (
+                            expenseBreakdown.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} stroke="none" />
+                            ))
+                          ) : (
+                            <Cell fill="#e2e8f0" stroke="none" />
+                          )}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name) => [
+                            `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SAR`,
+                            name,
+                          ]}
+                          contentStyle={{
+                            background: tooltipBg,
+                            border: `1px solid ${tooltipBorder}`,
+                            borderRadius: "10px",
+                            color: isDark ? "#e2e8f0" : "#1e293b",
+                            fontSize: "12px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">TOTAL</p>
+                      <p className="text-xl font-black text-slate-900 dark:text-white leading-tight tabular-nums">
+                        {totalExpense.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}{" "}
+                        <span className="text-xs font-bold text-slate-400">SAR</span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{monthLabel}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Category list */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  Category Breakdown
+                </span>
+                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full">
+                  {expenseBreakdown.length} categories
+                </span>
+              </div>
+              <div className="space-y-2">
+                {(() => {
+                  const totalExpense = expenseBreakdown.reduce((s, e) => s + e.total, 0);
+                  return expenseBreakdown
+                    .slice()
+                    .sort((a, b) => b.total - a.total)
+                    .map((entry, index) => {
+                      const pct = totalExpense > 0 ? (entry.total / totalExpense) * 100 : 0;
+                      const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+                      return (
+                        <div key={index} className="bg-white dark:bg-zinc-900/80 rounded-xl border border-slate-100/80 dark:border-zinc-800 p-3 shadow-xs hover:shadow-sm transition-all duration-200">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: color }}
                               />
+                              <span className="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">
+                                {entry.category.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="font-bold text-sm text-slate-900 dark:text-white tabular-nums">
+                                {entry.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                                <span className="text-xs font-semibold text-slate-400">SAR</span>
+                              </span>
+                              <span
+                                className="text-[11px] font-black tabular-nums px-2 py-0.5 rounded-full min-w-[46px] text-center"
+                                style={{ backgroundColor: `${color}20`, color }}
+                              >
+                                {pct.toFixed(1)}%
+                              </span>
                             </div>
                           </div>
-                        );
-                      });
-                  })()}
-                  {expenseBreakdown.length === 0 && (
-                    <div className="py-8 text-center text-muted-foreground text-sm">
-                      No expense data available
-                    </div>
-                  )}
-                </div>
+                          {/* Progress bar */}
+                          <div className="mt-2 h-1.5 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    });
+                })()}
+                {expenseBreakdown.length === 0 && (
+                  <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+                    No expense data available
+                  </div>
+                )}
+              </div>
 
-                {/* Footer */}
-                <div className="mt-6 pt-4 border-t border-border/40">
-                  <a
-                    href="/reports"
-                    className="inline-flex items-center gap-2.5 text-sm font-semibold text-[#3e0078] dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 px-4 py-2 rounded-xl transition-all duration-200"
-                  >
-                    <Activity className="w-4 h-4" />
-                    View Detailed Report
-                  </a>
-                </div>
+              {/* Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-zinc-800">
+                <a
+                  href="/reports"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#3e0078] dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 px-4 py-2 rounded-lg transition-all duration-200"
+                >
+                  <Activity className="w-4 h-4" />
+                  View Detailed Report
+                </a>
               </div>
             </div>
-          )}
-        </Card>
+          </div>
+        )}
       </div>
 
       <div className="py-4 text-center text-sm text-muted-foreground">
