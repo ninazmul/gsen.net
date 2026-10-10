@@ -732,7 +732,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
                             <TrendingUp className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
                             Sales
                           </span>
                           <span className="font-bold text-xs sm:text-sm tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
@@ -744,7 +744,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
                             <TrendingDown className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
                             Expenses
                           </span>
                           <span className="font-bold text-xs sm:text-sm tabular-nums text-rose-600 dark:text-rose-400 whitespace-nowrap">
@@ -756,7 +756,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
                             <DollarSign className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
                             Net Profit
                           </span>
                           <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${todayNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
@@ -781,7 +781,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
                             <TrendingUp className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
                             Sales
                           </span>
                           <span className="font-bold text-xs sm:text-sm tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
@@ -793,7 +793,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
                             <TrendingDown className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
                             Expenses
                           </span>
                           <span className="font-bold text-xs sm:text-sm tabular-nums text-rose-600 dark:text-rose-400 whitespace-nowrap">
@@ -805,7 +805,7 @@ export default function DashboardClient({
                           <div className="w-7 h-7 flex-shrink-0 rounded-md flex items-center justify-center bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
                             <DollarSign className="w-3.5 h-3.5" />
                           </div>
-                          <span className="flex-1 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
                             Net Profit
                           </span>
                           <span className={`font-bold text-xs sm:text-sm tabular-nums whitespace-nowrap ${monthNet >= 0 ? "text-purple-700 dark:text-purple-300" : "text-rose-600 dark:text-rose-400"
