@@ -1025,108 +1025,7 @@ export default function DashboardClient({
         </SheetContent>
       </Sheet>
 
-      {/* 3. Owner Settlement Overview */}
-      <div className="rounded-xl border border-purple-200/60 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/70 to-white dark:from-purple-950/20 dark:to-background p-4 sm:p-5 shadow-sm">
-        {/* Section Header */}
-        <div className="mb-4">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <span className="w-1 h-7 bg-purple-600 dark:bg-purple-500 rounded-full" />
-            3. Owner Settlement Overview
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-3.5 font-medium">
-            Current partner balance and withdrawal status
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-          {(() => {
-            const totalNetProfit = data.summary.netProfit;
-            const numOwners = data.summary.ownerBalances.length || 1;
-            const equalShare = totalNetProfit / numOwners;
-
-            return data.summary.ownerBalances.map((owner, index) => {
-              const alreadyTaken = owner.withdrawn;
-              const profitShare = equalShare;
-              const remainingDue = Math.max(0, profitShare - alreadyTaken);
-              const isOverdrawn = alreadyTaken > profitShare;
-              const sharePercent = numOwners > 0 ? Math.round(100 / numOwners) : 0;
-
-              const statRows = [
-                {
-                  icon: <DollarSign className="w-4 h-4" />,
-                  iconBg: "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400",
-                  label: `Profit Share (${sharePercent}%)`,
-                  value: profitShare.toLocaleString(undefined, { minimumFractionDigits: 0 }),
-                  valueColor: "text-slate-900 dark:text-white",
-                },
-                {
-                  icon: <Wallet className="w-4 h-4" />,
-                  iconBg: "bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400",
-                  label: "Withdrawn",
-                  value: alreadyTaken.toLocaleString(undefined, { minimumFractionDigits: 0 }),
-                  valueColor: "text-slate-900 dark:text-white",
-                },
-                {
-                  icon: <TrendingUp className="w-4 h-4" />,
-                  iconBg: "bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-400",
-                  label: "Available",
-                  value: remainingDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                  valueColor: remainingDue > 0 ? "text-green-600 dark:text-green-400" : "text-slate-400 dark:text-slate-500",
-                },
-              ];
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white dark:bg-zinc-900/80 rounded-xl border border-slate-200/70 dark:border-zinc-800 shadow-xs overflow-hidden"
-                >
-                  {/* Owner header row */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-zinc-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#3e0078] to-[#7c3aed] flex items-center justify-center text-white flex-shrink-0 shadow-md">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <span className="font-black text-base sm:text-lg uppercase tracking-wide text-slate-900 dark:text-white">
-                        {owner.name}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-[11px] font-black px-3 py-1 rounded-full tracking-widest uppercase ${
-                        isOverdrawn
-                          ? "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
-                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-                      }`}
-                    >
-                      {isOverdrawn ? "Overdrawn" : "Available"}
-                    </span>
-                  </div>
-
-                  {/* Stat rows */}
-                  <div className="p-3 sm:p-4 space-y-2">
-                    {statRows.map((row, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-50/80 dark:bg-zinc-800/60 border border-slate-100/80 dark:border-zinc-700/50"
-                      >
-                        <div className={`w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center ${row.iconBg}`}>
-                          {row.icon}
-                        </div>
-                        <span className="flex-1 text-sm font-medium text-slate-600 dark:text-slate-300 truncate">
-                          {row.label}
-                        </span>
-                        <span className={`font-bold text-sm sm:text-base tabular-nums whitespace-nowrap ${row.valueColor}`}>
-                          {row.value}{" "}
-                          <span className="text-xs font-semibold text-slate-400">SAR</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </div>
-      </div>
 
       {/* 3A. Cash Settlement Section */}
       {(() => {
@@ -1313,7 +1212,7 @@ export default function DashboardClient({
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                    3A. Cash Settlement
+                    3. Cash Settlement
                   </h2>
                   <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Partner cash position and monthly settlement
@@ -1358,6 +1257,96 @@ export default function DashboardClient({
                     </span>
                   )}
                 </Button>
+              </div>
+            </div>
+
+            {/* Compact Owner Settlement Overview */}
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  Owner Settlement Overview
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                  Lifetime profit share & withdrawal status
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+                {data.summary.ownerBalances.map((owner, index) => {
+                  const alreadyTaken = owner.withdrawn;
+                  const profitShare = data.summary.netProfit / numOwners;
+                  const remainingDue = Math.max(0, profitShare - alreadyTaken);
+                  const isOverdrawn = alreadyTaken > profitShare;
+                  const sharePercent = numOwners > 0 ? Math.round(100 / numOwners) : 0;
+
+                  return (
+                    <div
+                      key={index}
+                      className="bg-white dark:bg-zinc-900/90 rounded-xl p-3 sm:p-3.5 border border-slate-200/70 dark:border-zinc-800/80 shadow-xs space-y-2.5"
+                    >
+                      {/* Owner header row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3e0078] to-[#7c3aed] flex items-center justify-center text-white text-xs font-black shadow-xs flex-shrink-0">
+                            {owner.name ? owner.name.charAt(0).toUpperCase() : "P"}
+                          </div>
+                          <div>
+                            <span className="font-black text-xs sm:text-sm uppercase tracking-wide text-slate-900 dark:text-white block leading-tight">
+                              {owner.name}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                              Profit Share ({sharePercent}%)
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[10px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase ${
+                            isOverdrawn
+                              ? "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+                              : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+                          }`}
+                        >
+                          {isOverdrawn ? "Overdrawn" : "Available"}
+                        </span>
+                      </div>
+
+                      {/* 3 mini stat blocks */}
+                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-100 dark:border-zinc-800/80">
+                        {/* Profit Share */}
+                        <div className="bg-slate-50 dark:bg-zinc-800/40 rounded-lg p-2 text-center border border-slate-100 dark:border-zinc-800/60">
+                          <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block truncate">
+                            Share
+                          </span>
+                          <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tabular-nums block mt-0.5">
+                            {profitShare.toLocaleString(undefined, { minimumFractionDigits: 0 })} <span className="text-[9px] text-slate-400 font-semibold">SAR</span>
+                          </span>
+                        </div>
+
+                        {/* Withdrawn */}
+                        <div className="bg-amber-50/60 dark:bg-amber-950/20 rounded-lg p-2 text-center border border-amber-100/70 dark:border-amber-900/30">
+                          <span className="text-[9.5px] sm:text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block truncate">
+                            Withdrawn
+                          </span>
+                          <span className="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 tabular-nums block mt-0.5">
+                            {alreadyTaken.toLocaleString(undefined, { minimumFractionDigits: 0 })} <span className="text-[9px] text-amber-600/70 font-semibold">SAR</span>
+                          </span>
+                        </div>
+
+                        {/* Available */}
+                        <div className="bg-emerald-50/60 dark:bg-emerald-950/20 rounded-lg p-2 text-center border border-emerald-100/70 dark:border-emerald-900/30">
+                          <span className="text-[9.5px] sm:text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block truncate">
+                            Available
+                          </span>
+                          <span className={`text-xs sm:text-sm font-black tabular-nums block mt-0.5 ${
+                            remainingDue > 0 ? "text-emerald-800 dark:text-emerald-300" : "text-slate-400 dark:text-slate-500"
+                          }`}>
+                            {remainingDue.toLocaleString(undefined, { minimumFractionDigits: 0 })} <span className="text-[9px] text-emerald-600/70 font-semibold">SAR</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
